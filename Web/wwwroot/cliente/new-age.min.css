@@ -165,7 +165,7 @@ section h2 {
 
 header.masthead {
     color: #fff;
-    background: url(./../../../assets/images/bg-pattern.png), linear-gradient(to left, #259ea7, #064b83)
+    background: url(../images/bg-pattern.png), linear-gradient(to left, #259ea7, #064b83)
 }
 
 header.masthead .header-content {

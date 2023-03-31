@@ -1,49 +1,65 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>@ViewData["Title"] - Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/Web.styles.css" asp-append-version="true"/>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>@ViewData["Title"]</title>
+	<link rel="stylesheet" href="~/cliente/bootstrap.min.css"/>
+	<link rel="stylesheet" href="~/cliente/new-age.min.css"/>
+
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+	<link rel="stylesheet" href="~/Web.styles.css" asp-append-version="true"/>
+	
+	<link rel="icon" type="image/x-icon" href="~/images/identity/LOGO.png">
+	
 </head>
-<body>
 <header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-        <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Web</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                    </li>
-                </ul>
-                <partial name="_LoginPartial"/>
-            </div>
-        </div>
-    </nav>
+	@if (ViewData.ContainsKey("withnav")) {
+		<nav class="sticky-top  shadow-sm p-2 bg-new text-white">
+			<div class="d-flex flex-column flex-md-row justify-content-between">
+				<h2 class="py-2 mx-5 txt-phishing">TEST DE PHISHING</h2>
+				<div class="navbar mx-5">
+					<a href="#descripcion" class="nav-link mb-auto">¿Que es Phishing?</a>
+					<a href="#footer-contact" class="nav-link mb-auto">Contactos</a>
+				</div>
+			</div>
+		</nav>
+	}
 </header>
+
+<body class="bg-new">
+
 <div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
+	<main role="main" class="pb-3">
+		@RenderBody()
+	</main>
 </div>
 
-<footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2023 - Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-    </div>
+<footer class="d-flex font-small blue" id="footer-contact">
+
+	<div class="ml-5 text-center py-3">
+		<h4>Contactos</h4>
+		<p>
+			<strong>Dario Ismael Valarezo Bracho</strong>
+		</p>
+		<p>Email: <a href="mailto:dariojd1320@outlook.es">dariojd1320@outlook.es</a></p> <br>
+		<p>
+			<strong>Diana Anabel Arévalo Briceño</strong>
+		</p>
+		<p>Email: <a href="mailto:dianabela30@gmail.com">dianabela30@gmail.com</a></p>
+
+	</div>
+	<div class="mx-auto my-auto text-center py-3">
+		<p>&copy; Phishing Detection 2021. All Rights Reserved.</p>
+		<p>Universidad de las Fuerzas Armadas - ESPE</p>
+	</div>
+
 </footer>
+
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/cliente/jquery.easing.min.js"></script>
+<script src="~/cliente/bootstrap.bundle.min.js"></script>
+<script src="~/cliente/new-age.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
