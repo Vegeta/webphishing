@@ -10,7 +10,7 @@ public class Program {
 
 		// Add services to the container.
 		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-		                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+							   throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 		builder.Services.AddDbContext<ApplicationDbContext>(options =>
 			options.UseSqlite(connectionString));
 		builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -25,15 +25,14 @@ public class Program {
 		// Configure the HTTP request pipeline.
 		if (app.Environment.IsDevelopment()) {
 			app.UseMigrationsEndPoint();
-		}
-		else {
+		} else {
 			app.UseExceptionHandler("/Home/Error");
 			// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 			app.UseHsts();
 		}
 
 		// https://stackoverflow.com/questions/70511588/how-to-enable-cors-in-asp-net-core-6-0-web-api-project
-		app.UseCors(builder => builder
+		app.UseCors(options => options
 			.AllowAnyHeader()
 			.AllowAnyMethod()
 			.SetIsOriginAllowed((host) => true)
@@ -50,6 +49,11 @@ public class Program {
 		app.MapControllerRoute(
 			name: "default",
 			pattern: "{controller=Home}/{action=Index}/{id?}");
+
+		app.MapControllerRoute(
+			name: "MyArea",
+			pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
 		app.MapRazorPages();
 
 		app.Run();
