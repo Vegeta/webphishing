@@ -80,7 +80,7 @@ namespace Webapp.Models {
 					}
 				),
 				new MenuItem {
-					Name = "Administración",
+					Name = "AdministraciÃ³n",
 					Accesos = "admin",
 					Icon = "bi-terminal-fill"
 				}.AddChildren(
