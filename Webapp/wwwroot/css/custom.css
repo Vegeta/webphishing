@@ -1,0 +1,67 @@
+﻿.minitabla > tbody > tr > th {
+	padding: 4px 5px !important;
+	font-size: 12px;
+}
+
+.minitabla thead th {
+	padding: 3px !important;
+	font-size: 12px;
+}
+
+.minitabla > tbody > tr > td {
+	padding: 3px !important;
+	font-size: 12px;
+}
+
+.minitabla.centerhead > thead > tr > th,
+.minitabla.center > tbody > tr > td,
+.minitabla.center > tbody > tr > th {
+	text-align: center;
+}
+
+.minitabla input {
+	font-size: 12px;
+	/*border: 0;*/
+	/*border-bottom: 1px solid #ccc;*/
+	padding: 2px 4px;
+}
+
+.minitabla textarea {
+	font-size: 12px;
+	padding: 4px 4px;
+}
+
+.minitabla select.form-control {
+	font-size: 13px;
+	padding-left: 3px;
+}
+
+.minitabla input[type="checkbox"].input-sm, .minitabla input[type="radio"].input-sm {
+	margin: 3px !important;
+	height: initial;
+	/*margin: 4px 0 0 !important;*/
+	/*margin-top: 1px \9;*/
+	/*line-height: normal;*/
+}
+
+.minitabla div.form-control {
+	font-size: 12px;
+}
+
+/*OTROS*/
+
+.btn-sm {
+	--bs-btn-padding-y: .25rem;
+	--bs-btn-padding-x: .5rem;
+	--bs-btn-font-size: .75rem;
+}
+
+a {
+	cursor: pointer !important;
+}
+
+.rcorners2 {
+	border-radius: 25px !important;
+	border: 2px solid #73AD21 !important;
+	padding: 20px;
+}

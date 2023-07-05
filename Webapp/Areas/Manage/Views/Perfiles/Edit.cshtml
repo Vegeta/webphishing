@@ -1,0 +1,150 @@
+﻿@model Webapp.Models.PerfilModelWeb
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+	<form id="formPerfil">
+		<div class="row">
+			<div class="col-sm-6">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">@ViewBag.banner</h5>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Nombre</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="nombres" v-model="model.nombre" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Identificador</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="Identificador" v-model="model.identificador" required>
+							</div>
+						</div>
+
+						<hr />
+
+						<table class="table minitabla table-hover">
+							<tr>
+								<th style="width:30px"></th>
+								<th>Permiso</th>
+							</tr>
+							<tr v-for="i in opciones" @@click="i.selected = !i.selected" style="cursor:pointer">
+								<td>
+									<input type="checkbox" v-model="i.selected" />
+								</td>
+								<td v-text="i.text"></td>
+							</tr>
+						</table>
+
+						<hr />
+
+						<div class="mt-3 text-center">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-save"></i>
+								Guardar
+							</button>
+
+							<button type="button" class="btn btn-danger ms-2" @@click="eliminar()" v-if="model.id">
+								<i class="bi bi-file-minus"></i>
+								Eliminar
+							</button>
+
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-6">
+				<div class="card" v-if="model.id">
+					<div class="card-body">
+						<h5 class="card-title">Usuarios</h5>
+
+						<button type="button" class="btn btn-sm btn-primary" @@click="verUsuarios()">Ver</button>
+
+						<div style="max-height:400px">
+							<table class="table minitabla">
+								@*href="@Url.Content("~/Manage/Perfiles/crear")"*@
+								<tr v-for="u in usuarios">
+									<td>
+										<a :href="'@Url.Content("~/Manage/Usuarios/edit/")'+u.id" 
+										   title="Detalle usuario nueva ventana"
+										   v-text="u.label" target="_blank"></a>
+									</td>
+									<td v-text="u.email"></td>
+								</tr>
+							</table>
+						</div>
+
+						
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					opciones: @Html.Raw(ViewBag.opciones),
+					baseurl: '@ViewBag.self',
+					usuarios: [],
+				}
+			},
+			methods: {
+				eliminar() {
+					if (!confirm("Eliminar este perfil?"))
+						return
+
+					var url = this.baseurl + '/delete/' + this.model.id
+					$.post(url).then(r => {
+						window.location.href = this.baseurl
+					})
+				},
+				verUsuarios() {
+					var self = this
+					var url = this.baseurl + '/usuarios/' + this.model.id
+					$.post(url).then(r => { self.usuarios = r })
+				}
+			},
+			mounted() {
+				var self = this;
+
+				$('#formPerfil').validate({
+					submitHandler() {
+						var m = self.model
+						m.permisos = []
+						self.opciones.forEach(e => {
+							if (e.selected)
+								m.permisos.push(e.value)
+						});
+
+						var base = self.baseurl
+						var url = base + '/guardar'
+						$('#formPerfil button').prop('disabled', true)
+						jsonPost(url, m).then(r => {
+							if (r.error) {
+								return alert(r.error)
+							}
+							var redir = base + '/edit/' + r.id
+							window.location.href = redir
+						})
+						return false;
+					}
+				})
+			}
+		}).mount('#app')
+
+	</script>
+}

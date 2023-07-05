@@ -1,0 +1,139 @@
+﻿<div class="row" id="app">
+	<div class="col-sm-12">
+
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title">Filtros</h5>
+
+				<form id="formFiltros" method="post">
+					<div class="row">
+						<div class="col-sm-4">
+							<div class="row mb-3">
+								<label class="col-sm-2 col-form-label col-form-label-sm">Nombre</label>
+								<div class="col-sm-10">
+									<input type="text" class="form-control form-control-sm" name="nombre" v-model="filtros.nombre">
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+					<div>
+						<button type="submit" class="btn btn-primary btn-sm">
+							<i class="bi bi-search"></i>
+							Filtrar
+						</button>
+
+						<a class="btn btn-primary btn-sm ms-1" href="@Url.Content("~/Manage/Perfiles/crear")">
+							<i class="bi bi-plus-square"></i>
+							Crear
+						</a>
+					</div>
+				</form>
+			</div>
+
+
+			<div class="card">
+				<div class="card-body">
+
+					<div class="mt-3">
+						<table class="display minitabla" id="tlista" style="width:100%">
+							<thead>
+								<tr>
+									<th>Nombre</th>
+									<th>Identificador</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="u in lista">
+									<td>
+										<a :href="baseUrl + '/Edit/' +u.id"></a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+@section Scripts {
+	@await Html.PartialAsync("_Datatables")
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+		Vue.createApp({
+			data() {
+				return {
+					baseUrl:'@ViewBag.self',
+					filtros:{
+						email:null,
+						nombre:null,
+					},
+					lista:[]
+				}
+			},
+			methods: {
+				filtrar() {
+					$('#tlista').DataTable().ajax.reload();
+				}
+			},
+			mounted() {
+				var self = this;
+				var tabla = $('#tlista').DataTable({
+					language: {
+						url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-AR.json',
+					},
+					columns: [
+						{
+							data: 'nombre',
+							render: function (data, type, row) {
+								let url = self.baseUrl + '/edit/' + row.id;
+								return `<a href="${url}">${row.email}</a>`
+							}
+						},
+						{ data: 'identificador' },
+					],
+					order: [],
+					searching: false,
+
+					processing: true,
+                    serverSide: true,
+
+					ajax: {
+						url: self.baseUrl +'/lista',
+						type: 'POST',
+                        async: true,
+						data: function (d) {
+							if (d.start == 0) {
+								d.page = 1
+							} else {
+								d.page = (d.start / d.length) + 1
+							}
+							d.jsonFiltros = JSON.stringify(self.filtros);
+
+							if (d.order.length > 0) {
+								d.order.forEach(e => {
+									e.campo = d.columns[e.column].data
+								});
+							}
+						},
+					},
+				});
+
+				$('#formFiltros').validate({
+					submitHandler() {
+						self.filtrar()
+						return false
+					}
+				})
+
+			}
+		}).mount('#app')
+
+	</script>
+}

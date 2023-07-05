@@ -1,0 +1,175 @@
+﻿@model Webapp.Models.UsuarioModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+	<form id="formUsuario">
+		<div class="row">
+			<div class="col-sm-6">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">@ViewBag.banner</h5>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Username</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="nombres" v-model="model.username" required>
+							</div>
+						</div>
+
+						<div class="row mb-3" v-if="!model.id">
+							<label for="" class="col-sm-2 col-form-label">Password</label>
+							<div class="col-sm-10">
+								<input type="password" class="form-control" name="pass" v-model="model.password" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Nombres</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="nombres" v-model="model.nombres" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Apellidos</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="apellidos" v-model="model.apellidos" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Perfil</label>
+							<div class="col-sm-10">
+								<select asp-items="Model.Perfiles" v-model="model.perfilId" name="perf"
+										class="form-select"></select>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Email</label>
+							<div class="col-sm-10">
+								<input class="form-control email" name="email" v-model="model.email" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Celular</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="cel" v-model="model.celular" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label"></label>
+							<div class="col-sm-10">
+								<div class="form-check">
+									<label class="form-check-label">
+										<input class="form-check-input" type="checkbox" value="" v-model="model.activo">
+										Activo
+									</label>
+								</div>
+							</div>
+						</div>
+
+
+						<hr />
+
+						<div class="mt-3 text-center">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-save"></i>
+								Guardar
+							</button>
+
+							<button type="button" class="btn btn-danger ms-2" @@click="eliminar()" v-if="model.id">
+								<i class="bi bi-file-minus"></i>
+								Eliminar
+							</button>
+
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-6">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">Opciones</h5>
+
+						<div v-if="model.id">
+							<label>Cambiar password</label>
+							<div class="row mb-3">
+								<div class="col-sm-10">
+									<input class="form-control" name="nuevopass" v-model="password" placeholder="Nuevo password">
+								</div>
+								<div class="col-sm-2">
+									<button type="button" class="btn btn-sm btn-primary" @@click="cambiarPassword()">Cambiar</button>
+								</div>
+							</div>
+
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					baseurl: '@ViewBag.self',
+					password: '',
+				}
+			},
+			methods: {
+				eliminar() {
+					if (!confirm("Eliminar este usuario?"))
+						return
+
+					var url = this.baseurl + '/delete/' + this.model.id
+					$.post(url).then(r => {
+						window.location.href = this.baseurl
+					})
+				},
+				cambiarPassword() {
+					if (!this.password)
+						return alert("Password vacio");
+					var url = this.baseurl + '/cambiarPassword'
+					$.post(url, { id: this.model.id, pass: this.password }).then(r => {
+						console.log(r)
+						alert(r.msg)
+					})
+				}
+			},
+			mounted() {
+				var self = this;
+
+				$('#formUsuario').validate({
+					submitHandler() {
+						var base = self.baseurl
+						var url = base + '/guardar'
+						$('#formUsuario button').prop('disabled', true)
+						jsonPost(url, self.model).then(r => {
+							if (r.error) {
+								return alert(r.error)
+							}
+							var redir = base + '/edit/' + r.id
+							window.location.href = redir
+						})
+						return false;
+					}
+				})
+			}
+		}).mount('#app')
+
+	</script>
+}

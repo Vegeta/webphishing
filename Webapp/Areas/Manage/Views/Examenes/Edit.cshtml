@@ -1,0 +1,232 @@
+﻿@model Webapp.Models.ExamenModelWeb
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+	<form id="formExamen" method="POST" action="">
+		<div class="row">
+			<div class="col-sm-5">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">@ViewBag.banner</h5>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Titulo</label>
+							<div class="col-sm-10">
+								<input class="form-control" name="titulo" v-model="model.titulo" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Tipo</label>
+							<div class="col-sm-10">
+								<select asp-items="Model.Tipos" v-model="model.tipo" name="tipo" required
+										class="form-select"></select>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label"></label>
+							<div class="col-sm-10">
+								<div class="form-check">
+									<label class="form-check-label">
+										<input class="form-check-input" type="checkbox" value="" v-model="model.activo">
+										Activo
+									</label>
+								</div>
+							</div>
+						</div>
+
+						<div v-if="model.id">
+							<table class="table minitabla">
+								<tr>
+									<th>Creacion</th>
+									<td v-text="model.creacion"></td>
+								</tr>
+								<tr>
+									<th>Modificacion</th>
+									<td v-text="model.modificacion"></td>
+								</tr>
+							</table>
+						</div>
+
+						<hr />
+
+						<div class="mt-3 text-center">
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-save"></i>
+								Guardar
+							</button>
+
+							<button type="button" class="btn btn-danger ms-2" @@click="eliminar()" v-if="model.id">
+								<i class="bi bi-file-minus"></i>
+								Eliminar
+							</button>
+
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-7">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">Preguntas</h5>
+
+						<table class="table minitabla table-hover">
+							<tr>
+								<th class="col-sm-1">Orden</th>
+								<th>Nombre</th>
+								<th>Dificultad</th>
+								<th>Legitimo</th>
+								<th style="width: 50px"></th>
+							</tr>
+							<tr v-for="p in model.preguntas">
+								<td>
+									<input v-model="p.orden" class="form-control input-sm integer" />
+								</td>
+								<td v-text="p.nombre"></td>
+								<td v-text="p.dificultad"></td>
+								<td v-text="p.legitimo"></td>
+								<td>
+									<button type="button" class="btn btn-sm btn-primary" @@click="delPregunta(p)">
+										<i class="bi bi-trash"></i>
+									</button>
+								</td>
+							</tr>
+						</table>
+						
+						<div>
+							<button type="button" class="btn btn-sm btn-primary" @@click="openPreguntas()">
+								Adicionar Pregunta
+							</button>
+							
+							<button type="button" class="btn btn-sm btn-secondary ms-1" @@click="reordenar()">
+								Reordenar
+							</button>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+
+	<div class="modal" tabindex="-1" id="modalPreguntas">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Preguntas disponibles</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div style="max-height:500px;overflow:auto">
+						<table class="table minitabla table-hover">
+							<tr>
+								<th>Nombre</th>
+								<th>Dificultad</th>
+								<th>Legitimo</th>
+								<th style="width: 50px"></th>
+							</tr>
+							<tr v-for="p in preguntas">
+								<td v-text="p.nombre"></td>
+								<td v-text="p.dificultad"></td>
+								<td v-text="p.legitimo"></td>
+								<td>
+									<button type="button" class="btn btn-sm btn-primary" title="Adicionar al Examen" @@click="addPregunta(p)">
+										<i class="bi bi-plus-circle"></i>
+									</button>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					baseurl: '@ViewBag.self',
+					preguntas: [],
+				}
+			},
+			methods: {
+				maximo() {
+					let e = _.maxBy(this.model.preguntas, x => x.orden)
+					return e ? e.orden : 0
+				},
+				reordenar() {
+					let list = _.sortBy(this.model.preguntas, ['orden'])
+					this.model.preguntas = list
+				},
+				openPreguntas() {
+					var self = this
+					$.post(this.baseurl + '/preguntas').then(r => {
+						self.preguntas = r
+						$('#modalPreguntas').modal('show')
+					});
+				},
+				addPregunta(p) {
+					let check = _.find(this.model.preguntas, { preguntaId: p.id })
+					if (check)
+						return alert("La pregunta ya se encuentra en el examen")
+					let next = this.maximo() + 1
+					this.model.preguntas.push({
+						id: null, preguntaId: p.id, nombre: p.nombre, dificultad:p.dificultad, legitimo:p.legitimo, orden:next
+					})
+					$('#modalPreguntas').modal('hide')
+				},
+				delPregunta(p) {
+					var ix = this.model.preguntas.indexOf(p);
+					this.model.preguntas.splice(ix, 1);
+					if (p.id)
+						this.model.deleted.push(p.id)
+				},
+				eliminar() {
+					if (!confirm("Eliminar este examen?"))
+						return
+					var url = this.baseurl + '/delete/' + this.model.id
+					$.post(url).then(r => {
+						window.location.href = this.baseurl
+					})
+				},
+				guardar(f) {
+					var base = this.baseurl;
+					var url = this.baseurl + '/guardar'
+					$('#formExamen button').prop('disabled', true)
+					jsonPost(url, this.model).then(r => {
+						if (r.error) {
+							$('#formExamen button').prop('disabled', false)
+							return alert(r.error)
+						}
+						var redir = base + '/edit/' + r.id
+						window.location.href = redir
+					})
+					return false;
+				}
+			},
+			mounted() {
+				var self = this;
+
+				$('#formExamen').validate({
+					submitHandler: this.guardar
+				})
+			}
+		}).mount('#app')
+
+	</script>
+}
