@@ -9,6 +9,7 @@ public class CuestionarioModelWeb {
 	public DateTime? Modificacion { get; set; }
 	[Required]
 	public string? Titulo { get; set; }
+	public string? Instrucciones { get; set; }
 
 	public List<CuestPreguntaModel> Preguntas { get; set; } = new();
 }
@@ -16,5 +17,8 @@ public class CuestionarioModelWeb {
 public class CuestPreguntaModel {
 	public int Orden { get; set; }
 	public string? Texto { get; set; }
+}
 
+public class CuestRespuestaModel : CuestPreguntaModel {
+	public string? Respuesta{ get; set; }
 }

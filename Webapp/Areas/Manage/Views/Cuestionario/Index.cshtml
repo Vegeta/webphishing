@@ -8,28 +8,35 @@
 				<div class="card">
 					<div class="card-body">
 						<h5 class="card-title">Cuestionario Adicional</h5>
-						
+
 						<div class="row mb-3">
 							<label for="" class="col-sm-2 col-form-label">Titulo</label>
 							<div class="col-sm-10">
 								<input class="form-control" name="titulo" v-model="model.titulo" required>
 							</div>
 						</div>
-						
-						
-						<b>Preguntas</b>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Instrucciones</label>
+							<div class="col-sm-10">
+								<textarea class="form-control input-sm" rows="3" maxlength="1000"
+										  name="instrucciones" v-model="model.instrucciones"></textarea>
+							</div>
+						</div>
+
+						<h5>Preguntas</h5>
 						<table class="table minitabla table-hover">
 							<tr>
-								<th>Orden</th>
+								<th class="col-sm-1">Orden</th>
 								<th>Texto</th>
-								<th style="width:50px"></th>
+								<th style="width: 50px"></th>
 							</tr>
 							<tr v-for="p in model.preguntas">
 								<td>
-									<input v-model="p.orden" class="form-control input-sm" />
+									<input v-model="p.orden" class="form-control input-sm integer" required maxlength="2" />
 								</td>
 								<td>
-									<input v-model="p.texto" class="form-control input-sm" required/>
+									<input v-model="p.texto" class="form-control input-sm" required />
 								</td>
 								<td>
 									<button type="button" class="btn btn-sm btn-primary" @@click="delPregunta(p)">
@@ -38,11 +45,23 @@
 								</td>
 							</tr>
 						</table>
-						<button type="button" class="btn btn-sm btn-primary" @@click="addPregunta()">
-							<i class="bi bi-plus"></i>
-							Adicionar Pregunta
-						</button>
-						
+
+						<div>
+							<button type="button" class="btn btn-sm btn-primary" @@click="addPregunta()">
+								<i class="bi bi-plus"></i>
+								Adicionar Pregunta
+							</button>
+
+							<button type="button" class="btn btn-sm btn-secondary float-end" @@click="reordenar()">
+								Reordenar
+							</button>
+						</div>
+
+						<div class="small mt-2 text-center">
+							Todas las preguntas son de opción múltiple con las mismas posibles respuestas: <br />
+							@ViewBag.respuestas
+						</div>
+
 						<hr />
 
 						<div class="mt-3 text-center">
@@ -77,7 +96,7 @@
 			methods: {
 				delPregunta(p) {
 					if (!confirm("Eliminar esta pregunta?"))
-						return
+						return;
 					var ix = this.model.preguntas.indexOf(p);
 					this.model.preguntas.splice(ix, 1);
 				},
@@ -97,6 +116,10 @@
 				$('#formCuest').validate({
 					submitHandler() {
 						var m = self.model
+						if (m.preguntas.length === 0) {
+							alert("Debe crear al menos 1 pregunta")
+							return false
+						}
 						var base = self.baseurl
 						var url = base + '/guardar'
 						$('#formCuest button').prop('disabled', true)

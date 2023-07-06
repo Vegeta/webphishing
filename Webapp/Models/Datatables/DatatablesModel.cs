@@ -1,4 +1,5 @@
-﻿using Webapp.Web;
+﻿using Infraestructura;
+using Webapp.Web;
 
 namespace Webapp.Models.Datatables;
 

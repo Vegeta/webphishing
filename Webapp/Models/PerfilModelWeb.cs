@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Domain;
 using Domain.Entidades;
+using Infraestructura;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Webapp.Web;
 
 namespace Webapp.Models;
 

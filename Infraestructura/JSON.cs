@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace Webapp.Web {
+namespace Infraestructura {
 	/// <summary>
 	/// Codificacion y decodificacion de JSON usando la libreria de Microsoft con un api similar a Javascript
 	/// </summary>

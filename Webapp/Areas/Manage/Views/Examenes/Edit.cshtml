@@ -36,6 +36,18 @@
 							</div>
 						</div>
 
+						<div class="small mb-2">
+							Si se incluye el cuestionario en el examen, luego de que pregunta. Dejar en blanco si no va cuestionario.
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label col-form-label-sm">Cuestionario</label>
+							<div class="col-sm-2">
+								<input class="form-control integer input-sm" name="titulo" v-model="model.cuestionarioPos">
+							</div>
+						</div>
+
+
 						<div v-if="model.id">
 							<table class="table minitabla">
 								<tr>
@@ -94,17 +106,17 @@
 								</td>
 							</tr>
 						</table>
-						
+
 						<div>
 							<button type="button" class="btn btn-sm btn-primary" @@click="openPreguntas()">
 								Adicionar Pregunta
 							</button>
-							
+
 							<button type="button" class="btn btn-sm btn-secondary ms-1" @@click="reordenar()">
 								Reordenar
 							</button>
 						</div>
-						
+
 					</div>
 				</div>
 			</div>
@@ -205,10 +217,12 @@
 					})
 				},
 				guardar(f) {
+					var m = this.model;
 					var base = this.baseurl;
 					var url = this.baseurl + '/guardar'
-					$('#formExamen button').prop('disabled', true)
-					jsonPost(url, this.model).then(r => {
+					$('#formExamen button').prop('disabled', true);
+					m.cuestionarioPos = m.cuestionarioPos || null;
+					jsonPost(url, m).then(r => {
 						if (r.error) {
 							$('#formExamen button').prop('disabled', false)
 							return alert(r.error)

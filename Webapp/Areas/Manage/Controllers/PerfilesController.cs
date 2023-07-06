@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Entidades;
+using Infraestructura;
 using Infraestructura.Persistencia;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

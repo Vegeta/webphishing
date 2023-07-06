@@ -2,8 +2,10 @@
 using System.Drawing;
 using System.Text.Json;
 using Webapp.Models;
+using Webapp.Web;
 
 namespace Webapp.Controllers {
+	[FiltrosWeb]
 	[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 	public abstract class BaseController : Controller {
 

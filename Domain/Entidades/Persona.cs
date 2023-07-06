@@ -14,13 +14,13 @@ public partial class Persona : BaseEntity {
 	[StringLength(255)]
 	public string? Apellido { get; set; }
 
-	[Column("profesion")]
+	[Column("ocupacion")]
 	[StringLength(255)]
-	public string? Profesion { get; set; }
+	public string? Ocupacion { get; set; }
 
-	[Column("carrera")]
+	[Column("actividad")]
 	[StringLength(255)]
-	public string? Carrera { get; set; }
+	public string? Actividad { get; set; }
 
 	[Column("email")]
 	[StringLength(255)]
@@ -33,8 +33,8 @@ public partial class Persona : BaseEntity {
 	[Column("edad")]
 	public short? Edad { get; set; }
 
-	[Column("anio_experiencia")]
-	public short? AnioExperiencia { get; set; }
+	[Column("experiencia_seguridad")]
+	public short? ExperienciaSeguridad { get; set; }
 
 	[Column("creacion", TypeName = "timestamp(6) without time zone")]
 	public DateTime? Creacion { get; set; }

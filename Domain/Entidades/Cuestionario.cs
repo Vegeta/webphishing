@@ -13,6 +13,7 @@ public partial class Cuestionario : BaseEntity {
 	public DateTime? Modificacion { get; set; }
 
 	[Column("titulo")][StringLength(255)] public string? Titulo { get; set; }
+	[Column("instrucciones")] public string? Instrucciones { get; set; }
 
 	[Column("preguntas", TypeName = "json")]
 	public string? Preguntas { get; set; }

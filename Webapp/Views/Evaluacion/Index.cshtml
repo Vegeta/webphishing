@@ -1,0 +1,154 @@
+﻿@model Webapp.Controllers.InicioModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div id="app">
+	<!-- ======= Breadcrumbs ======= -->
+	<section id="breadcrumbs" class="breadcrumbs">
+		<div class="container">
+			<ol>
+				<li><a href="@Url.Content("~/")">Inicio</a></li>
+				<li>Evaluación</li>
+			</ol>
+		</div>
+	</section><!-- End Breadcrumbs -->
+	<!-- ======= Contact Section ======= -->
+	<section id="contact" class="contact">
+		<div class="container" data-aos="fade-up">
+
+			<div class="section-title">
+				<h2>Evaluación de Detección de Phishing</h2>
+			</div>
+
+			<div class="row">
+
+				<div class="col-lg-6 d-flex align-items-stretch">
+
+
+					<div class="info">
+
+						<div class="text-center">
+							<h4>Ingreso</h4>
+						</div>
+
+						<div class="address">
+							<i class="bi bi-geo-alt"></i>
+							<h4>Location:</h4>
+							<p>A108 Adam Street, New York, NY 535022</p>
+						</div>
+
+						<div class="email">
+							<i class="bi bi-envelope"></i>
+							<h4>Email:</h4>
+							<p>info@example.com</p>
+						</div>
+
+						<div class="phone">
+							<i class="bi bi-phone"></i>
+							<h4>Call:</h4>
+							<p>+1 5589 55488 55s</p>
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="col-lg-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+					<form action="" method="post" role="form" class="php-email-form" id="formRegistro">
+
+						<div class="text-center">
+							<h4>Evaluacion simple</h4>
+						</div>
+
+						<div class="row">
+							<div class="form-group col-md-6">
+								<label for="">Nombre</label>
+								<input type="text" class="form-control input-sm" v-autoname required v-model="registro.nombre">
+							</div>
+							<div class="form-group col-md-6">
+								<label for="">Apellido</label>
+								<input type="" class="form-control input-sm" v-autoname required v-model="registro.apellido">
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="form-group col-md-6">
+								<label for="">Género</label>
+								<select asp-items="Model.Generos" v-model="registro.genero" v-autoname
+										class="form-select input-sm"></select>
+							</div>
+							<div class="form-group col-md-6">
+								<label for="">Ocupación</label>
+								<select asp-items="Model.Ocupaciones" v-model="registro.ocupacion" v-autoname
+										class="form-select input-sm"></select>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="form-group col-md-6">
+								<label for="">Edad</label>
+								<input class="form-control input-sm" v-autoname v-model="registro.edad" maxlength="2">
+							</div>
+							<div class="form-group col-md-6">
+								<label for="">Actividad</label>
+								<select asp-items="Model.Actividades" v-model="registro.actividad" v-autoname
+										class="form-select input-sm"></select>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="">Años de experiencia en cyber-seguridad</label>
+							<select asp-items="Model.Anios" v-model="registro.actividad" v-autoname
+									class="form-select input-sm"></select>
+						</div>
+
+						<div class="form-group">
+							<label for="">Correo electrónico</label>
+							<input type="email" class="form-control input-sm" v-autoname maxlength="100" v-model="registro.email">
+						</div>
+
+						<div class="my-3">
+							<div class="loading">Loading</div>
+							<div class="error-message"></div>
+							<div class="sent-message">Your message has been sent. Thank you!</div>
+						</div>
+						<div class="text-center">
+							<button type="submit">Comenzar Evaluación</button>
+						</div>
+					</form>
+				</div>
+
+			</div>
+
+		</div>
+	</section><!-- End Contact Section -->
+</div>
+
+@section Scripts {
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					registro: @Html.Raw(ViewBag.registro),
+					baseUrl: '@ViewBag.self'
+				}
+			},
+			methods: {
+				registrar() {
+					var m = this.registro;
+					jsonPost(this.baseUrl + '/registrar', m).then(r => {
+
+					});
+				}
+			},
+			mounted() {
+				var self = this;
+			}
+		})
+			.directive('autoname', vAutoname)
+			.mount('#app')
+
+	</script>
+}

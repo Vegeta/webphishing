@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Domain.Entidades;
 using Domain.Transferencia;
+using Infraestructura;
 using Infraestructura.Persistencia;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -51,7 +52,7 @@ public class PreguntasController : BaseAdminController {
 	public IActionResult Crear() {
 		Breadcrumbs.Active("Crear");
 		var model = new PreguntaModelWeb {
-			Dificultades = PreguntaConfig.DificultadesCombo()
+			Dificultades = OpcionesConfig.DificultadesCombo()
 		};
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Crear nueva Pregunta";
@@ -65,7 +66,7 @@ public class PreguntasController : BaseAdminController {
 		if (!string.IsNullOrEmpty(p?.Adjuntos)) {
 			model.ListaAdjuntos = FromJson<List<AdjuntoView>>(p.Adjuntos);
 		}
-		model.Dificultades = PreguntaConfig.DificultadesCombo();
+		model.Dificultades = OpcionesConfig.DificultadesCombo();
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Editar Pregunta";
 		return View(model);

@@ -53,7 +53,7 @@ public class ExamenesController : BaseAdminController {
 	public IActionResult Crear() {
 		Breadcrumbs.Active("Crear");
 		var model = new ExamenModelWeb {
-			Tipos = PreguntaConfig.TipoExamenCombo(),
+			Tipos = OpcionesConfig.TipoExamenCombo(),
 			Tipo = TipoExamen.Personalizado
 		};
 		ViewBag.modelo = ToJson(model);
@@ -89,7 +89,7 @@ public class ExamenesController : BaseAdminController {
 				Legitimo = x.Pregunta.Legitimo == 0 ? "NO" : "SI",
 				Orden = x.Orden ?? 0,
 			}).ToList();
-		model.Tipos = PreguntaConfig.TipoExamenCombo();
+		model.Tipos = OpcionesConfig.TipoExamenCombo();
 
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Editar Examen";

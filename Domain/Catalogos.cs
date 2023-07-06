@@ -19,7 +19,25 @@ public class DificultadPregunta {
 			{ "dificil" , "Dificil" }
 		};
 	}
+}
 
+public class Generos {
+
+	public static IDictionary<string, string> Mapa() {
+		return new Dictionary<string, string>{
+			{ "M" , "MASCULINO" },
+			{ "F" , "FEMENINO" },
+		};
+	}
+}
+
+public class Ocupaciones {
+	public static IDictionary<string, string> Mapa() {
+		return new Dictionary<string, string>{
+			{ "estudiante" , "Estudiante" },
+			{ "profesional" , "Profesional" },
+		};
+	}
 }
 
 public class TipoExamen {
@@ -45,3 +63,22 @@ public class PermisosApp {
 		};
 	}
 }
+
+public class RespuestaCuestionario {
+	public const string Siempre = "siempre";
+	public const string CasiSiempre = "casi_siempre";
+	public const string AVeces = "a_veces";
+	public const string CasiNunca = "casi_nunca";
+	public const string Nunca = "nunca";
+
+	public static IDictionary<string, string> Mapa() {
+		return new Dictionary<string, string> {
+			{"siempre" , "Siempre" },
+			{"casi_siempre" , "Casi Siempre" },
+			{"a_veces" , "A Veces" },
+			{"casi_nunca" , "Casi Nunca" },
+			{"nunca" , "Nunca" },
+		};
+	}
+}
+

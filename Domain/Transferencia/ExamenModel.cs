@@ -21,6 +21,8 @@ public class ExamenModel {
 	[Required]
 	public bool Activo { get; set; } = true;
 
+	public int? CuestionarioPos { get; set; }
+
 	public List<PreguntaExModel> Preguntas { get; set; } = new();
 }
 

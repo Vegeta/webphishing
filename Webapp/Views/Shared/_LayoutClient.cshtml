@@ -40,7 +40,8 @@
 <body>
 
 	<!-- ======= Header ======= -->
-	<header id="header" class="fixed-top ">
+	@*<header id="header" class="fixed-top header-inner-pages">*@
+	<header id="header" class="fixed-top @ViewBag.claseHeader">
 		<div class="container d-flex align-items-center">
 
 			<h1 class="logo me-auto"><a href="@Url.Content("~/")">Phishing Detection</a></h1>
@@ -75,7 +76,8 @@
 					</li>*@
 					<li><a class="nav-link scrollto" href="#contact">Contacto</a></li>
 					<li><a class="nav-link" href="@Url.Content("~/Manage")" target="_blank">Ingreso</a></li>
-					<li><a class="getstarted scrollto" href="#about">Empezar</a></li>
+					@*<li><a class="getstarted scrollto" href="#about">Empezar</a></li>*@
+					<li><a class="getstarted" href="@Url.Content("~/Evaluacion")">Empezar</a></li>
 				</ul>
 				<i class="bi bi-list mobile-nav-toggle"></i>
 			</nav><!-- .navbar -->
@@ -87,6 +89,7 @@
 	<main id="main">
 		@RenderBody()
 	</main><!-- End #main -->
+
 	<!-- ======= Footer ======= -->
 	<footer id="footer">
 
@@ -159,7 +162,8 @@
 
 		<div class="container footer-bottom clearfix">
 			<div class="copyright">
-				&copy; Copyright <strong><span>Arsha</span></strong>. Derechos Reservados
+				@*&copy; Copyright <strong><span>Arsha</span></strong>. Derechos Reservados*@
+				&copy; Copyright <strong><span>2023</span></strong>. Derechos Reservados
 			</div>
 			<div class="credits">
 				<!-- All the links in the footer should remain intact. -->
@@ -184,9 +188,7 @@
 	<script src="~/lib/isotope-layout/isotope.pkgd.min.js"></script>
 	<script src="~/lib/swiper/swiper-bundle.min.js"></script>
 	<script src="~/lib/waypoints/noframework.waypoints.js"></script>
-
-
-
+	
 	<environment include="Development">
 		<script src="~/lib/vue/dist/vue.global.js"></script>
 	</environment>

@@ -12,3 +12,12 @@ function jsonPost(url, data) {
 		contentType: "application/json charset=utf-8",
 	})
 }
+
+var _autonameVueCount = 0;
+const vAutoname = {
+	mounted(el, binding, vnode) {
+		_autonameVueCount++;
+		$(el).prop('name', '_auto' + _autonameVueCount);
+	}
+}
+
