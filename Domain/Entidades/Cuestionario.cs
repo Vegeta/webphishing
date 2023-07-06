@@ -12,6 +12,8 @@ public partial class Cuestionario : BaseEntity {
 	[Column("modificacion", TypeName = "timestamp without time zone")]
 	public DateTime? Modificacion { get; set; }
 
+	[Column("titulo")][StringLength(255)] public string? Titulo { get; set; }
+
 	[Column("preguntas", TypeName = "json")]
 	public string? Preguntas { get; set; }
 

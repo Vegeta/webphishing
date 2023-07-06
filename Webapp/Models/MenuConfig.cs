@@ -67,6 +67,10 @@ namespace Webapp.Models {
 					new MenuItem {
 						Name = "Examenes",
 						Link = "~/manage/Examenes"
+					},
+					new MenuItem {
+						Name = "Cuestionario",
+						Link = "~/manage/Cuestionario"
 					}
 				),
 				new MenuItem {

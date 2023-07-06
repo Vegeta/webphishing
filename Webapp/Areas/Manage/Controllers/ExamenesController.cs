@@ -101,7 +101,5 @@ public class ExamenesController : BaseAdminController {
 		ConfirmaWeb("Datos actualizados");
 		return Ok(new { error = res.Error, id = res.Data?.Id });
 	}
-
-
-
+	
 }
