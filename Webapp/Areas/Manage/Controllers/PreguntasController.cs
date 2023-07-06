@@ -132,7 +132,8 @@ public class PreguntasController : BaseAdminController {
 	}
 
 	public IActionResult UploadImage(UploadModel model) {
-		_imgService.SaveUpload(model.File);
+		if(model.File != null)
+			_imgService.SaveUpload(model.File);
 		return Ok("OK");
 	}
 }

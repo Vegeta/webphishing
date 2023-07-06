@@ -72,7 +72,7 @@ public class PerfilesController : BaseAdminController {
 		Breadcrumbs.Active("Editar");
 		var p = _db.Perfil.Find(id);
 		var model = _mapper.Map<PerfilModelWeb>(p);
-		var opciones = model.ObtenerOpciones(p);
+		var opciones = model.ObtenerOpciones(p ?? new Perfil());
 		ViewBag.opciones = ToJson(opciones);
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Editar Perfil";
