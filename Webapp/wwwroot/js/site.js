@@ -13,6 +13,11 @@ function jsonPost(url, data) {
 	})
 }
 
+function num(x) {
+	var f = parseFloat(x);
+	return isNaN(f) ? 0 : f;
+}
+
 var _autonameVueCount = 0;
 const vAutoname = {
 	mounted(el, binding, vnode) {
@@ -21,3 +26,38 @@ const vAutoname = {
 	}
 }
 
+const globalDirectives = {
+	install(app, options) {
+		app.directive('autoname', vAutoname);
+
+		app.mixin({
+			methods: {
+				formatFecha: function (val, formato = '') {
+					if (!val) return val;
+					var m = new Date(val);
+					if (isNaN(m))
+						return val;
+					if (formato === 'hora')
+						return moment(m).format('YYYY-MM-DD HH:mm:ss');
+					return moment(m).format('YYYY-MM-DD');
+				},
+				porcentaje: function (val, decimales = 0) {
+					if (!val || val === '' || val === null || isNaN(val))
+						return '';
+					var n = num(val);
+					var txt = '';
+					if (decimales > 0)
+						txt = n.toFixed(decimales);
+					else
+						txt = Math.round(n);
+					txt += '%';
+					return txt;
+				},
+				fileSize: function (val) {
+					if (!val || val === '') return '';
+					return fileSize(val);
+				}
+			}
+		});
+	}
+}

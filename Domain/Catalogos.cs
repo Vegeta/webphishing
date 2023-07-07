@@ -53,6 +53,10 @@ public class TipoExamen {
 }
 
 public class PermisosApp {
+	public const string Seguridad = "seguridad";
+	public const string Preguntas = "preguntas";
+	public const string Examenes = "examenes";
+	public const string Resultados = "resultados";
 
 	public static IDictionary<string, string> Permisos() {
 		return new Dictionary<string, string> {

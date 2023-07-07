@@ -49,6 +49,8 @@ public partial class Persona : BaseEntity {
 	[Column("usuario_id")]
 	public int? UsuarioId { get; set; }
 
+	public string NombreCompleto => $"{Nombre} {Apellido}".Trim();
+
 	[InverseProperty("Persona")]
 	public virtual ICollection<SesionPersona> SesionPersona { get; } = new List<SesionPersona>();
 

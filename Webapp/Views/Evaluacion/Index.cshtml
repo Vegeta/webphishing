@@ -56,7 +56,7 @@
 					<form action="" method="post" role="form" class="php-email-form" id="formRegistro">
 
 						<div class="text-center">
-							<h4>Evaluacion simple</h4>
+							<h4>Evaluación simple</h4>
 						</div>
 
 						<div class="row">
@@ -66,7 +66,7 @@
 							</div>
 							<div class="form-group col-md-6">
 								<label for="">Apellido</label>
-								<input type="" class="form-control input-sm" v-autoname required v-model="registro.apellido">
+								<input class="form-control input-sm" v-autoname required v-model="registro.apellido">
 							</div>
 						</div>
 
@@ -97,7 +97,7 @@
 
 						<div class="form-group">
 							<label for="">Años de experiencia en cyber-seguridad</label>
-							<select asp-items="Model.Anios" v-model="registro.actividad" v-autoname
+							<select asp-items="Model.Anios" v-model="registro.experienciaSeguridad" v-autoname
 									class="form-select input-sm"></select>
 						</div>
 
@@ -139,15 +139,21 @@
 				registrar() {
 					var m = this.registro;
 					jsonPost(this.baseUrl + '/registrar', m).then(r => {
-
+						if (r.error)
+							return alert(r.error);
+						window.location.href = r.url;
 					});
+					return false;
 				}
 			},
 			mounted() {
 				var self = this;
+				$('#formRegistro').validate({
+					submitHandler:this.registrar
+				})
 			}
 		})
-			.directive('autoname', vAutoname)
+			.use(globalDirectives)
 			.mount('#app')
 
 	</script>

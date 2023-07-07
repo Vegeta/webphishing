@@ -26,6 +26,7 @@ public static class ConfiguradorServicios {
 	public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration config) {
 		services.AddScoped<ExamenService>();
 		services.AddScoped<CatalogoGeneral>();
+		services.AddScoped<RegistroService>();
 		return services;
 	}
 }

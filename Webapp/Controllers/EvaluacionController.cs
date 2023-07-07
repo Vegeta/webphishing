@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using Domain;
+using Domain.Entidades;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
 using Webapp.Models;
 
 namespace Webapp.Controllers;
@@ -15,12 +15,15 @@ public class EvaluacionController : BaseController {
 	private readonly AppDbContext _db;
 	private readonly IMapper _mapper;
 	private readonly CatalogoGeneral _cat;
+	private readonly RegistroService _registro;
 
-	public EvaluacionController(ILogger<HomeController> logger, AppDbContext db, IMapper mapper, CatalogoGeneral cat) {
+	public EvaluacionController(ILogger<HomeController> logger, AppDbContext db,
+		IMapper mapper, CatalogoGeneral cat, RegistroService registro) {
 		_logger = logger;
 		_db = db;
 		_mapper = mapper;
 		_cat = cat;
+		_registro = registro;
 	}
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
@@ -44,10 +47,30 @@ public class EvaluacionController : BaseController {
 		for (var i = 1; i < 20; i++) {
 			vm.Anios.Add(new SelectListItem(i.ToString(), i.ToString()));
 		}
-		vm.Anios.Add(new SelectListItem("+20", "20"));
+		vm.Anios.Add(new SelectListItem("20 o más", "20"));
 
 		ViewBag.registro = ToJson(vmReg);
 		return View(vm);
+	}
+
+	public IActionResult Registrar([FromBody] RegistroModel model) {
+		var per = _mapper.Map(model, new Persona());
+		per.Nombre = per.Nombre?.ToUpperInvariant();
+		per.Apellido = per.Apellido?.ToUpperInvariant();
+		var res = _registro.RegistrarPersona(per);
+
+		if (res.Data == null)
+			return Problem("Error creando persona");
+
+		var creacion = _registro.IniciarSesionIndividual(res.Data);
+		if (creacion.Sesion == null) {
+			return Problem("Error creando sesion");
+		}
+
+		HttpContext.Session.SetString("token_examen", creacion.Sesion.Token ?? "");
+
+		var url = Url.Content("~/Evaluacion");
+		return Ok(new { url, error = "" });
 	}
 }
 
@@ -56,15 +79,4 @@ public class InicioModel {
 	public List<SelectListItem> Ocupaciones { get; set; } = new();
 	public List<SelectListItem> Actividades { get; set; } = new();
 	public List<SelectListItem> Anios { get; set; } = new();
-}
-
-public class RegistroModel {
-	public string Nombre { get; set; } = "";
-	public string Apellido { get; set; } = "";
-	public string Ocupacion { get; set; } = "";
-	public string Genero { get; set; } = "";
-	public short? Edad { get; set; }
-	public short? ExperienciaSeguridad { get; set; }
-	public string Actividad { get; set; } = "";
-	public string? Email { get; set; }
 }

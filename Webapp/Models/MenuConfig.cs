@@ -57,25 +57,29 @@ namespace Webapp.Models {
 				},
 				new MenuItem {
 					Name = "Contenido",
-					Accesos = "editor",
+					Accesos = "preguntas,examenes",
 					Icon = "bi-journal-text",
+					
 				}.AddChildren(
 					new MenuItem {
 						Name = "Preguntas",
-						Link = "~/manage/Preguntas"
+						Link = "~/manage/Preguntas",
+						Accesos = "preguntas"
 					},
 					new MenuItem {
 						Name = "Examenes",
-						Link = "~/manage/Examenes"
+						Link = "~/manage/Examenes",
+						Accesos = "examenes"
 					},
 					new MenuItem {
 						Name = "Cuestionario",
-						Link = "~/manage/Cuestionario"
+						Link = "~/manage/Cuestionario",
+						Accesos = "examenes"
 					}
 				),
 				new MenuItem {
 					Name = "Reportes",
-					Accesos = "reportes, editor",
+					Accesos = "resultados",
 					Icon = "bi-bar-chart"
 				}.AddChildren(
 					new MenuItem {
@@ -85,8 +89,8 @@ namespace Webapp.Models {
 				),
 				new MenuItem {
 					Name = "Administración",
-					Accesos = "admin",
-					Icon = "bi-terminal-fill"
+					Icon = "bi-terminal-fill",
+					Accesos = "seguridad",
 				}.AddChildren(
 					new MenuItem {
 						Name = "Usuarios",

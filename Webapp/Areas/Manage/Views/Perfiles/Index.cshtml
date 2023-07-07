@@ -93,12 +93,12 @@
 							data: 'nombre',
 							render: function (data, type, row) {
 								let url = self.baseUrl + '/edit/' + row.id;
-								return `<a href="${url}">${row.email}</a>`
+								return `<a href="${url}">${row.nombre}</a>`
 							}
 						},
 						{ data: 'identificador' },
 					],
-					order: [],
+					order: [1],
 					searching: false,
 
 					processing: true,

@@ -50,7 +50,7 @@ public class PerfilesController : BaseAdminController {
 
 		var proj = q.Select(x => new {
 			id = x.Id,
-			email = x.Nombre,
+			nombre = x.Nombre,
 			identificador = x.Identificador,
 		});
 

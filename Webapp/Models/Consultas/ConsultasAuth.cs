@@ -6,8 +6,7 @@ using Webapp.Models.Formularios;
 
 namespace Webapp.Models.Consultas;
 public class ConsultasAuth {
-
-	AppDbContext _db;
+	readonly AppDbContext _db;
 
 	public ConsultasAuth(AppDbContext db) {
 		_db = db;
@@ -61,9 +60,8 @@ public class ConsultasAuth {
 			.OrderBy(x => x.Nombre)
 			.Select(x => new { nombre = x.Nombre, id = x.Id })
 			.ToList()
-			.Select(x => {
-				return new SelectListItem(x.nombre, x.id.ToString());
-			}).ToList();
+			.Select(x => new SelectListItem(x.nombre, x.id.ToString()))
+			.ToList();
 	}
 
 }

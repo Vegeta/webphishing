@@ -30,5 +30,7 @@ public class MapperProfile : Profile {
 		CreateMap<Perfil, PerfilModelWeb>()
 			.ForMember(x => x.Permisos, o => o.Ignore());
 
+		CreateMap<RegistroModel, Persona>();
+
 	}
 }

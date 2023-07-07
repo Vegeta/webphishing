@@ -1,4 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Webapp.Models;
 
@@ -10,7 +13,7 @@ public class HomeController : BaseController {
 	public HomeController(ILogger<HomeController> logger) {
 		_logger = logger;
 	}
-
+	
 	public IActionResult Index() {
 		ViewBag.claseHeader = "";
 		return View();
@@ -24,5 +27,10 @@ public class HomeController : BaseController {
 	public IActionResult Error() {
 		return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
 	}
-	
+
+	[Route("Logout")]
+	public IActionResult Logout() {
+		return RedirectToAction("Index");
+	}
+
 }
