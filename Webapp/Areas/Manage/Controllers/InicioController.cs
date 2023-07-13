@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Webapp.Controllers;
 
@@ -11,7 +12,7 @@ namespace Webapp.Areas.Manage.Controllers {
 			base.OnActionExecuting(context);
 			CurrentMenu("Inicio");
 		}
-
+		
 		public IActionResult Index() {
 			return View();
 		}

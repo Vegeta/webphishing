@@ -15,11 +15,14 @@ public class AdminMenuAttribute : ActionFilterAttribute {
 		if (context.Controller is Controller con) {
 			if (!ajax) {
 				var mainMenu = MenuConfig.AdminMenu();
-				var menu = (new MenuConfig()).Prepare(mainMenu, con.Url);
-				con.ViewBag.mainMenu = JsonSerializer.Serialize(menu.Children, new JsonSerializerOptions {
-					//WriteIndented = true
-					PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-				});
+				var menuServ = context.HttpContext.RequestServices.GetService<MenuConfig>();
+				if (menuServ != null) {
+					var menu = menuServ.Prepare(mainMenu, con.Url);
+					con.ViewBag.mainMenu = JsonSerializer.Serialize(menu.Children, new JsonSerializerOptions {
+						//WriteIndented = true
+						PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+					});
+				}
 			}
 		}
 		base.OnResultExecuting(context);

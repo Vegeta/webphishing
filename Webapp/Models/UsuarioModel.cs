@@ -35,4 +35,7 @@ public class UsuarioModel {
 
 	[JsonIgnore]
 	public List<SelectListItem> Perfiles { get; set; } = default!;
+
+	[JsonIgnore]
+	public List<SelectListItem> Tipos { get; set; } = default!;
 }

@@ -53,6 +53,9 @@ public partial class SesionPersona : BaseEntity {
 	[StringLength(255)]
 	public string? Tipo { get; set; }
 
+	[Column("score")]
+	public int? Score { get; set; }
+
 	[ForeignKey("CuestionarioId")]
 	[InverseProperty("SesionPersona")]
 	public virtual Cuestionario? Cuestionario { get; set; }

@@ -1,0 +1,196 @@
+﻿@model Webapp.Controllers.InicioModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<style>
+	div.error, span.error {
+		color: #ed3c0d;
+	}
+</style>
+
+<div id="app">
+	<!-- ======= Breadcrumbs ======= -->
+	<section id="breadcrumbs" class="breadcrumbs">
+		<div class="container">
+			<ol>
+				<li><a href="@Url.Content("~/")">Inicio</a></li>
+				<li>Evaluación</li>
+			</ol>
+		</div>
+	</section><!-- End Breadcrumbs -->
+	<!-- ======= Contact Section ======= -->
+	<section id="contact" class="contact">
+		<div class="container" data-aos="fade-up">
+
+			<div class="section-title">
+				<h2>Evaluación de Detección de Phishing</h2>
+			</div>
+
+			<div class="info mb-4">
+				<h4>Instrucciones</h4>
+
+				<p>
+					Observe con detalle cada uno de los ejercicios que se van a desplegar a continuación y seleccione si es phishing o legítimo.
+					<br />
+					Al finalizar el ejercicio se desplegará una ventana donde usted debe escribir la razón o razones de su decisión.
+				</p>
+
+			</div>
+
+
+
+			<div class="info mb-3 error-message">
+				<h4>Ayuda</h4>
+
+				<p>
+					Asegúrate de <strong> explorar las direcciones de correo electrónico </strong> y de consultar
+					las
+					<strong>URL </strong> de los vínculos.
+				</p>
+				<p>
+					Para esta tarea, <strong>desplázate sobre las URL o mantenlas presionadas.</strong>
+					No debes preocuparte, ya que ninguno de los vínculos funcionará.
+				</p>
+				<p> <strong>No tenemos la intención de enviarte nada extraño.</strong></p>
+
+			</div>
+
+
+			<div class="row">
+
+				<div class="col-lg-6 d-flex align-items-stretch">
+
+
+					<div class="info">
+
+
+
+					</div>
+
+				</div>
+
+				<div class="col-lg-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+					<form action="" method="post" role="form" class="php-email-form" id="formRegistro">
+					</form>
+				</div>
+
+			</div>
+
+		</div>
+	</section><!-- End Contact Section -->
+</div>
+
+<template>
+	<div>
+		<h2 class="text-center">Cuestionario</h2>
+
+		<hr />
+
+		<div class="card">
+			<div class="card-body">
+				<p class="card-text">Por favor conteste las siguientes preguntas</p>
+
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item" v-for="p in preguntas">
+						<div>{{ p.texto }}</div>
+
+						<div>
+							<div class="form-check form-check-inline" v-for="o in opciones">
+								<input class="form-check-input" type="radio" :name="p.nombreRadio" :value="o.val" v-model="p.respuesta">
+								<label class="form-check-label" v-text="o.texto"></label>
+							</div>
+						</div>
+
+						<div class="error" v-show="p.error">
+							* Requerido
+						</div>
+
+					</li>
+				</ul>
+				<div class="card-body">
+					<div class="error" v-show="error">Por favor verifique el formulario</div>
+
+					<a class="card-link" @@click="continuar()">Continuar</a>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+</template>
+
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		const Cuestionario = {
+			props: ['preguntas', 'opciones'],
+			data() {
+				return {
+					error: false
+				};
+			},
+			created() {},
+			emits: ["cuestionarioOK"],
+			methods: {
+				continuar() {
+					var valido = true;
+					this.preguntas.forEach(x => {
+						x.error = x.respuesta ? null : 1;
+						if (x.error)
+							valido = false;
+					});
+					if (!valido) {
+						this.error = true;
+						return;
+					}
+					this.$emit('cuestionarioOK', this.preguntas);
+				}
+			},
+			mounted() {
+				var i = 1;
+				this.preguntas.forEach(x => {
+					x.nombreRadio = `preg${i}`;
+					x.error = null;
+					i++;
+				});
+			},
+		}
+
+
+		Vue.createApp({
+				data() {
+					return {
+						model: @Html.Raw(ViewBag.modelo),
+						baseUrl: '@ViewBag.self',
+						verCuest : false,
+					}
+				},
+				methods: {
+					cuestionarioOK(preguntas) {
+						const self = this;
+						const data = {
+							id: this.modelo.id,
+							preguntas:preguntas,
+						};
+						jsonPost(this.baseUrl + '/guardarCuestionario', data).then(r => {
+							if (r.error)
+								return alert(r.error);
+							self.verCuest = false;
+						});
+						return false;
+					}
+				},
+				mounted() {
+					const self = this;
+
+				}
+			})
+			.component('cuestionario', Cuestionario)
+			.use(globalDirectives)
+			.mount('#app');
+
+	</script>
+}

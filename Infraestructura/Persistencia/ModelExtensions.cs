@@ -8,7 +8,7 @@ public static class ModelExtensions {
 		return p.Datos == null ? default! : JSON.Parse<T>(p.Datos);
 	}
 
-	public static SesionFlujo GetSesionFlujo(this SesionPersona p) {
-		return p.Flujo == null ? default! : JSON.Parse<SesionFlujo>(p.Flujo);
+	public static SesionFlujoWeb GetSesionFlujo(this SesionPersona p) {
+		return p.Flujo == null ? default! : JSON.Parse<SesionFlujoWeb>(p.Flujo);
 	}
 }

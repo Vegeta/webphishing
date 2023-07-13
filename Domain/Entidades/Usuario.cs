@@ -58,4 +58,6 @@ public partial class Usuario : BaseEntity {
 
 	[InverseProperty("Usuario")]
 	public virtual ICollection<Persona> Persona { get; } = new List<Persona>();
+
+	public bool EstaActivo => Activo.HasValue && Activo.Value;
 }

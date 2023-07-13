@@ -56,12 +56,14 @@ public class ConsultasAuth {
 	}
 
 	public List<SelectListItem> ComboPerfiles() {
-		return _db.Perfil
+		var lista = _db.Perfil
 			.OrderBy(x => x.Nombre)
 			.Select(x => new { nombre = x.Nombre, id = x.Id })
 			.ToList()
 			.Select(x => new SelectListItem(x.nombre, x.id.ToString()))
 			.ToList();
+		lista.Insert(0, new SelectListItem());
+		return lista;
 	}
 
 }

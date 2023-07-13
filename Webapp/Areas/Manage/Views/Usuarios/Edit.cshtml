@@ -36,6 +36,14 @@
 								<input class="form-control" name="apellidos" v-model="model.apellidos" required>
 							</div>
 						</div>
+						
+						<div class="row mb-3">
+							<label for="" class="col-sm-2 col-form-label">Tipo</label>
+							<div class="col-sm-10">
+								<select asp-items="Model.Tipos" v-model="model.tipo" name="tipo"
+								        class="form-select" required></select>
+							</div>
+						</div>
 
 						<div class="row mb-3">
 							<label for="" class="col-sm-2 col-form-label">Perfil</label>
@@ -99,7 +107,7 @@
 							<label>Cambiar password</label>
 							<div class="row mb-3">
 								<div class="col-sm-10">
-									<input class="form-control" name="nuevopass" v-model="password" placeholder="Nuevo password">
+									<input type="password" class="form-control" name="nuevopass" v-model="password" placeholder="Nuevo password">
 								</div>
 								<div class="col-sm-2">
 									<button type="button" class="btn btn-sm btn-primary" @@click="cambiarPassword()">Cambiar</button>
@@ -167,7 +175,7 @@
 						})
 						return false;
 					}
-				})
+				});
 			}
 		}).mount('#app')
 

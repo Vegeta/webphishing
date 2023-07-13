@@ -53,6 +53,7 @@ public class EvaluacionController : BaseController {
 		return View(vm);
 	}
 
+	[HttpPost]
 	public IActionResult Registrar([FromBody] RegistroModel model) {
 		var per = _mapper.Map(model, new Persona());
 		per.Nombre = per.Nombre?.ToUpperInvariant();
@@ -72,6 +73,16 @@ public class EvaluacionController : BaseController {
 		var url = Url.Content("~/Evaluacion");
 		return Ok(new { url, error = "" });
 	}
+
+	public IActionResult Proceso() {
+
+
+		return View();
+	}
+
+
+
+
 }
 
 public class InicioModel {

@@ -1,0 +1,104 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div id="app">
+	<!-- ======= Breadcrumbs ======= -->
+	<section id="breadcrumbs" class="breadcrumbs">
+		<div class="container">
+			<ol>
+				<li><a href="@Url.Content("~/")">Inicio</a></li>
+				<li>Ingreso</li>
+			</ol>
+		</div>
+	</section><!-- End Breadcrumbs -->
+	<!-- ======= Contact Section ======= -->
+	<section id="contact" class="contact">
+		@*<div class="container" data-aos="fade-up">*@
+		<div class="container">
+
+			<div class="section-title">
+				<h2>Ingreso</h2>
+			</div>
+
+			<div class="row">
+
+				<div class="offset-sm-3 col-lg-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+					<form action="" method="post" role="form" class="php-email-form" id="formLogin" autocomplete="off">
+
+						<p>Ingrese sus credenciales</p>
+
+						<div class="form-group">
+							<label for="">Usuario/Email</label>
+							<input class="form-control input-sm" v-autoname maxlength="100" v-model="model.username" required>
+						</div>
+
+						<div class="form-group">
+							<label for="">Contraseña</label>
+							<input type="password" class="form-control input-sm" v-autoname maxlength="100" v-model="model.password" required>
+						</div>
+
+						<div class="my-3 text-center">
+							<div v-show="loading">Verificando...</div>
+							<div class="error" v-if="error">
+								<i class="bi bi-exclamation-triangle"></i>
+								&nbsp;
+								<span v-text="error"></span>
+							</div>
+						</div>
+						<div class="text-center">
+							<button type="submit" :disabled="loading">Ingresar</button>
+						</div>
+					</form>
+				</div>
+
+			</div>
+
+		</div>
+	</section><!-- End Contact Section -->
+</div>
+
+@section Scripts {
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: {
+						username: null, password: null,
+						url : '@ViewBag.returnUrl'
+					},
+					baseUrl: '@ViewBag.self',
+					error: null,
+					loading: false,
+				}
+			},
+			methods: {
+				registrar() {
+					const self = this;
+					self.error = null;
+					this.loading = true;
+					jsonPost(window.root + '/login', this.model).then(r => {
+						console.log(r);
+						self.loading = false;
+						if (r.error) {
+							self.error = r.error;
+							return;
+						}
+						window.location.href = r.url;
+					});
+					return false;
+				}
+			},
+			mounted() {
+				var self = this;
+				$('#formLogin').validate({
+					submitHandler: this.registrar
+				});
+			}
+		})
+			.use(globalDirectives)
+			.mount('#app')
+
+	</script>
+}

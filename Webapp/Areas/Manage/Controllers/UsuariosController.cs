@@ -1,6 +1,9 @@
 using AutoMapper;
+using Domain;
 using Domain.Entidades;
+using Infraestructura;
 using Infraestructura.Persistencia;
+using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +51,7 @@ public class UsuariosController : BaseAdminController {
 			id = x.Id,
 			email = x.Email,
 			activo = !x.Activo ?? false ? "NO" : "SI",
+			tipo = x.Tipo,
 			nombres = $"{x.Apellidos} {x.Nombres}",
 			creacion = x.Creacion.ToString("yyyy-MM-dd"),
 			modificacion = x.Modificacion.ToString("yyyy-MM-dd")
@@ -62,7 +66,9 @@ public class UsuariosController : BaseAdminController {
 	public IActionResult Crear() {
 		Breadcrumbs.Active("Crear");
 		var model = new UsuarioModel {
-			Perfiles = _consultas.ComboPerfiles()
+			Perfiles = _consultas.ComboPerfiles(),
+			Tipos = OpcionesConfig.ComboDict(TipoUsuario.Mapa()),
+			Tipo = TipoUsuario.Normal,
 		};
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Crear Usuario";
@@ -75,6 +81,7 @@ public class UsuariosController : BaseAdminController {
 		var model = _mapper.Map<UsuarioModel>(p);
 
 		model.Perfiles = _consultas.ComboPerfiles();
+		model.Tipos = OpcionesConfig.ComboDict(TipoUsuario.Mapa());
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Editar Usuario";
 		return View(model);
@@ -98,8 +105,7 @@ public class UsuariosController : BaseAdminController {
 		_mapper.Map(model, user);
 
 		if (!id.HasValue) {
-			var hasher = new PasswordHash();
-			user.Password = hasher.Hash(model.Password);
+			UsuariosService.UpdatePassword(user, model.Password);
 			user.Creacion = DateTime.Now;
 			_db.Usuario.Add(user);
 		}
@@ -119,9 +125,7 @@ public class UsuariosController : BaseAdminController {
 			return Problem();
 		}
 
-		var hasher = new PasswordHash();
-		string hash = hasher.Hash(pass);
-		user.Password = hash;
+		UsuariosService.UpdatePassword(user, pass);
 		user.Modificacion = DateTime.Now;
 		await _db.SaveChangesAsync();
 

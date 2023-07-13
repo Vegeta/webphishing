@@ -28,9 +28,11 @@ public partial class SesionRespuesta : BaseEntity {
 	[Column("fin", TypeName = "timestamp without time zone")]
 	public DateTime? Fin { get; set; }
 
-	[Column("resultado")]
-	[StringLength(255)]
-	public string? Resultado { get; set; }
+	[Column("score")]
+	public int? Score { get; set; }
+
+	[DataType("text")]
+	public string? Comentario { get; set; }
 
 	[ForeignKey("PreguntaId")]
 	[InverseProperty("SesionRespuesta")]

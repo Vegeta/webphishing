@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Infraestructura;
-using Microsoft.AspNetCore.Identity;
+using Infraestructura.Servicios;
 using Webapp.Models;
 using Webapp.Web;
 
@@ -12,6 +12,8 @@ namespace Webapp {
 
 			services.AddDatabase(builder.Configuration);
 			services.AddServices(builder.Configuration);
+			services.AddScoped<IUserAccesor, SessionUserAccesor>();
+			services.AddTransient<MenuConfig>();
 
 			// Add services to the container.
 			builder.Services.AddControllersWithViews()
@@ -21,9 +23,10 @@ namespace Webapp {
 				.AddSessionStateTempDataProvider();
 
 			builder.Services.AddSession(options => {
-				options.Cookie.Name = ".Phishing.Session";
-				//options.IdleTimeout = TimeSpan.FromHours(2);
-				//options.Cookie.IsEssential = true;
+				options.Cookie.Name = AuthConstants.SessionName;
+				//options.Cookie.Name = ".Phishing.Session";
+				options.IdleTimeout = TimeSpan.FromHours(2);
+				options.Cookie.IsEssential = true;
 			});
 
 			builder.Services.AddWebAppServices(builder.Configuration);
@@ -56,9 +59,10 @@ namespace Webapp {
 
 			app.UseRouting();
 
-			app.UseAuthorization();
-
 			app.UseSession();
+
+			app.UseAuthentication();
+			app.UseAuthorization();
 
 			app.MapControllerRoute(
 				name: "areas",

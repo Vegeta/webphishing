@@ -26,7 +26,7 @@ namespace Webapp.Models {
 
 		[JsonIgnore]
 		public IList<string> Permisos { get; set; } = new List<string>();
-		
-		
+
+		public bool TienePermisos => !string.IsNullOrEmpty(Accesos);
 	}
 }

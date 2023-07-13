@@ -1,11 +1,22 @@
+using Infraestructura.Identity;
+using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Webapp.Models {
 	public class MenuConfig {
 		private int _nav = 0;
 
+		private readonly IUserAccesor _userAccesor;
+
+		public MenuConfig(IUserAccesor userAccesor) {
+			_userAccesor = userAccesor;
+		}
+
+		protected SessionInfo userInfo = new();
+
 		public MenuItem Prepare(MenuItem main, IUrlHelper url) {
 			// aca iria permisos
+			userInfo = _userAccesor.CurrentUser();
 			var root = main.Link;
 			_nav = 0;
 			var lista = PrepareItems(main.Children, url);
@@ -18,6 +29,11 @@ namespace Webapp.Models {
 		private List<MenuItem> PrepareItems(List<MenuItem> items, IUrlHelper url) {
 			var lista = new List<MenuItem>();
 			foreach (var item in items) {
+				if (item.TienePermisos) {
+					if (!UsuariosService.AutorizarPermisos(userInfo.Permisos, item.Accesos))
+						continue;
+				}
+
 				// TODO permisos
 				if (item.Children.Count > 0) {
 					var children = PrepareItems(item.Children, url);
@@ -57,9 +73,9 @@ namespace Webapp.Models {
 				},
 				new MenuItem {
 					Name = "Contenido",
-					Accesos = "preguntas,examenes",
+					Accesos = "preguntas|examenes",
 					Icon = "bi-journal-text",
-					
+
 				}.AddChildren(
 					new MenuItem {
 						Name = "Preguntas",

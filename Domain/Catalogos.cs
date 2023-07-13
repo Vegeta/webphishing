@@ -19,6 +19,16 @@ public class DificultadPregunta {
 			{ "dificil" , "Dificil" }
 		};
 	}
+
+	public static int ScoreRespuesta(string dificultad) {
+		return dificultad switch {
+			Facil => 1,
+			Medio => 2,
+			Dificil => 3,
+			_ => 0
+		};
+	}
+
 }
 
 public class Generos {
@@ -48,6 +58,18 @@ public class TipoExamen {
 		return new Dictionary<string, string>{
 			{ "predeterminado" , "Predeterminado" },
 			{ "personalizado" , "Personalizado" },
+		};
+	}
+}
+
+public class TipoUsuario {
+	public const string Normal = "normal";
+	public const string Manager = "manager";
+
+	public static IDictionary<string, string> Mapa() {
+		return new Dictionary<string, string>{
+			{ "normal" , "Normal" },
+			{ "manager" , "Manager" },
 		};
 	}
 }

@@ -1,11 +1,5 @@
 ﻿using Infraestructura.Persistencia;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain.Entidades;
-using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using Domain;
 using Microsoft.EntityFrameworkCore;
@@ -80,27 +74,18 @@ public class RegistroService {
 			Nombre = per.NombreCompleto,
 			ExamenId = examen.Id,
 			PersonaId = per.Id,
-			FechaActividad = DateTime.Now
+			FechaActividad = DateTime.Now,
+			Tipo = "simple",
 		};
 
+		var config = FlujoExamen.InitFlujo(examen);
 
-
-		var config = new SesionFlujo();
-		config.Originales = examen.ExamenPregunta.Select(x => x.PreguntaId).ToList(); // sacar ids
-		config.Propuestas.Add(config.Originales[0]); // la primera pregunta
-		config.PreguntaActual = 0;
-
-		if (examen.CuestionarioPos.HasValue) {
+		if (config.CuestionarioPos.HasValue) {
 			var cues = _db.Cuestionario.Select(x => new {
 				id = x.Id
 			}).FirstOrDefault();
-			if (cues != null) {
-				s.CuestionarioId = cues.id;
-				config.CuestionarioPos = examen.CuestionarioPos;
-			}
+			s.CuestionarioId = cues?.id;
 		}
-
-
 		s.Flujo = JSON.Stringify(config);
 
 		_db.SesionPersona.Add(s);
@@ -115,19 +100,33 @@ public class RegistroService {
 
 public class SesionCreada {
 	public SesionPersona? Sesion { get; set; }
-	public SesionFlujo? Flujo { get; set; }
+	public SesionFlujoWeb? Flujo { get; set; }
 	public string Error { get; set; }
 
-	public SesionCreada(SesionPersona? sesion, SesionFlujo? flujo, string error = "") {
+	public SesionCreada(SesionPersona? sesion, SesionFlujoWeb? flujo, string error = "") {
 		Sesion = sesion;
 		Flujo = flujo;
 		Error = error;
 	}
 }
 
-public class SesionFlujo {
-	public int PreguntaActual { get; set; }
+public class SesionFlujoWeb {
+	public int Respuestas { get; set; } = 0;
 	public int? CuestionarioPos { get; set; }
-	public List<int> Originales { get; set; } = new();
-	public List<int> Propuestas { get; set; } = new();
+	public int Decision { get; set; } = 0;
+	public List<PreguntaWeb> Lista { get; set; } = new();
+	public List<PreguntaWeb> EnCola { get; set; } = new();
+
+	public PreguntaWeb? Siguiente() {
+		if (EnCola.Count == 0)
+			return null;
+		return Respuestas >= EnCola.Count ? null : EnCola[Respuestas];
+	}
+
+}
+
+public class PreguntaWeb {
+	public int Id { get; set; }
+	public string Dificultad { get; set; } = "";
+	public bool Usada { get; set; } = false;
 }
