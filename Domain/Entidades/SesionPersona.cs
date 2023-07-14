@@ -56,6 +56,18 @@ public partial class SesionPersona : BaseEntity {
 	[Column("score")]
 	public int? Score { get; set; }
 
+	[Column("tiempo_total")]
+	public float? TiempoTotal { get; set; }
+
+	[Column("avg_score")]
+	public float? AvgScore { get; set; }
+
+	[Column("avg_tiempo")]
+	public float? AvgTiempo { get; set; }
+
+	[Column("tasa_exito")]
+	public decimal? TasaExito{ get; set; }
+
 	[ForeignKey("CuestionarioId")]
 	[InverseProperty("SesionPersona")]
 	public virtual Cuestionario? Cuestionario { get; set; }

@@ -1,17 +1,75 @@
 ﻿using Domain;
 using Domain.Entidades;
 using Infraestructura.Persistencia;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Infraestructura.Servicios;
 
 public class FlujoExamen {
 
+	public const string EstadoPendiente = "pendiente";
+	public const string EstadoEnCurso = "en_curso";
+	public const string EstadoTerminado = "terminado";
+
 	private readonly AppDbContext _db;
 
-	private static Random rng = new Random();
+	private static readonly Random Rng = new();
 
 	public FlujoExamen(AppDbContext db) {
 		_db = db;
+	}
+
+	public SesionPersona? SesionPorToken(string token) {
+		return _db.SesionPersona.FirstOrDefault(x => x.Token == token);
+	}
+
+	public SesionPersona? SesionActualPersona(int personaId) {
+		return _db.SesionPersona.FirstOrDefault(x => x.PersonaId == personaId
+											  && (x.Estado == EstadoPendiente || x.Estado == EstadoEnCurso));
+	}
+
+	public SesionCreada IniciarSesionIndividual(Persona per, bool guardar = true) {
+		var examen = _db.Examen
+			.AsNoTracking()
+			.Include(x => x.ExamenPregunta)
+			.ThenInclude(x => x.Pregunta)
+			.FirstOrDefault(x => x.Tipo == TipoExamen.Predeterminado);
+		if (examen == null) {
+			return new SesionCreada(null, null, new AccionFlujo("sin_datos"));
+		}
+
+		var token = PasswordHash.CreateSecureRandomString();
+		var ses = new SesionPersona {
+			Estado = EstadoPendiente,
+			Token = token,
+			Nombre = per.NombreCompleto,
+			ExamenId = examen.Id,
+			PersonaId = per.Id,
+			FechaActividad = DateTime.Now,
+			Tipo = examen.Tipo,
+		};
+
+		var config = InitFlujo(examen);
+
+		if (config.CuestionarioPos.HasValue) {
+			var cues = _db.Cuestionario.Select(x => new {
+				id = x.Id
+			}).FirstOrDefault();
+			ses.CuestionarioId = cues?.id;
+		}
+
+		var accion = Avance(ses, config);
+
+		ses.Flujo = JSON.Stringify(config);
+		ses.Score = 0;
+
+		if (guardar) {
+			_db.SesionPersona.Add(ses);
+			_db.SaveChanges();
+		}
+
+		return new SesionCreada(ses, config, accion);
 	}
 
 	public static SesionFlujoWeb InitFlujo(Examen examen) {
@@ -23,43 +81,116 @@ public class FlujoExamen {
 		config.CuestionarioPos = examen.CuestionarioPos;
 
 		// shuffle
-		config.Lista = config.Lista.OrderBy(_ => rng.Next()).ToList();
+		config.Lista = config.Lista.OrderBy(_ => Rng.Next()).ToList();
 
 		return config;
 	}
 
-	public SesionFlujoWeb ResponderPregunta(Pregunta preg, SesionRespuesta resp, SesionPersona sesion) {
+	public bool FinalizarSesion(SesionPersona sesion) {
+		if (sesion.Estado == EstadoTerminado)
+			return false;
+
+		// calculos
+
+		var respuestas = _db.SesionRespuesta
+			.Where(x => x.SesionId == sesion.Id)
+			.OrderBy(x => x.Inicio);
+		var scores = respuestas.Select(x => x.Score).ToList();
+		var tiempos = respuestas.Select(x => x.Tiempo).ToList();
+		sesion.AvgScore = (float?)scores.Average();
+		sesion.AvgTiempo = tiempos.Average();
+
+		var exitos = respuestas.Count(x => x.Score > 0);
+
+		var inicio = respuestas.First();
+		var fin = respuestas.Last();
+		if (inicio.Inicio.HasValue && fin.Fin.HasValue) {
+			var ts = fin.Fin - inicio.Inicio;
+			sesion.TiempoTotal = (float)ts.Value.TotalSeconds;
+		}
+
+		sesion.FechaExamen = inicio.Inicio;
+		sesion.FechaFin = inicio.Fin;
+
+		if (exitos == 0)
+			sesion.TasaExito = 0;
+		else {
+			sesion.TasaExito = (respuestas.Count() / exitos) * 100;
+		}
+
+		sesion.Estado = EstadoTerminado;
+		return true;
+	}
+
+	public AccionFlujo ResponderCuestionario(SesionPersona sesion, string? jsonRespuestas) {
+		sesion.RespuestaCuestionario = jsonRespuestas;
+		var flujoWeb = sesion.GetSesionFlujo();
+		var accion = Avance(sesion, flujoWeb);
+		sesion.Flujo = JSON.Stringify(flujoWeb);
+		sesion.Estado = EstadoEnCurso;
+		_db.SaveChanges();
+		return accion;
+	}
+
+	public AccionFlujo RegistrarRespuesta(SesionPersona sesion, SesionRespuesta resp) {
+		var preg = _db.Pregunta
+			.AsNoTracking()
+			.Select(x => new Pregunta { Id = x.Id, Dificultad = x.Dificultad, Legitimo = x.Legitimo })
+			.FirstOrDefault(x => x.Id == resp.PreguntaId);
 		var flujo = sesion.GetSesionFlujo();
+		var score = EvaluarRespuesta(preg, resp);
+		sesion.Score ??= 0; // da fuq
+		sesion.Score += score;
+		flujo.Respuestas++;
+		var accion = Avance(sesion, flujo);
+		sesion.Flujo = JSON.Stringify(flujo);
+		sesion.FechaActividad = DateTime.Now;
+		sesion.Estado = EstadoEnCurso;
 
-		resp.PreguntaId = preg.Id;
-		resp.Fin = DateTime.Now;
-		// evaluar puntaje
+		var tx = _db.Database.BeginTransaction();
+		try {
+			_db.SesionRespuesta.Add(resp);
+			_db.SaveChanges();
 
-		var actual = sesion.Score ?? 0;
+			if (accion.Accion == "fin") {
+				FinalizarSesion(sesion);
+			}
+			_db.SaveChanges();
+			tx.Commit();
+		} catch (Exception ex) {
+			//TODO log esto
+			tx.Rollback();
+		}
+
+		return accion;
+	}
+
+	public int EvaluarRespuesta(Pregunta preg, SesionRespuesta resp) {
 		var correcto = (resp.Respuesta == "legitimo" && preg.Legitimo == 1)
 					   || (resp.Respuesta == "phish" && preg.Legitimo is 0 or null);
 		var puntos = 0;
 		if (correcto) {
 			puntos = DificultadPregunta.ScoreRespuesta(preg.Dificultad ?? DificultadPregunta.Facil);
-			actual += puntos;
 		}
-		sesion.Score = actual;
 		resp.Score = puntos;
-		flujo.Respuestas++;
-		return flujo;
+		return puntos;
 	}
 
 	public AccionFlujo Avance(SesionPersona sesion, SesionFlujoWeb flujoWeb) {
 		var algo = Algoritmo();
-		var paso = algo.Pasos[flujoWeb.Decision];
+		// convertida recursion en iteracion por la herramienta
+		while (true) {
+			var paso = algo.Pasos[flujoWeb.Decision];
 
-		if (paso == null)
-			throw new ArgumentException(nameof(paso));
+			if (paso == null) throw new ArgumentException(nameof(paso));
 
-		var res = EvaluarPaso(paso, flujoWeb, sesion);
-		if (res.Accion == "next")
-			return Avance(sesion, flujoWeb);
-		return res;
+			var res = EvaluarPaso(paso, flujoWeb, sesion);
+			// si dice siga al siguiente, continua el flujo
+			if (res.Accion == "next")
+				continue;
+			return res;
+			//break;
+		}
 	}
 
 	public AccionFlujo EvaluarPaso(Step paso, SesionFlujoWeb config, SesionPersona sesion) {
@@ -69,9 +200,7 @@ public class FlujoExamen {
 			return new AccionFlujo("fin");
 
 		// cuestionario
-		if (sesion.CuestionarioId.HasValue
-			&& config.Respuestas == config.CuestionarioPos
-			&& string.IsNullOrEmpty(sesion.RespuestaCuestionario))
+		if (config.TocaCuestionario(sesion))
 			return new AccionFlujo("cuestionario");
 
 		if (paso.Condicion == "fin")
@@ -93,7 +222,7 @@ public class FlujoExamen {
 			return new AccionFlujo("pregunta", config.Siguiente()?.Id);
 		}
 
-		// switch
+		// switch score
 		Step? paraAsignar = null;
 		foreach (var p in paso.Deciciones) {
 			var pasa = EvaluarScore(p.Condicion, score);
@@ -123,7 +252,7 @@ public class FlujoExamen {
 			lista.Add(preg);
 			asignadas++;
 		}
-		lista = lista.OrderBy(x => rng.Next()).ToList();
+		lista = lista.OrderBy(x => Rng.Next()).ToList();
 		conf.EnCola.AddRange(lista);
 		return asignadas;
 	}
@@ -136,7 +265,7 @@ public class FlujoExamen {
 			case ">=3 y <5": return score >= 3 && score < 5;
 			case ">=6": return score >= 6;
 			case ">=3 y <6": return score >= 3 && score < 6;
-			case "default": return true;
+			case "default": return true; // OJO
 			default: return false;
 		}
 	}
@@ -167,13 +296,55 @@ public class FlujoExamen {
 
 }
 
+
+public class SesionCreada {
+	public SesionPersona? Sesion { get; set; }
+	public SesionFlujoWeb? Flujo { get; set; }
+	public AccionFlujo Accion { get; set; }
+
+	public SesionCreada(SesionPersona? sesion, SesionFlujoWeb? flujo, AccionFlujo accion) {
+		Sesion = sesion;
+		Flujo = flujo;
+		Accion = accion;
+	}
+}
+
+public class SesionFlujoWeb {
+	public int Respuestas { get; set; } = 0;
+	public int? CuestionarioPos { get; set; }
+	public int Decision { get; set; } = 0;
+	public List<PreguntaWeb> Lista { get; set; } = new();
+	public List<PreguntaWeb> EnCola { get; set; } = new();
+
+	public PreguntaWeb? Siguiente() {
+		if (EnCola.Count == 0)
+			return null;
+		return Respuestas >= EnCola.Count ? null : EnCola[Respuestas];
+	}
+
+	public bool TocaCuestionario(SesionPersona sesion) {
+		return sesion.CuestionarioId.HasValue
+			   && Respuestas == CuestionarioPos
+			   && string.IsNullOrEmpty(sesion.RespuestaCuestionario);
+	}
+
+}
+
+public class PreguntaWeb {
+	public int Id { get; set; }
+	public string Dificultad { get; set; } = "";
+	public bool Usada { get; set; } = false;
+}
+
 public class AccionFlujo {
 	public string Accion { get; set; }
 	public int? PreguntaId { get; set; }
+	public string Mensaje { get; set; } = "";
 
-	public AccionFlujo(string accion, int? preguntaId = null) {
+	public AccionFlujo(string accion, int? preguntaId = null, string? mensaje = null) {
 		Accion = accion;
 		PreguntaId = preguntaId;
+		Mensaje = mensaje ?? "";
 	}
 }
 

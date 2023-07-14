@@ -1,0 +1,71 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div id="app">
+	<!-- ======= Breadcrumbs ======= -->
+	<!--<section id="breadcrumbs" class="breadcrumbs">
+		<div class="container">
+		</div>
+	</section>--><!-- End Breadcrumbs -->
+
+	<!-- ======= Contact Section ======= -->
+	<section id="contact" class="contact" style="margin-top:72px">
+		<div class="container" data-aos="fade-up">
+			
+			<div class="section-title">
+				<h2>Resultados de su Evaluación</h2>
+			</div>
+
+			<div class="row">
+
+				<div class="col-lg-6 d-flex align-items-stretch">
+					<table class="table table-hover table-condensed">
+
+
+					</table>
+				</div>
+
+				<div class="col-lg-6 mt-5 mt-lg-0 d-flex align-items-stretch">
+
+				</div>
+
+			</div>
+
+		</div>
+	</section><!-- End Contact Section -->
+</div>
+
+@section Scripts {
+	@await Html.PartialAsync("_Validation")
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+
+		$('#footer .footer-top').hide();
+
+		Vue.createApp({
+				data() {
+					return {
+						model: @Html.Raw(ViewBag.model),
+						baseUrl: '@ViewBag.self'
+					}
+				},
+				methods: {
+					registrar() {
+						var m = this.registro;
+						jsonPost(this.baseUrl + '/registrar', m).then(r => {
+							if (r.error)
+								return alert(r.error);
+							window.location.href = r.url;
+						});
+						return false;
+					},
+				},
+				mounted() {
+
+				}
+			})
+			.use(globalDirectives)
+			.mount('#app')
+
+	</script>
+}

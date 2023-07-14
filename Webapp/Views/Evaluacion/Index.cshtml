@@ -19,74 +19,56 @@
 				<h2>Evaluación de Detección de Phishing</h2>
 			</div>
 
-			<div class="info mb-4">
-				<h4>Instrucciones</h4>
-
-				<p>
-					Observe con detalle cada uno de los ejercicios que se van a desplegar a continuación y seleccione si es phishing o legítimo.
-					<br />
-					Al finalizar el ejercicio se desplegará una ventana donde usted debe escribir la razón o razones de su decisión.
-				</p>
-
-			</div>
-			
-			
-
-			<div class="info mb-3">
-				<h4>Ayuda</h4>
-
-				<p>
-					Asegúrate de <strong> explorar las direcciones de correo electrónico </strong> y de consultar
-					las
-					<strong>URL </strong> de los vínculos.
-				</p>
-				<p>
-					Para esta tarea, <strong>desplázate sobre las URL o mantenlas presionadas.</strong>
-					No debes preocuparte, ya que ninguno de los vínculos funcionará.
-				</p>
-				<p> <strong>No tenemos la intención de enviarte nada extraño.</strong></p>
-
-			</div>
-
-
 			<div class="row">
 
 				<div class="col-lg-6 d-flex align-items-stretch">
 
 
-					<div class="info">
+					<form id="formLogin" role="form" class="php-email-form" autocomplete="off">
 
-						<div class="text-center">
-							<h4>Ingreso</h4>
+						<h4 class="text-center">Ingreso</h4>
+
+						<p class="text-center small">
+							Si tiene ya una cuenta con PhishingDetection por favor ingrese
+							sus credenciales en la parte inferior
+						</p>
+						
+						<div class="container">
+							<div class="row">
+								<div class="form-group col-md-8 offset-sm-2">
+									<label for="">Email</label>
+									<input type="email" class="form-control" placeholder="nombre@ejemplpo.com">
+								</div>
+							</div>
+
+							<div class="row">
+								<div class="form-group col-md-8 offset-sm-2">
+									<label for="floatingPassword">Contraseña</label>
+									<input type="password" class="form-control" id="floatingPassword" placeholder="Contraseña">
+								</div>
+							</div>
+
+							<div class="text-center">
+								<button type="submit" class="btn btn-primary btn-sm">
+									Ingresar
+								</button>
+
+								<br />
+								<br />
+
+								<a href="#">Olvidó su contraseña?</a>
+							</div>
 						</div>
+						
 
-						<div class="address">
-							<i class="bi bi-geo-alt"></i>
-							<h4>Location:</h4>
-							<p>A108 Adam Street, New York, NY 535022</p>
-						</div>
-
-						<div class="email">
-							<i class="bi bi-envelope"></i>
-							<h4>Email:</h4>
-							<p>info@example.com</p>
-						</div>
-
-						<div class="phone">
-							<i class="bi bi-phone"></i>
-							<h4>Call:</h4>
-							<p>+1 5589 55488 55s</p>
-						</div>
-
-					</div>
-
+					</form>
 				</div>
 
 				<div class="col-lg-6 mt-5 mt-lg-0 d-flex align-items-stretch">
 					<form action="" method="post" role="form" class="php-email-form" id="formRegistro">
 
 						<div class="text-center">
-							<h4>Evaluación simple</h4>
+							<h4>Evaluación directa</h4>
 						</div>
 
 						<div class="row">
@@ -178,17 +160,20 @@
 						window.location.href = r.url;
 					});
 					return false;
-				}
+				},
 			},
 			mounted() {
 				var self = this;
 				$('#formRegistro').validate({
-					submitHandler:this.registrar
-				})
+					submitHandler: this.registrar
+				});
+				$('#formLogin').validate({
+					submitHandler: ()=> { return false; }
+				});
 			}
 		})
-			.use(globalDirectives)
-			.mount('#app')
+		.use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }

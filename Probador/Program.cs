@@ -94,7 +94,10 @@ public class ConsoleService : IHostedService {
 		//r.Respuesta = rng.Next() % 2 == 0 ? "phish" : "legitimo";
 		r.Respuesta = preg.Legitimo.HasValue && preg.Legitimo > 0 ? "legitimo" : "phish";
 
-		flujoWeb = flujo.ResponderPregunta(preg, r, ses);
+		var score = flujo.EvaluarRespuesta(preg, r);
+		ses.Score += score;
+		flujoWeb.Respuestas++;
+
 		var accion = flujo.Avance(ses, flujoWeb);
 		ses.Flujo = JSON.Stringify(flujoWeb);
 		Dump(flujoWeb);

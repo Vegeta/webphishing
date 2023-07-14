@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using System.Drawing;
 using System.Text.Json;
 using Webapp.Models;
@@ -7,6 +8,7 @@ using Webapp.Web;
 namespace Webapp.Controllers {
 	[FiltrosWeb]
 	[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+	[OutputCache(NoStore = true, Duration = 0)]
 	public abstract class BaseController : Controller {
 
 		private BreadcrumbsBuilder? _bread;
