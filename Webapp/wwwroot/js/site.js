@@ -3,7 +3,6 @@
 
 // Write your JavaScript code.
 
-
 function jsonPost(url, data) {
 	return $.ajax({
 		type: "POST",
@@ -26,20 +25,38 @@ const vAutoname = {
 	}
 }
 
+const formatoFechaFull = 'dddd, D [de] MMMM, YYYY h:mm A';
+
 const globalDirectives = {
 	install(app, options) {
 		app.directive('autoname', vAutoname);
 
 		app.mixin({
+			data() {
+				return {
+				}
+			},
+			created() {
+				// no reactive
+				this.formatoFechaFull = formatoFechaFull
+			},
 			methods: {
-				formatFecha: function (val, formato = '') {
+				numero: function (val, decimal = 2) {
+					const res = parseFloat(val)
+					if (isNaN(res))
+						return null
+					return res.toFixed(decimal)
+				},
+				fecha: function (val, formato) {
 					if (!val) return val;
-					var m = new Date(val);
-					if (isNaN(m))
-						return val;
-					if (formato === 'hora')
-						return moment(m).format('YYYY-MM-DD HH:mm:ss');
-					return moment(m).format('YYYY-MM-DD');
+
+					if (formato === 'fechaHora')
+						formato = 'YYYY-MM-DD h:mm A'
+
+					const d = window.dayjs(val);
+					if (!d)
+						return '<ERROR>';
+					return d.locale('es').format(formato || 'YYYY-MM-DD');
 				},
 				porcentaje: function (val, decimales = 0) {
 					if (!val || val === '' || val === null || isNaN(val))

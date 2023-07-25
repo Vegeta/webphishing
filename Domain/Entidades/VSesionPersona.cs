@@ -1,11 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Domain.Comunes;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Entidades;
 
-[Table("sesion_persona")]
-public partial class SesionPersona : BaseEntity {
+/// <summary>
+/// Vista combinada de resultado con info persona
+/// </summary>
+[Keyless]
+public class VSesionPersona {
+	[Column("id")]
+	public int Id { get; set; }
+
 	[Column("examen_id")]
 	public int? ExamenId { get; set; }
 
@@ -75,31 +81,44 @@ public partial class SesionPersona : BaseEntity {
 	public string? Percepcion { get; set; }
 
 	[Column("tiempo_cuestionario")]
-	public float? TiempoCuestionario{ get; set; }
+	public float? TiempoCuestionario { get; set; }
 
 	[Column("score_cuestionario")]
 	public float? ScoreCuestionario { get; set; }
-	
-	[ForeignKey("CuestionarioId")]
-	[InverseProperty("SesionPersona")]
-	public virtual Cuestionario? Cuestionario { get; set; }
 
-	[ForeignKey("ExamenId")]
-	[InverseProperty("SesionPersona")]
-	public virtual Examen? Examen { get; set; } = null!;
+	// porcion de persona
 
-	[ForeignKey("GrupoId")]
-	[InverseProperty("SesionPersona")]
-	public virtual SesionGrupo? Grupo { get; set; }
+	[Column("nombres")]
+	public string? Nombres { get; set; }
 
-	[ForeignKey("PersonaId")]
-	[InverseProperty("SesionPersona")]
-	public virtual Persona? Persona { get; set; }
+	[Column("apellidos")]
+	public string? Apellidos { get; set; }
 
-	[InverseProperty("Sesion")]
-	public virtual ICollection<SesionRespuesta> SesionRespuesta { get; } = new List<SesionRespuesta>();
+	[Column("ocupacion")]
+	[StringLength(255)]
+	public string? Ocupacion { get; set; }
 
-	[InverseProperty("Sesion")]
-	public virtual ICollection<CuestionarioRespuesta> CuestionarioRespuestas { get; } = new List<CuestionarioRespuesta>();
+	[Column("actividad")]
+	[StringLength(255)]
+	public string? Actividad { get; set; }
+
+	[Column("email")]
+	[StringLength(255)]
+	public string? Email { get; set; }
+
+	[Column("genero")]
+	[StringLength(255)]
+	public string? Genero { get; set; }
+
+	[Column("edad")]
+	public short? Edad { get; set; }
+
+	[Column("experiencia_seguridad")]
+	public short? ExperienciaSeguridad { get; set; }
+
+	[Column("usuario_id")]
+	public int? UsuarioId { get; set; }
+
+	public string NombreCompleto => $"{Nombres} {Apellidos}".Trim();
 
 }

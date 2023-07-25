@@ -15,6 +15,8 @@ public partial class AppDbContext : DbContext {
 
 	public virtual DbSet<Cuestionario> Cuestionario { get; set; } = default!;
 
+	public virtual DbSet<CuestionarioRespuesta> CuestionarioRespuesta { get; set; } = default!;
+
 	public virtual DbSet<Examen> Examen { get; set; } = default!;
 
 	public virtual DbSet<ExamenPregunta> ExamenPregunta { get; set; } = default!;
@@ -34,6 +36,8 @@ public partial class AppDbContext : DbContext {
 	public virtual DbSet<SesionRespuesta> SesionRespuesta { get; set; } = default!;
 
 	public virtual DbSet<Usuario> Usuario { get; set; } = default!;
+
+	public virtual DbSet<VSesionPersona> VSesiones { get; set; } = default!;
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
 
@@ -129,6 +133,12 @@ public partial class AppDbContext : DbContext {
 			entity.HasOne(d => d.Sesion).WithMany(p => p.SesionRespuesta).HasConstraintName("fk_ses_examen");
 		});
 
+		modelBuilder.Entity<CuestionarioRespuesta>(entity => {
+			entity.HasKey(e => e.Id).HasName("cuestionario_respuesta_pkey");
+
+			entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+		});
+
 		modelBuilder.Entity<Usuario>(entity => {
 			entity.HasKey(e => e.Id).HasName("usuario_pkey");
 
@@ -138,6 +148,10 @@ public partial class AppDbContext : DbContext {
 				.OnDelete(DeleteBehavior.SetNull)
 				.HasConstraintName("fk_perfil");
 		});
+
+		modelBuilder.Entity<VSesionPersona>()
+			.HasNoKey()
+			.ToView("v_sesion_persona");
 
 		OnModelCreatingPartial(modelBuilder);
 	}

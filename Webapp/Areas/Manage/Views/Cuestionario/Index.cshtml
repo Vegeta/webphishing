@@ -29,6 +29,7 @@
 							<tr>
 								<th class="col-sm-1">Orden</th>
 								<th>Texto</th>
+								<th class="col-sm-1">Dimensión</th>
 								<th style="width: 50px"></th>
 							</tr>
 							<tr v-for="p in model.preguntas">
@@ -36,7 +37,10 @@
 									<input v-model="p.orden" class="form-control input-sm integer" required maxlength="2" />
 								</td>
 								<td>
-									<input v-model="p.texto" class="form-control input-sm" required />
+									<input v-model="p.texto" class="form-control input-sm" required maxlength="255" />
+								</td>
+								<td>
+									<input v-model="p.dimension" class="form-control input-sm" required maxlength="50" />
 								</td>
 								<td>
 									<button type="button" class="btn btn-sm btn-primary" @@click="delPregunta(p)">

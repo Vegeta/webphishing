@@ -29,6 +29,7 @@ public static class ConfiguradorServicios {
 		services.AddScoped<RegistroService>();
 		services.AddScoped<UsuariosService>();
 		services.AddScoped<FlujoExamen>();
+		services.AddScoped<EvaluacionesService>();
 		return services;
 	}
 }

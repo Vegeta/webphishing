@@ -1,0 +1,220 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<style>
+	.acierto-examen {
+		background: #16be7e;
+		background: rgba(22, 190, 126, 0.938) !important;
+	}
+
+	.error-examen {
+		background: rgb(211, 53, 53);
+	}
+
+</style>
+
+<section id="app">
+
+	<div class="row">
+		<div class="col-4">
+
+			<div class="card">
+				<div class="card-body" style="min-height: 585px">
+					<h5 class="card-title">Resumen</h5>
+
+					<table class="table table-sm table-bordered">
+						<tbody>
+							<tr>
+								<th class="col-sm-4">Usuario</th>
+								<td v-text="model.nombre"></td>
+							</tr>
+							<tr>
+								<th>Fecha/hora inicio</th>
+								<td v-text="fecha(model.fechaExamen, formatoFechaFull)"></td>
+							</tr>
+							<tr>
+								<th>Fecha/hora fin</th>
+								<td v-text="fecha(model.fechaFin, formatoFechaFull)"></td>
+							</tr>
+							<tr>
+								<th>Puntaje</th>
+								<td class="text-center">
+									<span class="fw-bold" v-text="model.score + ' / ' + model.maxScore"></span>
+									<img src="~/ejercicios/score.png" alt="" width="24" height="24"/>
+								</td>
+							</tr>
+							<tr>
+								<th>% Éxito</th>
+								<td class="" v-text="porcentaje(model.exito)"></td>
+							</tr>
+							<tr>
+								<th>Tiempo Total</th>
+								<td v-text="numero(model.tiempoTotal)  + ' seg'"></td>
+							</tr>
+							<tr>
+								<th>Tiempo promedio por pregunta</th>
+								<td v-text="numero(model.avgTiempo) + ' seg'"></td>
+							</tr>
+							<tr>
+								<th>Puntaje promedio</th>
+								<td v-text="model.avgScore"></td>
+							</tr>
+
+							<tr>
+								<th>Aciertos</th>
+								<td v-text="correctas" class="acierto-examen fw-bold text-center"></td>
+							</tr>
+							<tr>
+								<th>Errores</th>
+								<td v-text="incorrectas" class="fw-bold text-center" :class="{'error-examen':incorrectas}"></td>
+							</tr>
+								
+							<tr>
+								<th>Nivel de percepcion</th>
+								<td class="text-center">
+									<span v-text="numero(model.scoreCuestionario)"></span> / <span v-text="model.percepcion"></span>
+								</td>
+							</tr>
+
+						</tbody>
+					</table>
+
+				</div>
+			</div>
+		</div>
+		<div class="col-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Nivel de Percepción de Riesgo</h5>
+					<div style="">
+						@*<canvas id="percepcion"></canvas>*@
+						<canvas id="percepcion" aria-label="chart" height="350" width=""></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Aciertos</h5>
+					<div style="">
+						<canvas id="aciertos" aria-label="chart" height="350" width=""></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	<script>
+
+		Vue.createApp({
+				data() {
+					return {
+						model: @Html.Raw(ViewBag.modelo),
+						respuestas: @Html.Raw(ViewBag.respuestas),
+						percepcion: @Html.Raw(ViewBag.percepcion),
+						flujo: @Html.Raw(ViewBag.flujo),
+						baseurl: '@ViewBag.self',
+						correctas: 0,
+						incorrectas : 0,
+					}
+				},
+				computed: {
+				},
+				methods: {
+					delPregunta(p) {
+						if (!confirm("Eliminar esta pregunta?"))
+							return;
+						var ix = this.model.preguntas.indexOf(p);
+						this.model.preguntas.splice(ix, 1);
+					},
+					addPregunta() {
+						this.model.preguntas.push({
+							orden: null,
+							texto: null,
+						})
+					},
+					reordenar() {
+						let list = _.sortBy(this.model.preguntas, ['orden'])
+						this.model.preguntas = list
+					},
+				},
+				mounted() {
+					var self = this;
+
+					this.correctas = _.filter(this.respuestas, x => x.score > 0).length;
+					this.incorrectas = this.respuestas.length - this.correctas;
+
+					var mapaPer = {
+						1: 'Probabilidad percibida',
+						2: 'Susceptibilidad percibida',
+						3: 'Gravedad percibida'
+					}
+
+					var configPer = {
+						type: 'polarArea',
+						data: {
+							labels: [],
+							datasets: [
+								{
+									label: 'Series Percepcion',
+									data: [],
+								}
+							],
+						},
+						options: {
+							responsive: true,
+						},
+					}
+
+					this.percepcion.forEach(x => {
+						configPer.data.labels.push(mapaPer[x.dimension] || x.dimension)
+						configPer.data.datasets[0].data.push(x.prom)
+					});
+
+					var chartPer = new Chart(
+						document.getElementById('percepcion'),
+						configPer
+					);
+
+					var exito = this.model.exito;
+
+					var chartExamen = new Chart(
+						document.getElementById('aciertos'),
+						{
+							type: 'doughnut',
+							data: {
+								labels: ['Exito', 'Error'],
+								datasets: [
+									{
+										data: [exito, 100 - exito],
+										backgroundColor: ['rgba(22, 190, 126, 0.938)', 'rgb(211, 53, 53)'],
+										hoverBackgroundColor: ['#7fe087', '#ee7b7b'],
+										hoverBorderColor: ['#7fe087', '#ee7b7b']
+									}
+								]
+							},
+							options: {
+								responsive: true,
+							},
+						}
+					);
+
+
+				}
+			})
+			.use(globalDirectives)
+			.mount('#app')
+
+	</script>
+}

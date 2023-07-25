@@ -1,24 +1,23 @@
 using AutoMapper;
 using Domain;
 using Domain.Entidades;
-using Infraestructura;
+using Infraestructura.Filtros;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Webapp.Controllers;
 using Webapp.Models;
-using Webapp.Models.Consultas;
 using Webapp.Models.Datatables;
-using Webapp.Models.Formularios;
 
 namespace Webapp.Areas.Manage.Controllers;
 
 public class UsuariosController : BaseAdminController {
 	AppDbContext _db;
 	private readonly IMapper _mapper;
-	private readonly ConsultasAuth _consultas;
+	private readonly UsuariosService _usuarios;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
@@ -27,10 +26,10 @@ public class UsuariosController : BaseAdminController {
 		Titulo("Usuarios registrados");
 	}
 
-	public UsuariosController(AppDbContext db, IMapper mapper, ConsultasAuth consultas) {
+	public UsuariosController(AppDbContext db, IMapper mapper, UsuariosService usuarios) {
 		_db = db;
 		_mapper = mapper;
-		_consultas = consultas;
+		_usuarios = usuarios;
 	}
 
 	public IActionResult Index() {
@@ -45,7 +44,7 @@ public class UsuariosController : BaseAdminController {
 		filtros.OrdenCampo = orden.Campo;
 		filtros.OrdenDir = orden.Dir;
 
-		var q = _consultas.ListaUsuarios(filtros);
+		var q = _usuarios.ListaUsuarios(filtros);
 
 		var proj = q.Select(x => new {
 			id = x.Id,
@@ -66,7 +65,7 @@ public class UsuariosController : BaseAdminController {
 	public IActionResult Crear() {
 		Breadcrumbs.Active("Crear");
 		var model = new UsuarioModel {
-			Perfiles = _consultas.ComboPerfiles(),
+			Perfiles = ComboPerfiles(),
 			Tipos = OpcionesConfig.ComboDict(TipoUsuario.Mapa()),
 			Tipo = TipoUsuario.Normal,
 		};
@@ -80,7 +79,7 @@ public class UsuariosController : BaseAdminController {
 		var p = _db.Usuario.Find(id);
 		var model = _mapper.Map<UsuarioModel>(p);
 
-		model.Perfiles = _consultas.ComboPerfiles();
+		model.Perfiles = ComboPerfiles();
 		model.Tipos = OpcionesConfig.ComboDict(TipoUsuario.Mapa());
 		ViewBag.modelo = ToJson(model);
 		ViewBag.banner = "Editar Usuario";
@@ -132,7 +131,16 @@ public class UsuariosController : BaseAdminController {
 		return Ok(new { msg = "Password cambiado" });
 	}
 
-
+	protected List<SelectListItem> ComboPerfiles() {
+		var lista = _db.Perfil
+			.OrderBy(x => x.Nombre)
+			.Select(x => new { nombre = x.Nombre, id = x.Id })
+			.ToList()
+			.Select(x => new SelectListItem(x.nombre, x.id.ToString()))
+			.ToList();
+		lista.Insert(0, new SelectListItem());
+		return lista;
+	}
 
 }
 

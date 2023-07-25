@@ -237,7 +237,17 @@ public class EvaluacionController : BaseController {
 		var local = SesionActual();
 		if (local.HasError)
 			return Ok(new { error = local.Error });
-		var accion = _flujo.ResponderCuestionario(local.Sesion, data);
+		
+		var lista = JSON.Parse<List<CuestRespuestaModel>>(data ?? "[]");
+		var respuestas = lista.Select(x => new CuestionarioRespuesta {
+				SesionId = local.Sesion.Id,
+				Dimension = x.Dimension,
+				Pregunta = x.Texto,
+				Respuesta = x.Respuesta,
+			}
+		).ToList();
+
+		var accion = _flujo.ResponderCuestionario(local.Sesion, respuestas);
 		return Ok(accion);
 	}
 
@@ -269,7 +279,7 @@ public class EvaluacionController : BaseController {
 			local.Sesion.AvgScore,
 			local.Sesion.AvgTiempo,
 			local.Sesion.TiempoTotal,
-			local.Sesion.TasaExito,
+			TasaExito = local.Sesion.Exito,
 			//cuestionario = local.Sesion.RespuestaCuestionario,
 			cuestionario = JSON.Parse<dynamic>(local.Sesion.RespuestaCuestionario ?? "[]"),
 			detalle,

@@ -1,17 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Webapp.Models.Consultas;
-
-namespace Webapp.Models;
+﻿namespace Webapp.Models;
 public static class ConfiguradorWebApp {
 
 	/// <summary>
-	/// Aca van los servicios del assembly de la aplicacion web
+	/// Aca van los servicios del assembly de la aplicacion web, opcionales
 	/// </summary>
 	/// <param name="services"></param>
 	/// <param name="config"></param>
 	/// <returns></returns>
 	public static IServiceCollection AddWebAppServices(this IServiceCollection services, IConfiguration config) {
-		services.AddScoped<ConsultasAuth>();
+		//services.AddScoped<ConsultasAuth>();
 
 		//services.AddIdentity<IdentityUser, IdentityRole>();
 		//services.UpgradePasswordSecurity()

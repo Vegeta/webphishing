@@ -3,6 +3,7 @@ using Domain.Entidades;
 using Infraestructura.Persistencia;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Infraestructura.Servicios;
 
@@ -29,7 +30,9 @@ public class FlujoExamen {
 											  && (x.Estado == EstadoPendiente || x.Estado == EstadoEnCurso));
 	}
 
+
 	public SesionCreada IniciarSesionIndividual(Persona per, bool guardar = true) {
+		// TODO sacar de aca el examen y poner todo el banco de preguntas
 		var examen = _db.Examen
 			.AsNoTracking()
 			.Include(x => x.ExamenPregunta)
@@ -63,6 +66,7 @@ public class FlujoExamen {
 
 		ses.Flujo = JSON.Stringify(config);
 		ses.Score = 0;
+		ses.MaxScore = config.MaxScore;
 
 		if (guardar) {
 			_db.SesionPersona.Add(ses);
@@ -73,15 +77,19 @@ public class FlujoExamen {
 	}
 
 	public static SesionFlujoWeb InitFlujo(Examen examen) {
+		// TODO recibir lista preguntas simple, no examen
 		var config = new SesionFlujoWeb();
 		config.Lista = examen.ExamenPregunta.Select(x => new PreguntaWeb {
 			Id = x.PreguntaId,
 			Dificultad = x.Pregunta.Dificultad ?? DificultadPregunta.Facil
 		}).ToList(); // sacar info preguntas
 		config.CuestionarioPos = examen.CuestionarioPos;
-
 		// shuffle
 		config.Lista = config.Lista.OrderBy(_ => Rng.Next()).ToList();
+
+		foreach (var item in config.Lista) {
+			config.MaxScore += DificultadPregunta.ScoreRespuesta(item.Dificultad);
+		}
 
 		return config;
 	}
@@ -113,18 +121,44 @@ public class FlujoExamen {
 		sesion.FechaFin = inicio.Fin;
 
 		if (exitos == 0)
-			sesion.TasaExito = 0;
+			sesion.Exito = 0;
 		else {
-			sesion.TasaExito = (respuestas.Count() / exitos) * 100;
+			sesion.Exito = (respuestas.Count() / exitos) * 100;
 		}
 
 		sesion.Estado = EstadoTerminado;
 		return true;
 	}
 
-	public AccionFlujo ResponderCuestionario(SesionPersona sesion, string? jsonRespuestas) {
-		sesion.RespuestaCuestionario = jsonRespuestas;
+	public AccionFlujo ResponderCuestionario(SesionPersona sesion, IList<CuestionarioRespuesta> respuestas) {
 		var flujoWeb = sesion.GetSesionFlujo();
+
+		var calif = RespuestaCuestionario.Calificacion();
+
+		foreach (var item in respuestas) {
+			item.SesionId = sesion.Id;
+			var resp = item.Respuesta ?? "";
+			if (calif.TryGetValue(resp, out var value))
+				item.Puntaje = value;
+			_db.CuestionarioRespuesta.Add(item);
+		}
+
+		var pordim = new Dictionary<string, StatsDimension>();
+		// agrupar por dimensiones, sumar cada una y promedio de las sumas
+		var grupos = respuestas.GroupBy(x => x.Dimension ?? "");
+		foreach (var grupo in grupos) {
+			var t = new StatsDimension {
+				Dimension = grupo.Key,
+				Suma = grupo.Select(x => x.Puntaje).Sum(),
+				Prom = grupo.Select(x => x.Puntaje).Average()
+			};
+			pordim[grupo.Key] = t;
+		}
+		var avg = pordim.Values.Select(x => x.Suma).Average();
+		sesion.ScoreCuestionario = (float?)avg;
+		sesion.Percepcion = RespuestaCuestionario.Percepcion(Convert.ToDecimal(avg));
+		sesion.RespuestaCuestionario = JSON.Stringify(pordim.Values);
+
 		var accion = Avance(sesion, flujoWeb);
 		sesion.Flujo = JSON.Stringify(flujoWeb);
 		sesion.Estado = EstadoEnCurso;
@@ -177,6 +211,7 @@ public class FlujoExamen {
 	}
 
 	public AccionFlujo Avance(SesionPersona sesion, SesionFlujoWeb flujoWeb) {
+		// TODO simplificar algoritmo a paso definido, ver definicion abajo
 		var algo = Algoritmo();
 		// convertida recursion en iteracion por la herramienta
 		while (true) {
@@ -253,7 +288,7 @@ public class FlujoExamen {
 			asignadas++;
 		}
 		lista = lista.OrderBy(x => Rng.Next()).ToList();
-		conf.EnCola.AddRange(lista);
+		conf.Cola.AddRange(lista);
 		return asignadas;
 	}
 
@@ -271,6 +306,7 @@ public class FlujoExamen {
 	}
 
 	public StepBuilder Algoritmo() {
+		// TODO simplificar, poner conteo de preguntas en el mismo paso de asignar
 		var que = new StepBuilder();
 		que.Asignar(DificultadPregunta.Facil, DificultadPregunta.Medio, DificultadPregunta.Dificil)
 			.ContarRespuestas(3)
@@ -313,13 +349,14 @@ public class SesionFlujoWeb {
 	public int Respuestas { get; set; } = 0;
 	public int? CuestionarioPos { get; set; }
 	public int Decision { get; set; } = 0;
+	public int MaxScore { get; set; } = 0;
 	public List<PreguntaWeb> Lista { get; set; } = new();
-	public List<PreguntaWeb> EnCola { get; set; } = new();
+	public List<PreguntaWeb> Cola { get; set; } = new();
 
 	public PreguntaWeb? Siguiente() {
-		if (EnCola.Count == 0)
+		if (Cola.Count == 0)
 			return null;
-		return Respuestas >= EnCola.Count ? null : EnCola[Respuestas];
+		return Respuestas >= Cola.Count ? null : Cola[Respuestas];
 	}
 
 	public bool TocaCuestionario(SesionPersona sesion) {
@@ -327,7 +364,13 @@ public class SesionFlujoWeb {
 			   && Respuestas == CuestionarioPos
 			   && string.IsNullOrEmpty(sesion.RespuestaCuestionario);
 	}
+}
 
+// para el cuestionario
+public class StatsDimension {
+	public string Dimension { get; set; } = string.Empty;
+	public double Suma { get; set; } = 0;
+	public double Prom { get; set; } = 0;
 }
 
 public class PreguntaWeb {

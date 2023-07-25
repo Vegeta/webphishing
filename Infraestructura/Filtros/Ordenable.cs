@@ -1,4 +1,4 @@
-﻿namespace Webapp.Models.Formularios;
+﻿namespace Infraestructura.Filtros;
 
 public abstract class Ordenable {
 	public string OrdenCampo { get; set; } = "";

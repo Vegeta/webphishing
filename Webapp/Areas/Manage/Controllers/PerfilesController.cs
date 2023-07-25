@@ -1,22 +1,21 @@
 ﻿using AutoMapper;
 using Domain.Entidades;
 using Infraestructura;
+using Infraestructura.Filtros;
 using Infraestructura.Persistencia;
+using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Webapp.Controllers;
 using Webapp.Models;
-using Webapp.Models.Consultas;
 using Webapp.Models.Datatables;
-using Webapp.Models.Formularios;
-using Webapp.Web;
 
 namespace Webapp.Areas.Manage.Controllers;
 
 public class PerfilesController : BaseAdminController {
 
-	ConsultasAuth _consultas;
+	UsuariosService _usuarios;
 	AppDbContext _db;
 	private readonly IMapper _mapper;
 
@@ -28,10 +27,10 @@ public class PerfilesController : BaseAdminController {
 	}
 
 
-	public PerfilesController(AppDbContext db, IMapper mapper, ConsultasAuth consultas) {
+	public PerfilesController(AppDbContext db, IMapper mapper, UsuariosService usuarios) {
 		_db = db;
 		_mapper = mapper;
-		_consultas = consultas;
+		_usuarios = usuarios;
 	}
 
 	public IActionResult Index() {
@@ -46,7 +45,7 @@ public class PerfilesController : BaseAdminController {
 		filtros.OrdenCampo = orden.Campo;
 		filtros.OrdenDir = orden.Dir;
 
-		var q = _consultas.ListaPerfiles(filtros);
+		var q = _usuarios.ListaPerfiles(filtros);
 
 		var proj = q.Select(x => new {
 			id = x.Id,

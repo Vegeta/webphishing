@@ -106,5 +106,23 @@ public class RespuestaCuestionario {
 			{"nunca" , "Nunca" },
 		};
 	}
+
+	public static IDictionary<string, int> Calificacion() {
+		return new Dictionary<string, int> {
+			{"siempre" , 4 },
+			{"casi_siempre" , 3},
+			{"a_veces" , 2 },
+			{"casi_nunca" , 1},
+			{"nunca" , 0 },
+		};
+	}
+
+	public static string Percepcion(decimal puntaje) {
+		return puntaje switch {
+			>= 7 => "ALTO",
+			>= 4 => "MEDIO",
+			< 7 => "BAJO",
+		};
+	}
 }
 

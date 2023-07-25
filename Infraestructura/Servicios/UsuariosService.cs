@@ -1,5 +1,6 @@
 ﻿using Infraestructura.Persistencia;
 using Domain.Entidades;
+using Infraestructura.Filtros;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructura.Servicios;
@@ -86,17 +87,47 @@ public class UsuariosService {
 		return true;
 	}
 
-}
+	public IQueryable<Usuario> ListaUsuarios(FiltrosUsuario filtros) {
+		IQueryable<Usuario> q = _db.Usuario;
 
-public class LoginResult {
-	public string? Error { get; set; }
-	public Usuario? Usuario { get; set; }
-	public bool Manager { get; set; } = false;
-	public IList<string> Permisos { get; set; } = new List<string>();
+		if (!string.IsNullOrEmpty(filtros.Email))
+			q = q.Where(x => x.Email.ToUpper().Contains(filtros.Email.ToUpper()));
+		if (!string.IsNullOrEmpty(filtros.Nombre))
+			q = q.Where(x => x.Nombres.ToUpper().Contains(filtros.Nombre.ToUpper()));
 
-	public bool HasError => !string.IsNullOrEmpty(Error);
+		var ordenador = new SortExpressionHelper<Usuario>()
+			.Add("email", x => x.Email)
+			.Add("nombres", x => x.Apellidos, x => x.Nombres)
+			.Add("creacion", x => x.Creacion)
+			.Add("modificacion", x => x.Modificacion);
 
-	public static LoginResult ConError(string error) {
-		return new LoginResult { Error = error };
+		var order = filtros.OrdenCampo;
+		if (!string.IsNullOrEmpty(filtros.OrdenCampo)) {
+			q = ordenador.SetOrder(q, filtros.OrdenCampo, filtros.OrdenDir);
+		}
+
+		return q;
 	}
+
+	public IQueryable<Perfil> ListaPerfiles(FiltrosPerfiles filtros) {
+		IQueryable<Perfil> q = _db.Perfil;
+
+		if (!string.IsNullOrEmpty(filtros.Nombre))
+			q = q.Where(x => x.Nombre.ToUpper().Contains(filtros.Nombre.ToUpper()));
+
+		if (!string.IsNullOrEmpty(filtros.Identificador))
+			q = q.Where(x => x.Identificador.ToUpper().Contains(filtros.Identificador.ToUpper()));
+
+		var ordenador = new SortExpressionHelper<Perfil>()
+			.Add("nombre", x => x.Nombre)
+			.Add("identificador", x => x.Identificador);
+
+		var order = filtros.OrdenCampo;
+		if (!string.IsNullOrEmpty(filtros.OrdenCampo)) {
+			q = ordenador.SetOrder(q, filtros.OrdenCampo, filtros.OrdenDir);
+		}
+
+		return q;
+	}
+
 }

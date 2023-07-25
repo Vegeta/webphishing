@@ -99,8 +99,8 @@ namespace Webapp.Models {
 					Icon = "bi-bar-chart"
 				}.AddChildren(
 					new MenuItem {
-						Name = "Resultados",
-						Link = "~/manage/Resultados"
+						Name = "Evaluaciones",
+						Link = "~/manage/Evaluaciones"
 					}
 				),
 				new MenuItem {

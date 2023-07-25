@@ -11,4 +11,8 @@ public static class ModelExtensions {
 	public static SesionFlujoWeb GetSesionFlujo(this SesionPersona p) {
 		return p.Flujo == null ? default! : JSON.Parse<SesionFlujoWeb>(p.Flujo);
 	}
+
+	public static SesionFlujoWeb GetSesionFlujo(this VSesionPersona p) {
+		return p.Flujo == null ? default! : JSON.Parse<SesionFlujoWeb>(p.Flujo);
+	}
 }

@@ -16,9 +16,11 @@ public class CuestionarioModelWeb {
 
 public class CuestPreguntaModel {
 	public int Orden { get; set; }
-	public string? Texto { get; set; }
+	public string Texto { get; set; } = "";
+	public string? Dimension { get; set; }
 }
 
 public class CuestRespuestaModel : CuestPreguntaModel {
-	public string? Respuesta{ get; set; }
+	public string Respuesta { get; set; } = "";
+	public int Puntaje { get; set; } = 0;
 }
