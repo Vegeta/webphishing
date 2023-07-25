@@ -18,10 +18,10 @@
 		<div class="col-4">
 
 			<div class="card">
-				<div class="card-body" style="min-height: 585px">
+				<div class="card-body">
 					<h5 class="card-title">Resumen</h5>
 
-					<table class="table table-sm table-bordered">
+					<table class="table minitabla table-bordered">
 						<tbody>
 							<tr>
 								<th class="col-sm-4">Usuario</th>
@@ -29,7 +29,7 @@
 							</tr>
 							<tr>
 								<th>Fecha/hora inicio</th>
-								<td v-text="fecha(model.fechaExamen, formatoFechaFull)"></td>
+								<td class="text-center" v-text="fecha(model.fechaExamen, formatoFechaFull)"></td>
 							</tr>
 							<tr>
 								<th>Fecha/hora fin</th>

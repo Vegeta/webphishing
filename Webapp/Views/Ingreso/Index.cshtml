@@ -79,9 +79,8 @@
 					self.error = null;
 					this.loading = true;
 					jsonPost(window.root + '/login', this.model).then(r => {
-						console.log(r);
-						self.loading = false;
 						if (r.error) {
+							self.loading = false;
 							self.error = r.error;
 							return;
 						}
