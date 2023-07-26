@@ -27,7 +27,6 @@
     <Folder Include="Areas\Manage\Data\" />
     <Folder Include="Areas\Manage\Models\" />
     <Folder Include="Views\Cuenta\" />
-    <Folder Include="wwwroot\ejercicios\" />
   </ItemGroup>
 
 </Project>
