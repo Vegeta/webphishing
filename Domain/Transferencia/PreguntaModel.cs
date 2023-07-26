@@ -15,6 +15,7 @@ public class PreguntaModel {
 	public string? Sender { get; set; }
 	public string? Email { get; set; }
 	public string? Html { get; set; }
+	public string? ImagenRetro { get; set; }
 	public List<AdjuntoView> ListaAdjuntos { get; set; } = new List<AdjuntoView>();
 }
 
