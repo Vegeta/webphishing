@@ -5,7 +5,9 @@ using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 using Webapp.Controllers;
+using Webapp.Models;
 using Webapp.Models.Datatables;
 
 namespace Webapp.Areas.Manage.Controllers;
@@ -67,17 +69,24 @@ public class EvaluacionesController : BaseAdminController {
 		Titulo("Resultado Evaluación");
 		var ses = _db.VSesiones
 			.First(x => x.Id == id);
-		var respuestas = _db.SesionRespuesta
+
+		var con = new ConsultaEvaluacion(_db);
+		var respuestas = con.RespuestasWeb(ses.Id);
+
+		var cuest = _db.CuestionarioRespuesta
 			.Where(x => x.SesionId == ses.Id)
-			.OrderBy(x => x.Inicio)
+			.OrderBy(x => x.Id)
 			.ToList();
-		var flujo = ses.GetSesionFlujo();
 
 		ViewBag.modelo = JSON.Stringify(ses);
 		ViewBag.respuestas = JSON.Stringify(respuestas);
-		ViewBag.percepcion = ses.RespuestaCuestionario ?? "null";
-		ViewBag.flujo = JSON.Stringify(flujo);
+		ViewBag.percepcion = ses.RespuestaCuestionario ?? "[]";
+		ViewBag.cuest = JSON.Stringify(cuest);
+		
 		return View();
 	}
 
+	public IActionResult preguntaDet(int id) {
+		return Ok();
+	}
 }

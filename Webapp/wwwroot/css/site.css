@@ -30,3 +30,11 @@ div.error {
 	font-weight: 600;
 }
 
+.acierto-examen {
+	background: #16be7e;
+	background: rgba(22, 190, 126, 0.938) !important;
+}
+
+.error-examen {
+	background: rgb(211, 53, 53);
+}

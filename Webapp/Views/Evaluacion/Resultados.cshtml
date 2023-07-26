@@ -10,62 +10,73 @@
 	<!-- ======= Contact Section ======= -->
 	<section id="contact" class="contact" style="margin-top:72px">
 		<div class="container" data-aos="fade-up">
-			
+
 			<div class="section-title">
 				<h2>Resultados de su Evaluación</h2>
 			</div>
 
 			<div class="row">
-
-				<div class="col-lg-6 d-flex align-items-stretch">
-					<table class="table table-hover table-condensed">
-
-
-					</table>
+				<div class="col-lg-6 ">
+					<resumen :model="model" :respuestas="respuestas"></resumen>
 				</div>
 
-				<div class="col-lg-6 mt-5 mt-lg-0 d-flex align-items-stretch">
-
+				<div class="col-lg-6 mt-5 mt-lg-0 ">
+					<graf-percepcion :model="model" :percepcion="percepcion"></graf-percepcion>
 				</div>
-
 			</div>
 
+			<div>
+				<respuestas :lista="respuestas" :retro-path="retroPath"></respuestas>
+			</div>
+
+			<div class="text-center">
+				<hr/>
+				<button type="button" class="btn btn-primary" @@click="terminar()">
+					Terminar Evaluación
+				</button>
+			</div>
+			
 		</div>
 	</section><!-- End Contact Section -->
 </div>
 
 @section Scripts {
 	@await Html.PartialAsync("_Validation")
+	@await Html.PartialAsync("_Resultados")
 
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="~/lib/chart.js"></script>
+
 	<script>
 
 		$('#footer .footer-top').hide();
 
 		Vue.createApp({
-				data() {
-					return {
-						model: @Html.Raw(ViewBag.model),
-						baseUrl: '@ViewBag.self'
-					}
-				},
-				methods: {
-					registrar() {
-						var m = this.registro;
-						jsonPost(this.baseUrl + '/registrar', m).then(r => {
-							if (r.error)
-								return alert(r.error);
-							window.location.href = r.url;
-						});
-						return false;
-					},
-				},
-				mounted() {
-
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					respuestas: @Html.Raw(ViewBag.respuestas),
+					percepcion: @Html.Raw(ViewBag.percepcion),
+					retroPath : '@Url.Content("~/retro")',
+					baseurl: '@ViewBag.self',
 				}
-			})
-			.use(globalDirectives)
-			.mount('#app')
+			},
+			computed: {
+			},
+			methods: {
+				terminar() {
+					jsonPost(this.baseurl + '/terminar').then(r => {
+						window.location.href = r.url;
+					});
+				},
+			},
+			mounted() {
+			}
+		})
+		.component('grafPercepcion', GraficoPercepcion)
+		.component('respuestas', CompRespuestas)
+		.component('resumen', CompResumen)
+		.use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }

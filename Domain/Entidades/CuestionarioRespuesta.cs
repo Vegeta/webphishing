@@ -21,7 +21,7 @@ public partial class CuestionarioRespuesta : BaseEntity {
 	[Column("puntaje")]
 	public int Puntaje { get; set; } = 0;
 
-	[Column("Dimension")]
+	[Column("dimension")]
 	[StringLength(50)]
 	public string? Dimension { get; set; }
 

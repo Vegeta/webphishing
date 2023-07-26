@@ -6,7 +6,8 @@ const Cuestionario = {
 			error: false
 		};
 	},
-	created() { },
+	created() {
+	},
 	emits: ["respCuestionario"],
 	methods: {
 		continuar() {
@@ -20,7 +21,7 @@ const Cuestionario = {
 				this.error = true;
 				return;
 			}
-			this.$emit('respCuestionario');
+			this.$emit('respCuestionario', this.datos.preguntas);
 		},
 	},
 	mounted() {
@@ -114,12 +115,9 @@ const AppEvaluacion = {
 				$('#preloader').hide();
 			})
 		},
-		cuestionarioOK() {
-			var preg = this.cuest.preguntas.map(x => {
-				return { orden: x.orden, respuesta: x.respuesta, texto: x.texto }
-			});
+		cuestionarioOK(respuestas) {
 			const send = {
-				data: JSON.stringify(preg)
+				data: JSON.stringify(respuestas)
 			};
 			const self = this;
 			$.post(this.baseUrl + '/responderCuestionario', send).then(r => {
@@ -241,7 +239,6 @@ const AppEvaluacion = {
 			}
 		},
 		responder() {
-
 			const self = this;
 			const r = this.resp;
 			let error = false;
@@ -265,12 +262,12 @@ const AppEvaluacion = {
 			$('#preloader').show();
 			jsonPost(this.baseUrl + '/respuesta', r).then(r => {
 				console.log(r);
-				if (r.accion == "fin") {
+				if (r.accion === "fin") {
 					window.location.href = self.baseUrl + '/resultados';
 					return;
 				}
 				$('#app button').prop('disabled', false);
-				if (r.accion == "cuestionario") {
+				if (r.accion === "cuestionario") {
 					self.loadCuestionario();
 					return;
 				}

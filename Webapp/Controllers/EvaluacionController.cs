@@ -225,7 +225,7 @@ public class EvaluacionController : BaseController {
 			return Ok(new { error = "No encontrado" });
 
 		var data = new {
-			preguntas = JSON.Parse<dynamic>(cues.Preguntas ?? "[]"),
+			preguntas = JSON.Parse<List<CuestRespuestaModel>>(cues.Preguntas ?? "[]"),
 			cues.Titulo,
 			cues.Instrucciones,
 			opciones = OpcionesConfig.ComboDict(RespuestaCuestionario.Mapa()),
@@ -237,7 +237,7 @@ public class EvaluacionController : BaseController {
 		var local = SesionActual();
 		if (local.HasError)
 			return Ok(new { error = local.Error });
-		
+
 		var lista = JSON.Parse<List<CuestRespuestaModel>>(data ?? "[]");
 		var respuestas = lista.Select(x => new CuestionarioRespuesta {
 				SesionId = local.Sesion.Id,
@@ -258,36 +258,33 @@ public class EvaluacionController : BaseController {
 			return RedirectToAction("Index");
 		}
 
-		var detalle = _db.SesionRespuesta
-			.Include(x => x.Pregunta)
-			.Where(x => x.SesionId == local.Sesion.Id)
-			.Select(x => new {
-				x.Pregunta.ImagenRetro,
-				x.Pregunta.Dificultad,
-				x.Pregunta.Explicacion,
-				x.Pregunta.Email,
-				adjuntos = JSON.Parse<dynamic>(x.Pregunta.Adjuntos ?? "[]"),
-				x.Respuesta,
-				real = x.Pregunta.Legitimo == 0 ? "phish" : "legitimo",
-				x.Score,
-				x.Tiempo,
-				x.Comentario,
-				x.PreguntaId
-			});
-		var data = new {
-			local.Sesion.Score,
-			local.Sesion.AvgScore,
-			local.Sesion.AvgTiempo,
-			local.Sesion.TiempoTotal,
-			TasaExito = local.Sesion.Exito,
-			//cuestionario = local.Sesion.RespuestaCuestionario,
-			cuestionario = JSON.Parse<dynamic>(local.Sesion.RespuestaCuestionario ?? "[]"),
-			detalle,
-		};
+		Titulo("Resultado Evaluación");
+		var ses = _db.VSesiones
+			.First(x => x.Id == local.Sesion.Id);
 
+		var con = new ConsultaEvaluacion(_db);
+		var respuestas = con.RespuestasWeb(ses.Id);
 
-		ViewBag.model = JSON.Stringify(data);
+		ViewBag.modelo = JSON.Stringify(ses);
+		ViewBag.respuestas = JSON.Stringify(respuestas);
+		ViewBag.percepcion = ses.RespuestaCuestionario ?? "[]";
+
 		return View();
+	}
+
+	public IActionResult Terminar() {
+		var local = SesionActual();
+		if (local.HasError) {
+			ErrorWeb(local.Error);
+			return RedirectToAction("Index");
+		}
+
+		HttpContext.Session.Remove("token_examen");
+
+		var res = new {
+			url = Url.Content("~/")
+		};
+		return Ok(res);
 	}
 
 	protected InfoExamen SesionActual() {
@@ -308,8 +305,6 @@ public class EvaluacionController : BaseController {
 		res.Sesion = ses;
 		return res;
 	}
-
-
 }
 
 public class RespuestaWeb {
@@ -327,7 +322,6 @@ public class InfoExamen {
 	public string Error { get; set; } = "";
 	public string Token { get; set; } = "";
 	public bool HasError => !string.IsNullOrEmpty(Error);
-
 }
 
 public class InicioModel {

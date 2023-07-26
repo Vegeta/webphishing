@@ -1,220 +1,124 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<style>
-	.acierto-examen {
-		background: #16be7e;
-		background: rgba(22, 190, 126, 0.938) !important;
-	}
-
-	.error-examen {
-		background: rgb(211, 53, 53);
-	}
-
-</style>
-
 <section id="app">
 
 	<div class="row">
-		<div class="col-4">
-
+		<div class="col-sm-12 col-lg-4">
+			<resumen :model="model" :respuestas="respuestas"></resumen>
+		</div>
+		<div class="col-sm-12 col-lg-4">
+			<graf-percepcion :model="model" :percepcion="percepcion"></graf-percepcion>
+		</div>
+		<div class="col-sm-12 col-lg-4">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Resumen</h5>
+					<h5 class="card-title">Respuestas Cuestionario</h5>
 
-					<table class="table minitabla table-bordered">
-						<tbody>
+					<table class="table minitabla table-hover">
+						<thead>
 							<tr>
-								<th class="col-sm-4">Usuario</th>
-								<td v-text="model.nombre"></td>
+								<th>Pregunta</th>
+								<th>Respuesta</th>
+								<th>Score</th>
+								<th>Dimension</th>
 							</tr>
-							<tr>
-								<th>Fecha/hora inicio</th>
-								<td class="text-center" v-text="fecha(model.fechaExamen, formatoFechaFull)"></td>
-							</tr>
-							<tr>
-								<th>Fecha/hora fin</th>
-								<td v-text="fecha(model.fechaFin, formatoFechaFull)"></td>
-							</tr>
-							<tr>
-								<th>Puntaje</th>
-								<td class="text-center">
-									<span class="fw-bold" v-text="model.score + ' / ' + model.maxScore"></span>
-									<img src="~/ejercicios/score.png" alt="" width="24" height="24"/>
-								</td>
-							</tr>
-							<tr>
-								<th>% Éxito</th>
-								<td class="" v-text="porcentaje(model.exito)"></td>
-							</tr>
-							<tr>
-								<th>Tiempo Total</th>
-								<td v-text="numero(model.tiempoTotal)  + ' seg'"></td>
-							</tr>
-							<tr>
-								<th>Tiempo promedio por pregunta</th>
-								<td v-text="numero(model.avgTiempo) + ' seg'"></td>
-							</tr>
-							<tr>
-								<th>Puntaje promedio</th>
-								<td v-text="model.avgScore"></td>
-							</tr>
+						</thead>
+						<tr v-for="p in cuest">
+							<td v-text="p.pregunta"></td>
+							<td v-text="p.respuesta"></td>
+							<td v-text="p.puntaje"></td>
+							<td v-text="p.dimension"></td>
+						</tr>
+					</table>
 
+					<b>Agrupación</b>
+					<table class="table minitabla table-hover">
+						<thead>
 							<tr>
-								<th>Aciertos</th>
-								<td v-text="correctas" class="acierto-examen fw-bold text-center"></td>
+								<th></th>
+								<th colspan="2">Puntajes</th>
 							</tr>
 							<tr>
-								<th>Errores</th>
-								<td v-text="incorrectas" class="fw-bold text-center" :class="{'error-examen':incorrectas}"></td>
+								<th class="col-sm-3">Dimensión</th>
+								<th>Suma</th>
+								<th>Promedio</th>
 							</tr>
-								
-							<tr>
-								<th>Nivel de percepcion</th>
-								<td class="text-center">
-									<span v-text="numero(model.scoreCuestionario)"></span> / <span v-text="model.percepcion"></span>
-								</td>
-							</tr>
-
-						</tbody>
+						</thead>
+						<tr v-for="p in percepcion">
+							<td v-text="p.dimension"></td>
+							<td v-text="p.suma"></td>
+							<td v-text="p.prom"></td>
+						</tr>
 					</table>
 
 				</div>
 			</div>
-		</div>
-		<div class="col-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Nivel de Percepción de Riesgo</h5>
-					<div style="">
-						@*<canvas id="percepcion"></canvas>*@
-						<canvas id="percepcion" aria-label="chart" height="350" width=""></canvas>
-					</div>
-				</div>
-			</div>
-		</div>
 
-		<div class="col-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Aciertos</h5>
-					<div style="">
-						<canvas id="aciertos" aria-label="chart" height="350" width=""></canvas>
-					</div>
-				</div>
-			</div>
 		</div>
-
 	</div>
-	
+
+	<div>
+		<respuestas :lista="respuestas" :retro-path="retroPath"></respuestas>
+	</div>
 
 </section>
 
 @section Scripts {
 
 	@await Html.PartialAsync("_Validation")
+	@await Html.PartialAsync("_Resultados")
 
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	@* <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> *@
+	<script src="~/lib/chart.js"></script>
 
 	<script>
 
 		Vue.createApp({
-				data() {
-					return {
-						model: @Html.Raw(ViewBag.modelo),
-						respuestas: @Html.Raw(ViewBag.respuestas),
-						percepcion: @Html.Raw(ViewBag.percepcion),
-						flujo: @Html.Raw(ViewBag.flujo),
-						baseurl: '@ViewBag.self',
-						correctas: 0,
-						incorrectas : 0,
-					}
-				},
-				computed: {
-				},
-				methods: {
-					delPregunta(p) {
-						if (!confirm("Eliminar esta pregunta?"))
-							return;
-						var ix = this.model.preguntas.indexOf(p);
-						this.model.preguntas.splice(ix, 1);
-					},
-					addPregunta() {
-						this.model.preguntas.push({
-							orden: null,
-							texto: null,
-						})
-					},
-					reordenar() {
-						let list = _.sortBy(this.model.preguntas, ['orden'])
-						this.model.preguntas = list
-					},
-				},
-				mounted() {
-					var self = this;
-
-					this.correctas = _.filter(this.respuestas, x => x.score > 0).length;
-					this.incorrectas = this.respuestas.length - this.correctas;
-
-					var mapaPer = {
-						1: 'Probabilidad percibida',
-						2: 'Susceptibilidad percibida',
-						3: 'Gravedad percibida'
-					}
-
-					var configPer = {
-						type: 'polarArea',
-						data: {
-							labels: [],
-							datasets: [
-								{
-									label: 'Series Percepcion',
-									data: [],
-								}
-							],
-						},
-						options: {
-							responsive: true,
-						},
-					}
-
-					this.percepcion.forEach(x => {
-						configPer.data.labels.push(mapaPer[x.dimension] || x.dimension)
-						configPer.data.datasets[0].data.push(x.prom)
-					});
-
-					var chartPer = new Chart(
-						document.getElementById('percepcion'),
-						configPer
-					);
-
-					var exito = this.model.exito;
-
-					var chartExamen = new Chart(
-						document.getElementById('aciertos'),
-						{
-							type: 'doughnut',
-							data: {
-								labels: ['Exito', 'Error'],
-								datasets: [
-									{
-										data: [exito, 100 - exito],
-										backgroundColor: ['rgba(22, 190, 126, 0.938)', 'rgb(211, 53, 53)'],
-										hoverBackgroundColor: ['#7fe087', '#ee7b7b'],
-										hoverBorderColor: ['#7fe087', '#ee7b7b']
-									}
-								]
-							},
-							options: {
-								responsive: true,
-							},
-						}
-					);
-
-
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					respuestas: @Html.Raw(ViewBag.respuestas),
+					percepcion: @Html.Raw(ViewBag.percepcion),
+					cuest: @Html.Raw(ViewBag.cuest),
+					baseurl: '@ViewBag.self',
+					retroPath : '@Url.Content("~/retro")',
 				}
-			})
-			.use(globalDirectives)
-			.mount('#app')
+			},
+			computed: {
+			},
+			methods: {
+			},
+			mounted() {
+				var self = this;
+				// esto marcha creo
+				
+				var exito = this.model.exito;
+				const optionsExito = {
+					type: 'doughnut',
+					data: {
+						labels: ['Exito', 'Error'],
+						datasets: [
+							{
+								data: [exito, 100 - exito],
+								backgroundColor: ['rgba(22, 190, 126, 0.938)', 'rgb(211, 53, 53)'],
+								hoverBackgroundColor: ['#7fe087', '#ee7b7b'],
+								hoverBorderColor: ['#7fe087', '#ee7b7b']
+							}
+						]
+					},
+					options: {
+						responsive: true,
+					},
+				};
+
+				//var chartExamen = new Chart(document.getElementById('aciertos'),optionsExito);
+			}
+		})
+		.component('grafPercepcion', GraficoPercepcion)
+		.component('respuestas', CompRespuestas)
+		.component('resumen', CompResumen)
+		.use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }

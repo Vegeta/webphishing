@@ -1,0 +1,254 @@
+﻿<template id="tplRespuestas">
+	<div class="row">
+		<div class="col-sm-12 col-lg-4">
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Respuestas</h5>
+
+					<p class="small">Haga click en una pregunta para ver su descripción</p>
+
+					<table class="table table-hover minitabla">
+						<tbody>
+							<tr v-for="(r, ix) in lista" :class="claseSelect(r)"
+							    style="cursor: pointer" @@click="selPregunta(r, ix)">
+								<td class="col-4">
+									<h6 class="fw-bold">Pregunta {{ ix+1 }}</h6>
+								</td>
+								<td class="col-4 text-center">
+									{{ numero(r.tiempo) }} seg
+								</td>
+								<td class="col-4 text-end">
+									<span v-if="r.score > 0">
+										Correcto
+										<img src="~/img/check.png" alt=""/>
+									</span>
+									<span v-else>
+										Error
+										<img src="~/img/eliminar.png" alt=""/>
+									</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-12 col-lg-8">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">
+						{{ tituloPregunta }}
+					</h5>
+
+					<div v-if="question">
+
+						<h5 class="text-center">
+							Tipo : <b>{{ question.tipo }}</b>
+						</h5>
+
+						<div class="card card-body">
+							<div class="card-title">
+								Explicación:
+							</div>
+							<p class="small" style="text-align: justify-all">{{ question.explicacion }}</p>
+						</div>
+
+						<div class="card card-body">
+							<img :src="imgRetro()" alt="Descripcion" style="width:100%"/>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="tplResumen">
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Resumen</h5>
+
+			<table class="table minitabla table-bordered table-hover">
+				<tbody>
+					<tr>
+						<th class="col-sm-4">Usuario</th>
+						<td class="text-center" v-text="model.nombre"></td>
+					</tr>
+					<tr>
+						<th>Fecha/hora inicio</th>
+						<td class="text-center" v-text="fecha(model.fechaExamen, formatoFechaFull)"></td>
+					</tr>
+					<tr>
+						<th>Fecha/hora fin</th>
+						<td class="text-center" v-text="fecha(model.fechaFin, formatoFechaFull)"></td>
+					</tr>
+					<tr>
+						<th>Puntaje</th>
+						<td class="text-center">
+							<span class="fw-bold" v-text="model.score + ' / ' + model.maxScore" style="font-size: large"></span>
+							<img src="~/img/score.png" alt="" width="24" height="24" v-show="model.exito > 70"/>
+						</td>
+					</tr>
+					<tr>
+						<th>% Éxito</th>
+						<td class="text-center" v-text="porcentaje(model.exito)"></td>
+					</tr>
+					<tr>
+						<th>Tiempo Total</th>
+						<td class="text-center" v-text="numero(model.tiempoTotal)  + ' seg'"></td>
+					</tr>
+					<tr>
+						<th>Tiempo promedio por pregunta</th>
+						<td class="text-center" v-text="numero(model.avgTiempo) + ' seg'"></td>
+					</tr>
+					<tr>
+						<th>Puntaje promedio</th>
+						<td class="text-center" v-text="model.avgScore"></td>
+					</tr>
+
+				</tbody>
+			</table>
+
+			<div>
+				<h5 class="d-inline">Aciertos {{ correctas }}</h5>
+
+				<h5 class="d-inline float-end">{{ incorrectas }} Errores</h5>
+			</div>
+			<div class="progress mt-2 error-examen" style="height: 45px;">
+				@* <div class="progress-bar acierto-examen" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div> *@
+				<div class="progress-bar acierto-examen" role="progressbar" :style="estiloBarra" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+			</div>
+
+		</div>
+	</div>
+
+</template>
+
+<template id="tplGrafPercepcion">
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Nivel de Percepción de Riesgo</h5>
+
+			<div style="height:40vh;" align="center">
+				<canvas id="grafPercepcion"></canvas>
+			</div>
+
+			<div class="text-center mt-3">
+				<h5>Nivel de Percepción</h5>
+				<div class="fw-bold">
+					<span v-text="numero(model.scoreCuestionario)"></span> / <span v-text="model.percepcion"></span>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</template>
+
+<script>
+	const GraficoPercepcion = {
+    	props: ['model', 'percepcion'],
+    	template: '#tplGrafPercepcion',
+    	data() {
+    		return {};
+    	},
+    	computed:{	
+	   	},
+    	created() { },
+    	methods: {
+    	},
+    	mounted() {
+			var mapaPer = {
+				1: 'Probabilidad percibida',
+				2: 'Susceptibilidad percibida',
+				3: 'Gravedad percibida'
+			}
+
+			var configPer = {
+				type: 'polarArea',
+				data: {
+					labels: [],
+					datasets: [
+						{
+							label: 'Series Percepcion',
+							data: [],
+						}
+					],
+				},
+				options: {
+					responsive: true,
+				},
+			}
+
+			this.percepcion.forEach(x => {
+				configPer.data.labels.push(mapaPer[x.dimension] || x.dimension)
+				configPer.data.datasets[0].data.push(x.prom)
+			});
+
+			var chartPer = new Chart(
+				document.getElementById('grafPercepcion'),
+				configPer
+			);
+			
+    	},
+    }
+
+	const CompResumen = {
+    	props: ['model', 'respuestas'],
+    	template: '#tplResumen',
+    	data() {
+    		return {
+    			correctas: 0,
+                incorrectas : 0,
+    		};
+    	},
+    	computed:{	
+			estiloBarra() {
+				return {
+					width: this.model.exito + '%' 	
+				}
+			}
+    	},
+    	created() { },
+    	methods: {
+    	},
+    	mounted() {
+			this.correctas = _.filter(this.respuestas, x => x.score > 0).length;
+         	this.incorrectas = this.respuestas.length - this.correctas;
+    	},
+    }
+
+
+	const CompRespuestas = {
+    	props: ['lista', 'retroPath'],
+    	template: '#tplRespuestas',
+    	data() {
+    		return {
+    			question: null,
+    		};
+    	},
+    	computed:{
+			tituloPregunta() {
+				const q = this.question;
+				return q ? "Pregunta "+ q.indice : 'Seleccione una pregunta'; 
+			},
+    	},
+    	created() { },
+    	methods: {
+    		claseSelect(p) {
+				return this.question === p ? 'bg-info' : '';
+			},
+			imgRetro() {
+				return this.retroPath + '/' + this.question.imagenRetro
+			},
+			selPregunta(p, ix) {
+				p.indice = ix +1
+				this.question = p
+			},
+    	},
+    	mounted() {
+    	},
+    }
+
+</script>

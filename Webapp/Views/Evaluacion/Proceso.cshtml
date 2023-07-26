@@ -15,8 +15,6 @@
 	}
 </style>
 
-
-
 <div id="app">
 
 	<div v-if="cuest">
@@ -354,7 +352,7 @@
 
 	@await Html.PartialAsync("_Validation")
 
-	<script src="~/js/evaluacion.js"></script>
+	<script src="~/js/evaluacion.js" asp-append-version="true"></script>
 	<script>
 
 		$('#footer .footer-top').hide();
