@@ -34,7 +34,6 @@ public class EvaluacionesController : BaseAdminController {
 		return View();
 	}
 
-
 	[HttpPost]
 	public IActionResult Lista(DatatablesModel model) {
 		var filtros = model.GetFiltros(new FiltroEvaluacion());

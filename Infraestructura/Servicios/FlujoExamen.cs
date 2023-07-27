@@ -2,13 +2,10 @@
 using Domain.Entidades;
 using Infraestructura.Persistencia;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Runtime.CompilerServices;
 
 namespace Infraestructura.Servicios;
 
 public class FlujoExamen {
-
 	public const string EstadoPendiente = "pendiente";
 	public const string EstadoEnCurso = "en_curso";
 	public const string EstadoTerminado = "terminado";
@@ -27,7 +24,7 @@ public class FlujoExamen {
 
 	public SesionPersona? SesionActualPersona(int personaId) {
 		return _db.SesionPersona.FirstOrDefault(x => x.PersonaId == personaId
-											  && (x.Estado == EstadoPendiente || x.Estado == EstadoEnCurso));
+		                                             && (x.Estado == EstadoPendiente || x.Estado == EstadoEnCurso));
 	}
 
 
@@ -79,10 +76,11 @@ public class FlujoExamen {
 	public static SesionFlujoWeb InitFlujo(Examen examen) {
 		// TODO recibir lista preguntas simple, no examen
 		var config = new SesionFlujoWeb();
-		config.Lista = examen.ExamenPregunta.Select(x => new PreguntaWeb {
-			Id = x.PreguntaId,
-			Dificultad = x.Pregunta.Dificultad ?? DificultadPregunta.Facil
-		}).ToList(); // sacar info preguntas
+		config.Lista = examen.ExamenPregunta
+			.Select(x => new PreguntaWeb {
+				Id = x.PreguntaId,
+				Dificultad = x.Pregunta.Dificultad ?? DificultadPregunta.Facil
+			}).ToList(); // sacar info preguntas
 		config.CuestionarioPos = examen.CuestionarioPos;
 		// shuffle
 		config.Lista = config.Lista.OrderBy(_ => Rng.Next()).ToList();
@@ -201,7 +199,7 @@ public class FlujoExamen {
 
 	public int EvaluarRespuesta(Pregunta preg, SesionRespuesta resp) {
 		var correcto = (resp.Respuesta == "legitimo" && preg.Legitimo == 1)
-					   || (resp.Respuesta == "phish" && preg.Legitimo is 0 or null);
+		               || (resp.Respuesta == "phish" && preg.Legitimo is 0 or null);
 		var puntos = 0;
 		if (correcto) {
 			puntos = DificultadPregunta.ScoreRespuesta(preg.Dificultad ?? DificultadPregunta.Facil);
@@ -243,7 +241,7 @@ public class FlujoExamen {
 
 
 		if (paso.DebeAsignar) {
-			Asignar(paso.Tomar, config);
+			Asignar(paso.TomarPreguntas, config);
 			config.Decision++;
 			var next = config.Siguiente();
 			return new AccionFlujo("pregunta", next?.Id);
@@ -268,8 +266,9 @@ public class FlujoExamen {
 		}
 
 		if (paraAsignar == null)
-			return new AccionFlujo("error"); ;
-		Asignar(paraAsignar.Tomar, config);
+			return new AccionFlujo("error");
+		;
+		Asignar(paraAsignar.TomarPreguntas, config);
 		config.Decision++;
 		return new AccionFlujo("pregunta", config.Siguiente()?.Id);
 	}
@@ -329,9 +328,7 @@ public class FlujoExamen {
 			.Condicion("fin");
 		return que;
 	}
-
 }
-
 
 public class SesionCreada {
 	public SesionPersona? Sesion { get; set; }
@@ -343,6 +340,46 @@ public class SesionCreada {
 		Flujo = flujo;
 		Accion = accion;
 	}
+}
+
+public class EstadoExamen {
+	public int IndiceRespuesta { get; set; } = 0;
+	public int Score { get; set; } = 0;
+	public int? CuestionarioPos { get; set; }
+
+	public List<PreguntaWebEstado> Lista { get; set; } = new();
+	public List<PreguntaWebEstado> Cola { get; set; } = new();
+
+	public PreguntaWebEstado? PreguntaActual() {
+		if (Cola.Count == 0)
+			return null;
+		// siempre deberia ser +1
+		return IndiceRespuesta >= Cola.Count ? null : Cola[IndiceRespuesta];
+	}
+
+	public bool TocaCuestionario(SesionPersona ses) {
+		return IndiceRespuesta == CuestionarioPos && string.IsNullOrEmpty(ses.RespuestaCuestionario);
+	}
+
+	public int ScoreOffset(int tomar) {
+		var cuenta = Cola.Count;
+		if (cuenta < tomar)
+			return 0;
+		var score = 0;
+		for (var i = 1; i <= tomar; i++) {
+			var ix = IndiceRespuesta + 1 - i;
+			score += Cola[ix].Score;
+		}
+		return score;
+	}
+}
+
+public class PreguntaWebEstado {
+	public int Id { get; set; }
+	public string Dificultad { get; set; } = "";
+	public bool Usada { get; set; } = false;
+	public bool Respuesta { get; set; } = false;
+	public int Score { get; set; } = 0;
 }
 
 public class SesionFlujoWeb {
@@ -361,8 +398,8 @@ public class SesionFlujoWeb {
 
 	public bool TocaCuestionario(SesionPersona sesion) {
 		return sesion.CuestionarioId.HasValue
-			   && Respuestas == CuestionarioPos
-			   && string.IsNullOrEmpty(sesion.RespuestaCuestionario);
+		       && Respuestas == CuestionarioPos
+		       && string.IsNullOrEmpty(sesion.RespuestaCuestionario);
 	}
 }
 
@@ -390,53 +427,3 @@ public class AccionFlujo {
 		Mensaje = mensaje ?? "";
 	}
 }
-
-public class Step {
-	public int? CheckNum { get; set; }
-	public string Condicion { get; set; } = "";
-	public List<string> Tomar { get; set; } = new();
-	public List<Step> Deciciones { get; set; } = new();
-
-	public bool DebeAsignar => Tomar.Count > 0;
-	public bool EsSwitch => Deciciones.Count > 0;
-	public bool Contar => CheckNum.HasValue && CheckNum > 0;
-
-}
-
-public class StepBuilder {
-	public List<Step> Pasos { get; set; } = new List<Step>();
-
-	public StepBuilder Asignar(params string[] dificultad) {
-		Pasos.Add(new Step {
-			Tomar = dificultad.ToList()
-		});
-		return this;
-	}
-
-	public StepBuilder ContarRespuestas(int num) {
-		Pasos.Add(new Step { CheckNum = num });
-		return this;
-	}
-
-	public StepBuilder Condicion(string cond, params string[] dificultad) {
-		Pasos.Add(new Step {
-			Condicion = cond,
-			Tomar = dificultad.ToList()
-		});
-		return this;
-	}
-
-	public StepBuilder Switch(Action<StepBuilder> opciones) {
-		if (opciones == null)
-			throw new ArgumentNullException();
-		var inner = new StepBuilder();
-		opciones(inner);
-		Pasos.Add(new Step {
-			Deciciones = inner.Pasos
-		});
-		return this;
-	}
-
-}
-
-

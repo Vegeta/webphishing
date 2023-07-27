@@ -59,6 +59,9 @@
 									<td v-text="model.modificacion"></td>
 								</tr>
 							</table>
+							
+							<a :href="'@Url.Content("~/manage/Simulador/examen")' + '?id=' + model.id" target="_blank">Simular</a>
+							
 						</div>
 
 						<hr />

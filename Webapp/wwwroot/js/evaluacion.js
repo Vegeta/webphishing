@@ -1,3 +1,106 @@
+class ExamenTimer {
+
+	constructor() {
+		this.inicio = null;
+		this.fin = null;
+		this.tiempo = null;
+		this.cache = {};
+		this.resetUsage()
+	}
+
+	resetUsage() {
+		this.usage = {
+			clickLinks: {},
+			hoverLinks: {},
+			clickFiles: {},
+			hoverFiles: {}
+		};
+		this.cache = {}
+		return this
+	}
+
+	resetTime() {
+		this.inicio = null;
+		this.fin = null;
+		this.tiempo = null;
+		return this
+	}
+
+	resetAll() {
+		return this.resetTime().resetUsage();
+	}
+
+	instrumentar(selector) {
+		const self = this;
+		let usage = this.usage;
+
+		// capturar interacciones con los vinculos del mensaje
+		// mas abajo estan las interacciones con los archivos
+		function linkTxt(e) {
+			let txt = $(e.target).text() || ''
+			return txt.replace(/\s+/g, ' ').trim().substring(0, 20);
+		}
+
+		$(selector).on("mouseenter", "a", function (e) {
+			e.preventDefault();
+			let txt = linkTxt(e)
+			self.cache[txt] = new Date();
+		});
+
+		$(selector).on("mouseleave", "a", function (e) {
+			//e.preventDefault();
+			let txt = linkTxt(e)
+			let inicio = self.cache[txt] || null;
+			if (inicio) {
+				usage.hoverLinks[txt] = (new Date() - inicio) / 1000;
+				delete self.cache[txt]
+			}
+		});
+
+		$(selector).on("click", "a", function (e) {
+			e.preventDefault();
+			let txt = linkTxt(e)
+			if (!usage.clickLinks[txt])
+				usage.clickLinks[txt] = 0;
+			usage.clickLinks[txt]++;
+		});
+	}
+
+	clickFile(file, ev) {
+		ev.preventDefault();
+		this.cache['f:' + file] = new Date()
+		if (!this.usage.clickFiles[file])
+			this.usage.clickFiles[file] = 0;
+		this.usage.clickFiles[file]++
+	}
+
+	enterFile(file, ev) {
+		let key = 'f:' + file
+		this.cache[key] = new Date();
+		console.log(file)
+	}
+
+	exitFile(file, ev) {
+		let key = 'f:' + file
+		let item = this.cache[key] || null;
+		if (item) {
+			this.usage.hoverFiles[file] = (new Date() - item) / 1000;
+			delete this.cache[key]
+		}
+	}
+
+	start() { this.inicio = new Date(); }
+
+	stop() {
+		if (!this.inicio)
+			return null;
+		this.fin = new Date();
+		this.tiempo = (this.fin - this.inicio) / 1000;
+		return this.tiempo
+	}
+
+}
+
 const Cuestionario = {
 	props: ['datos'],
 	template: '#tplCuestionario',
@@ -42,14 +145,14 @@ const Cuestionario = {
 	},
 }
 
+
 const AppEvaluacion = {
 	data() {
 		return {
 			model: null,
 			baseUrl: null,
 			urlImagen: '',
-			verCuest: false,
-			mensaje: {},
+			pregunta: {},
 			resp: {
 				inicio: null,
 				fin: null,
@@ -76,58 +179,21 @@ const AppEvaluacion = {
 		},
 		badgeAvance() {
 			var m = this.model;
-			return `${m.respuestas} / ${m.total}`;
+			return `${m.indice} / ${m.total}`;
 		}
 	},
 	created() {
-		this.usage = {
-			clickLinks: {},
-			hoverLinks: {},
-			clickFiles: {},
-			hoverFiles: {}
-		};
-		this.cache = {}
+		this.timer = new ExamenTimer();
 	},
 	methods: {
-		resetUsage() {
-			this.usage = {
-				clickLinks: {},
-				hoverLinks: {},
-				clickFiles: {},
-				hoverFiles: {}
-			};
-			this.cache = {}
-		},
-		claseResp(check) {
-			return this.resp.respuesta === check ? 'btn-secondary' : 'btn-outline-secondary';
-		},
-		toggleRespuesta(valor) {
-			const r = this.resp;
-			if (r.respuesta === valor)
-				return r.respuesta = null;
-			r.respuesta = valor;
-			delete r.errores.respuesta
-		},
-		loadCuestionario() {
-			const self = this;
-			$.post(this.baseUrl + '/cuestionario').then(r => {
-				self.cuest = r;
-				$('#preloader').hide();
-			})
-		},
-		cuestionarioOK(respuestas) {
-			const send = {
-				data: JSON.stringify(respuestas)
-			};
-			const self = this;
-			$.post(this.baseUrl + '/responderCuestionario', send).then(r => {
-				if (r.error)
-					return alert(r.error);
-				self.cuest = null;
-				self.avanzar();
-				//window.location.reload();
-			});
-			return false;
+		resetRespuesta() {
+			this.resp.inicio = null
+			this.resp.fin = null
+			this.resp.preguntaId = null
+			this.resp.respuesta = null
+			this.resp.comentario = null
+			this.resp.interaccion = null
+			this.resp.errores = {}
 		},
 		verInstrucciones() {
 			this.modalHelp.show();
@@ -135,108 +201,66 @@ const AppEvaluacion = {
 		verAyuda() {
 			$('#popupHelp').modal('show');
 		},
-		procesarHtml() {
+
+		toggleRespuesta(valor) {
+			const r = this.resp;
+			if (r.respuesta === valor)
+				return r.respuesta = null;
+			r.respuesta = valor;
+			delete r.errores.respuesta
+		},
+		// paso a control de archivos
+		clickFile(a, ev) { this.timer.clickFile(a.name, ev); },
+		enterFile(a, ev) { this.timer.enterFile(a.name, ev); },
+		exitFile(a, ev) { this.timer.exitFile(a.name, ev); },
+
+		claseResp(check) {
+			return this.resp.respuesta === check ? 'btn-secondary' : 'btn-outline-secondary';
+		},
+		cuestionarioOK(respuestas) {
+			const send = {
+				respuestas: respuestas,
+				estado: this.model.estado || null
+			};
 			const self = this;
-			var html = this.mensaje.html;
+			jsonPost(this.baseUrl + '/responderCuestionario', send).then(r => {
+				self.procesarRespuesta(r)
+			});
+			return false;
+		},
+		procesarRespuesta(r) {
+			console.log(r);
+			if (r.estado)
+				this.model.estado = r.estado
+			if (r.error)
+				return alert(r.error);
+			this.resetRespuesta();
+			if (r.accion === "pregunta") {
+				this.cuest = null;
+				this.showEval = false;
+				this.pregunta = r.data;
+				this.procesarHtml()
+				this.timer.resetAll().start();
+			}
+			if (r.accion === "fin") {
+				alert("FIN");
+				//window.location.href = self.baseUrl + '/resultados';
+				return;
+			}
+			if (r.accion === "cuestionario") {
+				this.pregunta = {};
+				this.cuest = r.data
+				this.timer.resetAll().start();
+			}
+			$('#app button').prop('disabled', false);
+			$('#preloader').hide();
+			// cleanup
+		},
+		procesarHtml() {
+			let html = this.pregunta.html;
 			html = html.replaceAll('{imgroot}', this.urlImagen);
 			$('#contenido').html(html);
-
-			var u = this.usage;
-
-			function linkTxt(e) {
-				var txt = $(e.target).text() || ''
-				return txt.replace(/\s+/g, ' ').trim().substring(0, 20);
-			}
-
-			//$('#contenido').on("mouseover", "a", function (e) {
-			//	e.preventDefault();
-			//	self.usage.hoverLink = true;
-			//});
-
-			$('#contenido').on("mouseenter", "a", function (e) {
-				e.preventDefault();
-				var txt = linkTxt(e)
-				self.cache[txt] = new Date();
-			});
-
-			$('#contenido').on("mouseleave", "a", function (e) {
-				//e.preventDefault();
-				var txt = linkTxt(e)
-				var item = self.cache[txt] || null;
-				if (item) {
-					var f = new Date();
-					let secs = (new Date() - item) / 1000;
-					u.hoverLinks[txt] = secs;
-					delete self.cache[txt]
-				}
-			});
-
-
-			$('#contenido').on("click", "a", function (e) {
-				e.preventDefault();
-				var txt = linkTxt(e)
-				if (!u.clickLinks[txt])
-					u.clickLinks[txt] = 0;
-				u.clickLinks[txt]++;
-			});
-		},
-		avanzar() {
-			var self = this;
-			var resp = this.resp;
-			return jsonPost(this.baseUrl + '/avance').then(r => {
-				console.log(r)
-				if (r.cuestionario) {
-					self.loadCuestionario();
-					return
-				}
-
-				//if (r.accion == "fin")
-				if (r.fin) {
-					window.location.href = self.baseUrl + '/resultados';
-					return;
-				}
-
-				console.log(r);
-				self.respuestas = r.respuestas;
-
-				resp.token = r.token;
-				resp.preguntaId = r.preguntaId;
-				resp.fin = null
-				resp.respuesta = null
-				resp.comentario = null
-				resp.interaccion = null
-				resp.errores = {}
-
-				self.resetUsage();
-				self.showEval = false;
-				self.mensaje = r.mensaje || {}
-				self.procesarHtml();
-
-				resp.inicio = new Date();
-				$('#preloader').hide();
-			});
-		},
-		clickFile(a, ev) {
-			ev.preventDefault();
-			this.cache['f:' + a.name] = new Date()
-			if (!this.usage.clickFiles[a.name])
-				this.usage.clickFiles[a.name] = 0;
-			this.usage.clickFiles[a.name]++
-		},
-		enterFile(a, ev) {
-			var key = 'f:' + a.name
-			this.cache[key] = new Date();
-			console.log(a.name)
-		},
-		exitFile(a, ev) {
-			var key = 'f:' + a.name
-			var item = this.cache[key] || null;
-			if (item) {
-				var f = new Date();
-				let secs = (new Date() - item) / 1000;
-				this.usage.hoverFiles[a.name] = secs;
-				delete this.cache[key]
-			}
+			this.timer.instrumentar('#contenido')
 		},
 		responder() {
 			const self = this;
@@ -254,25 +278,21 @@ const AppEvaluacion = {
 			if (error)
 				return false;
 
-			r.fin = new Date();
-			r.interaccion = JSON.stringify(this.usage)
+			const timer = this.timer;
+			timer.stop();
+			r.inicio = timer.inicio;
+			r.fin = timer.fin;
+			r.interaccion = JSON.stringify(timer.usage)
+			r.preguntaId = this.pregunta.id
+			r.token = this.model.token
+			if (this.model.estado)
+				r.estado = this.model.estado
 
 			$('#app button').prop('disabled', true);
 
 			$('#preloader').show();
 			jsonPost(this.baseUrl + '/respuesta', r).then(r => {
-				console.log(r);
-				if (r.accion === "fin") {
-					window.location.href = self.baseUrl + '/resultados';
-					return;
-				}
-				$('#app button').prop('disabled', false);
-				if (r.accion === "cuestionario") {
-					self.loadCuestionario();
-					return;
-				}
-				// cleanup
-				self.avanzar();
+				self.procesarRespuesta(r)
 			});
 		},
 	},
@@ -289,15 +309,19 @@ const AppEvaluacion = {
 				keyboard: false,
 				backdrop: 'static'
 			});
+
 		$('#popupIns')[0].addEventListener('hide.bs.modal',
 			ev => {
 				console.log(ev);
 			});
-		//if(this.esInicio) self.verInstrucciones();
-		this.avanzar();
 
 		$('#formEval').validate({
 			submitHandler: self.responder
 		});
+
+		if (this.pregunta.html && !this.cuest)
+			this.procesarHtml();
+
+		self.timer.resetAll().start();
 	}
 };
