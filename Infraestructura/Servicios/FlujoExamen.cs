@@ -24,7 +24,7 @@ public class FlujoExamen {
 
 	public SesionPersona? SesionActualPersona(int personaId) {
 		return _db.SesionPersona.FirstOrDefault(x => x.PersonaId == personaId
-		                                             && (x.Estado == EstadoPendiente || x.Estado == EstadoEnCurso));
+			&& (x.Estado == EstadoPendiente || x.Estado == EstadoEnCurso));
 	}
 
 
@@ -199,7 +199,7 @@ public class FlujoExamen {
 
 	public int EvaluarRespuesta(Pregunta preg, SesionRespuesta resp) {
 		var correcto = (resp.Respuesta == "legitimo" && preg.Legitimo == 1)
-		               || (resp.Respuesta == "phish" && preg.Legitimo is 0 or null);
+			|| (resp.Respuesta == "phish" && preg.Legitimo is 0 or null);
 		var puntos = 0;
 		if (correcto) {
 			puntos = DificultadPregunta.ScoreRespuesta(preg.Dificultad ?? DificultadPregunta.Facil);
@@ -346,6 +346,7 @@ public class EstadoExamen {
 	public int IndiceRespuesta { get; set; } = 0;
 	public int Score { get; set; } = 0;
 	public int? CuestionarioPos { get; set; }
+	public bool CuestionarioHecho { get; set; }
 
 	public List<PreguntaWebEstado> Lista { get; set; } = new();
 	public List<PreguntaWebEstado> Cola { get; set; } = new();
@@ -357,8 +358,8 @@ public class EstadoExamen {
 		return IndiceRespuesta >= Cola.Count ? null : Cola[IndiceRespuesta];
 	}
 
-	public bool TocaCuestionario(SesionPersona ses) {
-		return IndiceRespuesta == CuestionarioPos && string.IsNullOrEmpty(ses.RespuestaCuestionario);
+	public bool TocaCuestionario() {
+		return IndiceRespuesta == CuestionarioPos && !CuestionarioHecho;
 	}
 
 	public int ScoreOffset(int tomar) {
@@ -398,8 +399,8 @@ public class SesionFlujoWeb {
 
 	public bool TocaCuestionario(SesionPersona sesion) {
 		return sesion.CuestionarioId.HasValue
-		       && Respuestas == CuestionarioPos
-		       && string.IsNullOrEmpty(sesion.RespuestaCuestionario);
+			&& Respuestas == CuestionarioPos
+			&& string.IsNullOrEmpty(sesion.RespuestaCuestionario);
 	}
 }
 

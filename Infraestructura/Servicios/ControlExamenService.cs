@@ -14,6 +14,36 @@ public class ControlExamenService {
 		_algo = new AlgoritmoAsignacion();
 	}
 
+	public bool Finalizar(EstadoExamen estado, SesionPersona sesion) {
+		var respuestas = _db.SesionRespuesta
+			.Where(x => x.SesionId == sesion.Id)
+			.OrderBy(x => x.Inicio);
+		var scores = respuestas.Select(x => x.Score).ToList();
+		var tiempos = respuestas.Select(x => x.Tiempo).ToList();
+		sesion.AvgScore = (float?)scores.Average();
+		sesion.AvgTiempo = tiempos.Average();
+
+		var exitos = respuestas.Count(x => x.Score > 0);
+
+		var inicio = respuestas.First();
+		var fin = respuestas.Last();
+		if (inicio.Inicio.HasValue && fin.Fin.HasValue) {
+			var ts = fin.Fin - inicio.Inicio;
+			sesion.TiempoTotal = (float)ts.Value.TotalSeconds;
+		}
+
+		sesion.FechaExamen = inicio.Inicio;
+		sesion.FechaFin = inicio.Fin;
+
+		if (exitos == 0)
+			sesion.Exito = 0;
+		else {
+			sesion.Exito = (respuestas.Count() / exitos) * 100;
+		}
+		
+		return true;
+	}
+	
 	public void EvaluarCuestionario(SesionPersona sesion, IList<CuestionarioRespuesta> respuestas) {
 		var calif = RespuestaCuestionario.Calificacion();
 

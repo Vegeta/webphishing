@@ -89,7 +89,9 @@ class ExamenTimer {
 		}
 	}
 
-	start() { this.inicio = new Date(); }
+	start() {
+		this.inicio = new Date();
+	}
 
 	stop() {
 		if (!this.inicio)
@@ -152,7 +154,6 @@ const AppEvaluacion = {
 			model: null,
 			baseUrl: null,
 			urlImagen: '',
-			pregunta: {},
 			resp: {
 				inicio: null,
 				fin: null,
@@ -164,6 +165,7 @@ const AppEvaluacion = {
 				errores: {},
 			},
 			showEval: false,
+			pregunta: {},
 			cuest: null,
 		}
 	},
@@ -210,9 +212,15 @@ const AppEvaluacion = {
 			delete r.errores.respuesta
 		},
 		// paso a control de archivos
-		clickFile(a, ev) { this.timer.clickFile(a.name, ev); },
-		enterFile(a, ev) { this.timer.enterFile(a.name, ev); },
-		exitFile(a, ev) { this.timer.exitFile(a.name, ev); },
+		clickFile(a, ev) {
+			this.timer.clickFile(a.name, ev);
+		},
+		enterFile(a, ev) {
+			this.timer.enterFile(a.name, ev);
+		},
+		exitFile(a, ev) {
+			this.timer.exitFile(a.name, ev);
+		},
 
 		claseResp(check) {
 			return this.resp.respuesta === check ? 'btn-secondary' : 'btn-outline-secondary';
@@ -230,22 +238,25 @@ const AppEvaluacion = {
 		},
 		procesarRespuesta(r) {
 			console.log(r);
-			if (r.estado)
-				this.model.estado = r.estado
 			if (r.error)
 				return alert(r.error);
+			if (r.estado)
+				this.model.estado = r.estado
+			if (r.indice)
+				this.model.indice = r.indice
 			this.resetRespuesta();
+			if (r.accion === "fin") {
+				alert("FIN");
+				return;
+			}
 			if (r.accion === "pregunta") {
 				this.cuest = null;
 				this.showEval = false;
 				this.pregunta = r.data;
-				this.procesarHtml()
-				this.timer.resetAll().start();
-			}
-			if (r.accion === "fin") {
-				alert("FIN");
-				//window.location.href = self.baseUrl + '/resultados';
-				return;
+				Vue.nextTick(() => {
+					this.procesarHtml()
+					this.timer.resetAll().start();
+				})
 			}
 			if (r.accion === "cuestionario") {
 				this.pregunta = {};
@@ -294,6 +305,7 @@ const AppEvaluacion = {
 			jsonPost(this.baseUrl + '/respuesta', r).then(r => {
 				self.procesarRespuesta(r)
 			});
+			return false;
 		},
 	},
 	mounted() {
@@ -319,9 +331,12 @@ const AppEvaluacion = {
 			submitHandler: self.responder
 		});
 
-		if (this.pregunta.html && !this.cuest)
-			this.procesarHtml();
+		let init = {
+			accion: this.cuest ? "cuestionario" : "pregunta",
+			data: this.cuest || this.pregunta,
+			indice: this.model.indice
+		}
 
-		self.timer.resetAll().start();
+		this.procesarRespuesta(init);
 	}
 };

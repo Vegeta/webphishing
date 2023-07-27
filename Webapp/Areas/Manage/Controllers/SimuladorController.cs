@@ -42,12 +42,7 @@ public class SimuladorController : BaseAdminController {
 		pregs = pregs.OrderBy(_ => rng.Next()).ToList();
 		var con = new ControlExamenService(_db);
 		var estado = con.CrearEstado(pregs);
-
-		var ses = new SesionPersona();
-		if (examen.CuestionarioPos.HasValue) {
-			ses.CuestionarioId = _db.Cuestionario.Select(x => x.Id).FirstOrDefault();
-			estado.CuestionarioPos = examen.CuestionarioPos;
-		}
+		estado.CuestionarioPos = examen.CuestionarioPos;
 
 		var model = new {
 			id,
@@ -60,9 +55,9 @@ public class SimuladorController : BaseAdminController {
 		};
 		ViewBag.model = JSON.Stringify(model);
 		ViewBag.cuest = "null";
-		ViewBag.pregunta = "{}";
+		ViewBag.pregunta = "null";
 
-		if (estado.TocaCuestionario(ses)) {
+		if (estado.TocaCuestionario()) {
 			var cuest = CuestionarioData();
 			ViewBag.cuest = cuest == null ? "null" : JSON.Stringify(cuest);
 		} else {
@@ -113,16 +108,13 @@ public class SimuladorController : BaseAdminController {
 
 		var estado = resp.Estado;
 		var accion = _control.ResponderPregunta(resp.Estado, r);
-		var res = new AccionWeb { Accion = accion.Accion, Estado = resp.Estado };
+		var res = new AccionWeb {
+			Accion = accion.Accion,
+			Estado = resp.Estado,
+			Indice = resp.Estado.IndiceRespuesta
+		};
 
-		var ses = new SesionPersona();
-		if (estado.CuestionarioPos.HasValue) {
-			if (estado.IndiceRespuesta > estado.CuestionarioPos)
-				ses.RespuestaCuestionario = "full";
-			ses.CuestionarioId = _db.Cuestionario.Select(x => x.Id).FirstOrDefault();
-		}
-
-		if (estado.TocaCuestionario(ses)) {
+		if (estado.TocaCuestionario()) {
 			res.Accion = "cuestionario";
 			res.Data = CuestionarioData();
 			return Ok(res);
@@ -144,20 +136,30 @@ public class SimuladorController : BaseAdminController {
 
 		var ses = new SesionPersona();
 		_control.EvaluarCuestionario(ses, respuestas);
+		data.Estado.CuestionarioHecho = true;
 
 		var preg = data.Estado.PreguntaActual();
 		if (preg == null) {
-			return Ok(new AccionWeb { Accion = "fin", Estado = data.Estado });
+			return Ok(new AccionWeb { Accion = "fin", 
+				Estado = data.Estado,
+				Indice = data.Estado.IndiceRespuesta,
+			});
 		}
 
 		var res = new AccionWeb {
 			Accion = "pregunta",
 			Data = PreguntaData(preg.Id),
+			Indice = data.Estado.IndiceRespuesta,
 			Estado = data.Estado
 		};
 
 		return Ok(res);
 	}
+
+	protected void Resultados(EstadoExamen estado) {
+		
+	}
+
 }
 
 public class RespuestaWebSim : RespuestaWeb {
@@ -175,4 +177,5 @@ public class AccionWeb {
 
 	public object? Estado { get; set; }
 	public string? Error { get; set; }
+	public int Indice { get; set; }
 }
