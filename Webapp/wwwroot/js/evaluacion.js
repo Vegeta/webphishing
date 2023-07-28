@@ -147,13 +147,11 @@ const Cuestionario = {
 	},
 }
 
-
-const AppEvaluacion = {
+const CompExamen = {
+	props: ['datos', 'baseUrl', 'simulacion', 'urlImagen', 'retroPath'],
+	template: '#tplExamen',
 	data() {
 		return {
-			model: null,
-			baseUrl: null,
-			urlImagen: '',
 			resp: {
 				inicio: null,
 				fin: null,
@@ -165,8 +163,7 @@ const AppEvaluacion = {
 				errores: {},
 			},
 			showEval: false,
-			pregunta: {},
-			cuest: null,
+			modo: '',
 		}
 	},
 	watch: {
@@ -177,12 +174,15 @@ const AppEvaluacion = {
 	},
 	computed: {
 		esInicio() {
-			return this.model.respuestas === 0;
+			return this.datos.model.indice === 0 && !this.simulacion;
 		},
 		badgeAvance() {
 			var m = this.model;
 			return `${m.indice} / ${m.total}`;
-		}
+		},
+		cuest() { return this.datos.cuest },
+		pregunta() { return this.datos.pregunta },
+		model() { return this.datos.model },
 	},
 	created() {
 		this.timer = new ExamenTimer();
@@ -228,7 +228,8 @@ const AppEvaluacion = {
 		cuestionarioOK(respuestas) {
 			const send = {
 				respuestas: respuestas,
-				estado: this.model.estado || null
+				estado: this.model.estado || null,
+				tiempoCuest: this.timer.stop(),
 			};
 			const self = this;
 			jsonPost(this.baseUrl + '/responderCuestionario', send).then(r => {
@@ -245,27 +246,34 @@ const AppEvaluacion = {
 			if (r.indice)
 				this.model.indice = r.indice
 			this.resetRespuesta();
+
 			if (r.accion === "fin") {
-				alert("FIN");
-				return;
+				if (this['verResultado'])
+					this.verResultado(r.data)
+				else
+					alert("Fin del examen")
 			}
+
 			if (r.accion === "pregunta") {
-				this.cuest = null;
+				this.datos.cuest = null;
+				this.datos.pregunta = r.data;
+				this.modo = 'pregunta'
 				this.showEval = false;
-				this.pregunta = r.data;
 				Vue.nextTick(() => {
 					this.procesarHtml()
 					this.timer.resetAll().start();
 				})
 			}
+
 			if (r.accion === "cuestionario") {
-				this.pregunta = {};
-				this.cuest = r.data
+				this.datos.pregunta = {};
+				this.datos.cuest = r.data
+				this.modo = 'cuestionario'
 				this.timer.resetAll().start();
 			}
+
 			$('#app button').prop('disabled', false);
 			$('#preloader').hide();
-			// cleanup
 		},
 		procesarHtml() {
 			let html = this.pregunta.html;
@@ -311,11 +319,6 @@ const AppEvaluacion = {
 	mounted() {
 		const self = this;
 
-		if (this.model.cuestionario) {
-			this.loadCuestionario();
-			return;
-		}
-
 		this.modalHelp = new bootstrap.Modal('#popupIns',
 			{
 				keyboard: false,
@@ -331,12 +334,30 @@ const AppEvaluacion = {
 			submitHandler: self.responder
 		});
 
+		if (this.esInicio && !this.cuest) {
+			Vue.nextTick(() => {
+				self.verInstrucciones();
+			})
+		}
+
 		let init = {
-			accion: this.cuest ? "cuestionario" : "pregunta",
-			data: this.cuest || this.pregunta,
+			accion: '',
+			data: null,
 			indice: this.model.indice
 		}
 
-		this.procesarRespuesta(init);
+		if (this.cuest) {
+			init.accion = 'cuestionario'
+			init.data = this.cuest
+		}
+
+		if (this.pregunta && this.pregunta.id) {
+			init.accion = 'pregunta'
+			init.data = this.pregunta
+		}
+
+		if (init.accion)
+			this.procesarRespuesta(init);
+
 	}
-};
+}

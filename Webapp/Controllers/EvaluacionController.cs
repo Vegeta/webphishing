@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
 using Domain;
 using Domain.Entidades;
-using Domain.Transferencia;
 using Infraestructura;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Routing.Constraints;
-using Microsoft.EntityFrameworkCore;
+using Webapp.Areas.Manage.Controllers;
 using Webapp.Models;
 
 namespace Webapp.Controllers;
@@ -21,21 +19,23 @@ public class EvaluacionController : BaseController {
 	private readonly CatalogoGeneral _cat;
 	private readonly RegistroService _registro;
 	private readonly FlujoExamen _flujo;
+	private readonly ControlExamenService _control;
 
 	public EvaluacionController(ILogger<HomeController> logger, AppDbContext db,
-		IMapper mapper, CatalogoGeneral cat, RegistroService registro, FlujoExamen flujo) {
+		IMapper mapper, CatalogoGeneral cat, RegistroService registro, FlujoExamen flujo, ControlExamenService control) {
 		_logger = logger;
 		_db = db;
 		_mapper = mapper;
 		_cat = cat;
 		_registro = registro;
 		_flujo = flujo;
+		_control = control;
 	}
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
 		Breadcrumbs.Add("Empezar", "/Empezar");
-		Titulo("Resultados tests");
+		Titulo("Evaluación");
 	}
 
 	public IActionResult Index() {
@@ -84,18 +84,27 @@ public class EvaluacionController : BaseController {
 		if (res.Data == null)
 			return Problem("Error creando persona");
 
-		var check = _flujo.SesionActualPersona(res.Data.Id);
+		per = res.Data;
+
+		var consultas = _control.Consultas();
+
+		var check = consultas.SesionActualPersona(per.Id);
 		if (check != null) {
 			HttpContext.Session.SetString("token_examen", check.Token ?? "");
 			return Ok(new { url, error = "" });
 		}
 
-		var creacion = _flujo.IniciarSesionIndividual(res.Data);
-		if (creacion.Sesion == null) {
-			return Problem("Error creando sesion");
-		}
+		// sesion rapida
+		var con = new ConsultaEvaluacion(_db);
+		var sesion = consultas.CrearSesion(res.Data, "rapida");
+		sesion.CuestionarioId = con.IdPrimercuestionario();
+		var pregs = consultas.PreguntasRandom(10);
+		var estado = _control.CrearEstado(pregs, ControlExamenService.PosCuestionario);
+		sesion.MaxScore = estado.DatosExamen.MaxScore;
+		_db.SesionPersona.Add(sesion);
+		SaveSession(sesion, estado);
 
-		HttpContext.Session.SetString("token_examen", creacion.Sesion.Token ?? "");
+		HttpContext.Session.SetString("token_examen", sesion.Token ?? "");
 		return Ok(new { url, error = "" });
 	}
 
@@ -112,171 +121,180 @@ public class EvaluacionController : BaseController {
 			nombre = $"{per.Nombre} {per.Apellido}";
 		}
 
-		var flujo = local.Sesion.GetSesionFlujo();
+		var estado = local.Sesion.GetSesionFlujo();
 
 		var model = new {
 			nombre,
-			email = per?.Email ?? "prueba@prueba.com",
-			total = flujo.Lista.Count,
-			respuestas = flujo.Respuestas,
-			cuestionario = flujo.TocaCuestionario(local.Sesion),
-			token = local.Token,
+			email = per.Email,
+			total = estado.Lista.Count,
+			indice = estado.Respondidas,
+			token = local.Sesion.Token
 		};
-		ViewBag.modelo = JSON.Stringify(model);
+
+		ViewBag.model = JSON.Stringify(model);
+		ViewBag.cuest = "null";
+		ViewBag.pregunta = "{}";
+		ViewBag.reporte = "null";
+
+		var cons = new ConsultaEvaluacion(_db);
+		var op = estado.OperacionActual();
+
+		if (op.Accion == "pregunta") {
+			var data = cons.PreguntaData(op.PreguntaId.Value);
+			ViewBag.pregunta = JSON.Stringify(data);
+		}
+
+		if (op.Accion == "cuestionario") {
+			var cuest = cons.CuestionarioData();
+			ViewBag.cuest = cuest == null ? "null" : JSON.Stringify(cuest);
+		}
+
+		if (op.Accion == "fin") {
+			ViewBag.reporte = JSON.Stringify(Resultados(local.Sesion));
+		}
+
 		return View();
 	}
 
-	public IActionResult Pregunta(int id) {
-		var p = _db.Pregunta.FirstOrDefault(x => x.Id == id);
-		if (p != null)
-			return Problem("pregunta no encontrada");
-
-		var html = p.Html ?? "";
-		var adjuntos = new List<AdjuntoView>();
-		if (!string.IsNullOrEmpty(p.Adjuntos)) {
-			adjuntos = FromJson<List<AdjuntoView>>(p.Adjuntos);
-		}
-		var model = new {
-			p.Subject,
-			p.Sender,
-			p.Email,
-			adjuntos,
-		};
-		return Ok(model);
-	}
-
-	protected PreguntaModelWeb DatosPregunta(int id) {
-		var p = _db.Pregunta.Find(id);
-		if (p == null)
-			return new PreguntaModelWeb();
-		var model = _mapper.Map<PreguntaModelWeb>(p);
-		if (!string.IsNullOrEmpty(p?.Adjuntos)) {
-			model.ListaAdjuntos = FromJson<List<AdjuntoView>>(p.Adjuntos);
-		}
-		return model;
+	protected void SaveSession(SesionPersona ses, EstadoExamen estado) {
+		ses.FechaActividad = DateTime.Now;
+		estado.DatosCuestionario = null;
+		estado.DatosExamen = null;
+		ses.Flujo = JSON.Stringify(estado);
+		_db.SaveChanges();
 	}
 
 	[HttpPost]
-	public IActionResult Avance() {
+	public IActionResult Respuesta([FromBody] RespuestaWeb resp) {
 		var local = SesionActual();
 		if (local.HasError) {
-			return Ok(new { error = local.Error });
+			ErrorWeb(local.Error);
+			return Problem();
 		}
 
-		var flujo = local.Sesion.GetSesionFlujo();
-		var pregunta = flujo.Siguiente();
-
-		dynamic? vpregunta = null;
-
-		if (pregunta != null) {
-			var vm = DatosPregunta(pregunta.Id);
-			vpregunta = new {
-				vm.Subject,
-				vm.Email,
-				vm.Html,
-				vm.Sender,
-				adjuntos = vm.ListaAdjuntos,
-			};
-		}
-
-		var model = new {
-			preguntaId = pregunta?.Id,
-			total = flujo.Lista.Count,
-			respuestas = flujo.Respuestas,
-			cuestionario = flujo.TocaCuestionario(local.Sesion),
-			token = local.Token,
-			mensaje = vpregunta,
-			fin = flujo.Respuestas == flujo.Lista.Count,
+		var r = new SesionRespuesta {
+			Clicks = resp.Interaccion,
+			PreguntaId = resp.PreguntaId,
+			Respuesta = resp.Respuesta,
+			Comentario = resp.Comentario,
+			Inicio = resp.Inicio,
+			Fin = resp.Fin,
 		};
 
-		return Ok(model);
-	}
+		var estado = local.Sesion.GetSesionFlujo();
+		_control.ResponderOperacionActual(estado, r, local.Sesion);
+		estado.IndiceRespuesta++;
 
-	public IActionResult Respuesta([FromBody] RespuestaWeb resWeb) {
-		var sesion = _flujo.SesionPorToken(resWeb.Token);
-		var resp = new SesionRespuesta();
-		resp.SesionId = sesion.Id;
-		resp.PreguntaId = resWeb.PreguntaId;
-		resp.Inicio = resWeb.Inicio;
-		resp.Fin = resWeb.Fin;
-		resp.Comentario = resWeb.Comentario;
-		resp.Respuesta = resWeb.Respuesta ?? "na";
-		resp.Clicks = resWeb.Interaccion;
+		// persist
+		r.SesionId = local.Sesion.Id;
+		_db.SesionRespuesta.Add(r);
+		SaveSession(local.Sesion, estado);
 
-		if (resp.Inicio.HasValue && resp.Fin.HasValue) {
-			var ts = resp.Fin - resp.Inicio;
-			resp.Tiempo = (float)ts.Value.TotalSeconds;
+		var op = estado.OperacionActual();
+		var res = new AccionWeb {
+			Accion = op.Accion,
+			Indice = estado.Respondidas,
+		};
+
+		var cons = new ConsultaEvaluacion(_db);
+		if (op.Accion == "pregunta") {
+			res.Data = cons.PreguntaData(op.PreguntaId.Value);
 		}
 
-		var accion = _flujo.RegistrarRespuesta(sesion, resp);
-		return Ok(accion);
+		if (op.Accion == "cuestionario") {
+			res.Data = cons.CuestionarioData();
+		}
+
+		if (op.Accion == "fin") {
+			estado.Fin = r.Fin;
+			_control.FinalizarSesion(estado, local.Sesion);
+			SaveSession(local.Sesion, estado);
+			res.Data = Resultados(local.Sesion);
+		}
+
+		return Ok(res);
 	}
 
-	public IActionResult Cuestionario() {
+	public IActionResult ResponderCuestionario([FromBody] RespuestaCuest data) {
 		var local = SesionActual();
-		if (local.HasError)
-			return Ok(new { error = local.Error });
+		if (local.HasError) {
+			ErrorWeb(local.Error);
+			return Problem();
+		}
 
-		var cues = _db.Cuestionario
-			.AsNoTracking()
-			.FirstOrDefault(x => x.Id == local.Sesion.CuestionarioId);
-
-		if (cues == null)
-			return Ok(new { error = "No encontrado" });
-
-		var data = new {
-			preguntas = JSON.Parse<List<CuestRespuestaModel>>(cues.Preguntas ?? "[]"),
-			cues.Titulo,
-			cues.Instrucciones,
-			opciones = OpcionesConfig.ComboDict(RespuestaCuestionario.Mapa()),
-		};
-		return Ok(data);
-	}
-
-	public IActionResult ResponderCuestionario(string? data) {
-		var local = SesionActual();
-		if (local.HasError)
-			return Ok(new { error = local.Error });
-
-		var lista = JSON.Parse<List<CuestRespuestaModel>>(data ?? "[]");
-		var respuestas = lista.Select(x => new CuestionarioRespuesta {
-				SesionId = local.Sesion.Id,
+		var respuestas = data.Respuestas
+			.Select(x => new CuestionarioRespuesta {
 				Dimension = x.Dimension,
 				Pregunta = x.Texto,
 				Respuesta = x.Respuesta,
 			}
-		).ToList();
+			).ToList();
 
-		var accion = _flujo.ResponderCuestionario(local.Sesion, respuestas);
-		return Ok(accion);
-	}
+		var estado = local.Sesion.GetSesionFlujo();
 
-	public IActionResult Resultados() {
-		var local = SesionActual();
-		if (local.HasError) {
-			ErrorWeb(local.Error);
-			return RedirectToAction("Index");
+		_control.EvaluarCuestionario(estado, respuestas, local.Sesion);
+		estado.CuestionarioHecho = true;
+		estado.IndiceRespuesta++;
+		estado.Inicio ??= DateTime.Now;
+
+		// persist
+		local.Sesion.TiempoCuestionario = data.TiempoCuest;
+		local.Sesion.FechaExamen ??= estado.Inicio;
+		foreach (var respuesta in respuestas) {
+			respuesta.SesionId = local.Sesion.Id;
+			_db.CuestionarioRespuesta.Add(respuesta);
+		}
+		SaveSession(local.Sesion, estado);
+
+		var op = estado.OperacionActual();
+
+		var res = new AccionWeb {
+			Accion = op.Accion,
+			Indice = estado.Respondidas,
+			Estado = estado,
+		};
+
+		var cons = new ConsultaEvaluacion(_db);
+		if (op.Accion == "pregunta") {
+			res.Data = cons.PreguntaData(op.PreguntaId.Value);
 		}
 
-		Titulo("Resultado Evaluación");
+		if (op.Accion == "cuestionario") {
+			res.Data = cons.CuestionarioData();
+		}
+
+		if (op.Accion == "fin") {
+			estado.Fin = DateTime.Now;
+			_control.FinalizarSesion(estado, local.Sesion);
+			SaveSession(local.Sesion, estado);
+			res.Data = Resultados(local.Sesion);
+		}
+
+		return Ok(res);
+	}
+
+	protected object Resultados(SesionPersona sesion) {
 		var ses = _db.VSesiones
-			.First(x => x.Id == local.Sesion.Id);
+			.First(x => x.Id == sesion.Id);
 
 		var con = new ConsultaEvaluacion(_db);
 		var respuestas = con.RespuestasWeb(ses.Id);
 
-		ViewBag.modelo = JSON.Stringify(ses);
-		ViewBag.respuestas = JSON.Stringify(respuestas);
-		ViewBag.percepcion = ses.RespuestaCuestionario ?? "[]";
-
-		return View();
+		var data = new {
+			modelo = ses,
+			respuestas,
+			percepcion = ses.RespuestaCuestionario != null ? JSON.Parse<object>(ses.RespuestaCuestionario) : new List<string>(),
+			cuest = new List<string>(), // placeholder
+		};
+		return data;
 	}
 
+	[HttpPost]
 	public IActionResult Terminar() {
 		var local = SesionActual();
 		if (local.HasError) {
 			ErrorWeb(local.Error);
-			return RedirectToAction("Index");
+			return Problem(local.Error);
 		}
 
 		HttpContext.Session.Remove("token_examen");
@@ -296,7 +314,7 @@ public class EvaluacionController : BaseController {
 		}
 
 		res.Token = token;
-		var ses = _flujo.SesionPorToken(token);
+		var ses = _control.Consultas().SesionPorToken(token);
 		if (ses == null) {
 			res.Error = "No se encontró el examen requerido";
 			return res;
@@ -308,7 +326,7 @@ public class EvaluacionController : BaseController {
 }
 
 public class RespuestaWeb {
-	public string Token { get; set; }
+	public string Token { get; set; } = "";
 	public int PreguntaId { get; set; }
 	public DateTime? Inicio { get; set; }
 	public DateTime? Fin { get; set; }

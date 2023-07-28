@@ -32,24 +32,17 @@ public class SimuladorController : BaseAdminController {
 	public IActionResult Examen(int id) {
 		var rng = new Random();
 		var examen = _db.Examen.FirstOrDefault(x => x.Id == id);
-		var pregs = _db.Pregunta
-			.Where(x => x.ExamenPregunta.Any(y => y.ExamenId == id))
-			.Select(x => new Pregunta {
-				Id = x.Id,
-				Dificultad = x.Dificultad ?? "facil"
-			}).ToList();
-
+		var pregs = _control.Consultas().PreguntasExamen(id);
 		pregs = pregs.OrderBy(_ => rng.Next()).ToList();
 		var con = new ControlExamenService(_db);
-		var estado = con.CrearEstado(pregs);
-		estado.CuestionarioPos = examen.CuestionarioPos;
+		var estado = con.CrearEstado(pregs, examen.CuestionarioPos);
 
 		var model = new {
 			id,
-			nombre = "Usuario",
+			nombre = "Simulacion",
 			email = "prueba@prueba.com",
 			total = estado.Lista.Count,
-			indice = estado.IndiceRespuesta,
+			indice = estado.Respondidas,
 			token = "----",
 			estado,
 		};
@@ -57,42 +50,20 @@ public class SimuladorController : BaseAdminController {
 		ViewBag.cuest = "null";
 		ViewBag.pregunta = "null";
 
-		if (estado.TocaCuestionario()) {
-			var cuest = CuestionarioData();
-			ViewBag.cuest = cuest == null ? "null" : JSON.Stringify(cuest);
-		} else {
-			var inicio = estado.PreguntaActual();
-			var data = PreguntaData(inicio.Id);
+		var cons = new ConsultaEvaluacion(_db);
+
+		var op = estado.OperacionActual();
+		if (op.Accion == "pregunta") {
+			var data = cons.PreguntaData(op.PreguntaId.Value);
 			ViewBag.pregunta = JSON.Stringify(data);
 		}
+
+		if (op.Accion == "cuestionario") {
+			var cuest = cons.CuestionarioData();
+			ViewBag.cuest = cuest == null ? "null" : JSON.Stringify(cuest);
+		}
+
 		return View();
-	}
-
-	protected object? PreguntaData(int id) {
-		return _db.Pregunta
-			.Where(x => x.Id == id)
-			.Select(vm => new {
-				vm.Id,
-				vm.Subject,
-				vm.Email,
-				vm.Html,
-				vm.Sender,
-				adjuntos = JSON.Parse<List<AdjuntoView>>(vm.Adjuntos ?? "[]"),
-			})
-			.FirstOrDefault();
-	}
-
-	protected object? CuestionarioData() {
-		var cues = _db.Cuestionario
-			.AsNoTracking()
-			.FirstOrDefault();
-
-		return new {
-			preguntas = JSON.Parse<List<CuestRespuestaModel>>(cues.Preguntas ?? "[]"),
-			cues.Titulo,
-			cues.Instrucciones,
-			opciones = OpcionesConfig.ComboDict(RespuestaCuestionario.Mapa()),
-		};
 	}
 
 	[HttpPost]
@@ -107,57 +78,135 @@ public class SimuladorController : BaseAdminController {
 		};
 
 		var estado = resp.Estado;
-		var accion = _control.ResponderPregunta(resp.Estado, r);
+		_control.ResponderOperacionActual(estado, r);
+		estado.IndiceRespuesta++;
+
+		var op = estado.OperacionActual();
 		var res = new AccionWeb {
-			Accion = accion.Accion,
-			Estado = resp.Estado,
-			Indice = resp.Estado.IndiceRespuesta
+			Accion = op.Accion,
+			Indice = estado.Respondidas,
+			Estado = estado,
 		};
 
-		if (estado.TocaCuestionario()) {
-			res.Accion = "cuestionario";
-			res.Data = CuestionarioData();
-			return Ok(res);
+		var cons = new ConsultaEvaluacion(_db);
+		if (op.Accion == "pregunta") {
+			res.Data = cons.PreguntaData(op.PreguntaId.Value);
 		}
-		if (accion is { Accion: "pregunta", Pregunta: not null }) {
-			res.Data = PreguntaData(accion.Pregunta.Id);
+
+		if (op.Accion == "cuestionario") {
+			res.Data = cons.CuestionarioData();
 		}
+
+		if (op.Accion == "fin") {
+			estado.Fin = r.Fin;
+			_control.FinalizarSesion(estado);
+			res.Data = Resultados(estado);
+		}
+
 		return Ok(res);
 	}
 
 	public IActionResult ResponderCuestionario([FromBody] RespuestaCuest data) {
 		var respuestas = data.Respuestas
 			.Select(x => new CuestionarioRespuesta {
-					Dimension = x.Dimension,
-					Pregunta = x.Texto,
-					Respuesta = x.Respuesta,
-				}
+				Dimension = x.Dimension,
+				Pregunta = x.Texto,
+				Respuesta = x.Respuesta,
+			}
 			).ToList();
 
-		var ses = new SesionPersona();
-		_control.EvaluarCuestionario(ses, respuestas);
-		data.Estado.CuestionarioHecho = true;
+		var estado = data.Estado;
 
-		var preg = data.Estado.PreguntaActual();
-		if (preg == null) {
-			return Ok(new AccionWeb { Accion = "fin", 
-				Estado = data.Estado,
-				Indice = data.Estado.IndiceRespuesta,
-			});
-		}
+		_control.EvaluarCuestionario(estado, respuestas);
+		estado.CuestionarioHecho = true;
+		estado.IndiceRespuesta++;
+		estado.Inicio ??= DateTime.Now;
+		estado.DatosCuestionario.Respuestas = respuestas;
+		estado.DatosCuestionario.TiempoCuestionario = data.TiempoCuest;
+
+		var op = estado.OperacionActual();
 
 		var res = new AccionWeb {
-			Accion = "pregunta",
-			Data = PreguntaData(preg.Id),
-			Indice = data.Estado.IndiceRespuesta,
-			Estado = data.Estado
+			Accion = op.Accion,
+			Indice = estado.Respondidas,
+			Estado = estado,
 		};
+
+		var cons = new ConsultaEvaluacion(_db);
+		if (op.Accion == "pregunta") {
+			res.Data = cons.PreguntaData(op.PreguntaId.Value);
+		}
+
+		if (op.Accion == "cuestionario") {
+			res.Data = cons.CuestionarioData();
+		}
+
+		if (op.Accion == "fin") {
+			estado.Fin = DateTime.Now;
+			_control.FinalizarSesion(estado);
+			res.Data = Resultados(estado);
+		}
 
 		return Ok(res);
 	}
 
-	protected void Resultados(EstadoExamen estado) {
-		
+	protected object? Resultados(EstadoExamen estado) {
+		estado.DatosCuestionario ??= new DataCuestionario();
+		estado.DatosExamen ??= new DataExamen();
+		var vses = new VSesionPersona {
+			Nombre = "Simulacion",
+			Nombres = "prueba",
+			Apellidos = "prueba",
+			Score = estado.Score,
+			Estado = "terminado",
+			AvgScore = estado.DatosExamen.AvgScore,
+			AvgTiempo = estado.DatosExamen.AvgTiempo,
+			FechaExamen = estado.Inicio,
+			FechaFin = estado.Fin,
+			Exito = estado.DatosExamen.Exito,
+			TiempoCuestionario = estado.DatosCuestionario.TiempoCuestionario,
+			TiempoTotal = estado.DatosExamen.TiempoTotal,
+			MaxScore = estado.DatosExamen.MaxScore,
+			ScoreCuestionario = estado.DatosCuestionario.ScoreCuestionario,
+			Percepcion = estado.DatosCuestionario.Percepcion,
+		};
+
+		var mapaRespuestas = estado.Operaciones.Where(x => x.HayRespuesta)
+			.ToDictionary(x => x.PreguntaId);
+		var ids = mapaRespuestas.Keys.ToList();
+
+		var dbResp = _db.Pregunta.Where(x => ids.Contains(x.Id)).ToList();
+		var respuestas = dbResp.Select(x => MapeoPregunta(mapaRespuestas, x)).ToList();
+
+		estado.DatosCuestionario ??= new DataCuestionario();
+
+		var respCuest = estado.DatosCuestionario.RespuestaCuestionario;
+
+		var res = new {
+			modelo = vses,
+			respuestas,
+			percepcion = respCuest == null ? new List<string>() : JSON.Parse<object>(respCuest),
+			cuest = estado.DatosCuestionario.Respuestas,
+		};
+		return res;
+	}
+
+	protected dynamic MapeoPregunta(IDictionary<int?, OperacionExamen> mapa, Pregunta x) {
+		var res = mapa[x.Id];
+		var item = new {
+			x.ImagenRetro,
+			x.Dificultad,
+			x.Explicacion,
+			x.Email,
+			adjuntos = JSON.Parse<dynamic>(x.Adjuntos ?? "[]"),
+			res.Respuesta,
+			tipo = x.Legitimo == 0 ? "PHISHING" : "LEGITIMO",
+			res.Score,
+			res.PreguntaId,
+			res.Tiempo,
+			comentario = "Test comentario",
+		};
+		return item;
 	}
 
 }
@@ -169,6 +218,7 @@ public class RespuestaWebSim : RespuestaWeb {
 public class RespuestaCuest {
 	public List<CuestRespuestaModel> Respuestas { get; set; } = new();
 	public EstadoExamen? Estado { get; set; }
+	public float? TiempoCuest { get; set; }
 }
 
 public class AccionWeb {
@@ -178,4 +228,5 @@ public class AccionWeb {
 	public object? Estado { get; set; }
 	public string? Error { get; set; }
 	public int Indice { get; set; }
+	public string? Url { get; set; }
 }

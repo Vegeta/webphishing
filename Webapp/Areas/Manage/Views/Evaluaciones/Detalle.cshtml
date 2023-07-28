@@ -10,50 +10,7 @@
 			<graf-percepcion :model="model" :percepcion="percepcion"></graf-percepcion>
 		</div>
 		<div class="col-sm-12 col-lg-4">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Respuestas Cuestionario</h5>
-
-					<table class="table minitabla table-hover">
-						<thead>
-							<tr>
-								<th>Pregunta</th>
-								<th>Respuesta</th>
-								<th>Score</th>
-								<th>Dimension</th>
-							</tr>
-						</thead>
-						<tr v-for="p in cuest">
-							<td v-text="p.pregunta"></td>
-							<td v-text="p.respuesta"></td>
-							<td v-text="p.puntaje"></td>
-							<td v-text="p.dimension"></td>
-						</tr>
-					</table>
-
-					<b>Agrupación</b>
-					<table class="table minitabla table-hover">
-						<thead>
-							<tr>
-								<th></th>
-								<th colspan="2">Puntajes</th>
-							</tr>
-							<tr>
-								<th class="col-sm-3">Dimensión</th>
-								<th>Suma</th>
-								<th>Promedio</th>
-							</tr>
-						</thead>
-						<tr v-for="p in percepcion">
-							<td v-text="p.dimension"></td>
-							<td v-text="p.suma"></td>
-							<td v-text="p.prom"></td>
-						</tr>
-					</table>
-
-				</div>
-			</div>
-
+			<detalle-cuest :respuestas="cuest" :percepcion="percepcion"></detalle-cuest>
 		</div>
 	</div>
 
@@ -91,7 +48,7 @@
 			mounted() {
 				var self = this;
 				// esto marcha creo
-				
+
 				var exito = this.model.exito;
 				const optionsExito = {
 					type: 'doughnut',
@@ -117,6 +74,7 @@
 		.component('grafPercepcion', GraficoPercepcion)
 		.component('respuestas', CompRespuestas)
 		.component('resumen', CompResumen)
+		.component('detalleCuest', CompCuestDetalle)
 		.use(globalDirectives)
 		.mount('#app')
 

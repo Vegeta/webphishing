@@ -1,7 +1,6 @@
 ﻿<template id="tplRespuestas">
 	<div class="row">
 		<div class="col-sm-12 col-lg-4">
-
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Respuestas</h5>
@@ -11,7 +10,7 @@
 					<table class="table table-hover minitabla">
 						<tbody>
 							<tr v-for="(r, ix) in lista" :class="claseSelect(r)"
-							    style="cursor: pointer" @@click="selPregunta(r, ix)">
+								style="cursor: pointer" @@click="selPregunta(r, ix)">
 								<td class="col-4">
 									<h6 class="fw-bold">Pregunta {{ ix+1 }}</h6>
 								</td>
@@ -21,11 +20,11 @@
 								<td class="col-4 text-end">
 									<span v-if="r.score > 0">
 										Correcto
-										<img src="~/img/check.png" alt=""/>
+										<img src="~/img/check.png" alt="" />
 									</span>
 									<span v-else>
 										Error
-										<img src="~/img/eliminar.png" alt=""/>
+										<img src="~/img/eliminar.png" alt="" />
 									</span>
 								</td>
 							</tr>
@@ -34,6 +33,7 @@
 				</div>
 			</div>
 		</div>
+
 		<div class="col-sm-12 col-lg-8">
 			<div class="card">
 				<div class="card-body">
@@ -54,8 +54,13 @@
 							<p class="small" style="text-align: justify-all">{{ question.explicacion }}</p>
 						</div>
 
-						<div class="card card-body">
-							<img :src="imgRetro()" alt="Descripcion" style="width:100%"/>
+						<div class="card card-body mt-2">
+							<img :src="imgRetro()" alt="Descripcion" style="width:100%" />
+						</div>
+
+						<div class="card card-body mt-2 pt-3 smaller" v-if="question.comentario">
+							<strong>Comentario usuario:</strong>
+							<div style="font-size: 9pt">{{ question.comentario }}</div>
 						</div>
 
 					</div>
@@ -88,7 +93,7 @@
 						<th>Puntaje</th>
 						<td class="text-center">
 							<span class="fw-bold" v-text="model.score + ' / ' + model.maxScore" style="font-size: large"></span>
-							<img src="~/img/score.png" alt="" width="24" height="24" v-show="model.exito > 70"/>
+							<img src="~/img/score.png" alt="" width="24" height="24" v-show="model.exito > 70" />
 						</td>
 					</tr>
 					<tr>
@@ -146,19 +151,73 @@
 	</div>
 </template>
 
+<template id="tplCuestDetalle">
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Detalle Cuestionario</h5>
+
+			<div style="font-size: smaller">
+
+				<h6 class="text-center">Respuestas</h6>
+				<div style="max-height: 250px; overflow-y: auto;">
+					<table class="table minitabla table-hover small">
+						<thead>
+							<tr>
+								<th>Pregunta</th>
+								<th>Respuesta</th>
+								<th>Score</th>
+								<th>Dimension</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="p in respuestas">
+								<td v-text="p.pregunta"></td>
+								<td class="text-center" v-text="p.respuesta"></td>
+								<td class="text-center" v-text="p.puntaje"></td>
+								<td class="text-center" v-text="p.dimension"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<h6 class="text-center">Agrupación</h6>
+				<table class="table minitabla table-hover small">
+					<thead>
+						<tr>
+							<th class="col-sm-3">Dimensión</th>
+							<th>Suma</th>
+							<th>Promedio</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="p in percepcion">
+							<td v-text="p.dimension"></td>
+							<td v-text="p.suma"></td>
+							<td v-text="numero(p.prom)"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+		</div>
+	</div>
+</template>
+
+<script src="~/lib/chart.js"></script>
+
 <script>
 	const GraficoPercepcion = {
-    	props: ['model', 'percepcion'],
-    	template: '#tplGrafPercepcion',
-    	data() {
-    		return {};
-    	},
-    	computed:{	
-	   	},
-    	created() { },
-    	methods: {
-    	},
-    	mounted() {
+		props: ['model', 'percepcion'],
+		template: '#tplGrafPercepcion',
+		data() {
+			return {};
+		},
+		computed: {
+		},
+		created() { },
+		methods: {
+		},
+		mounted() {
 			var mapaPer = {
 				1: 'Probabilidad percibida',
 				2: 'Susceptibilidad percibida',
@@ -190,65 +249,77 @@
 				document.getElementById('grafPercepcion'),
 				configPer
 			);
-			
-    	},
-    }
+
+		},
+	}
 
 	const CompResumen = {
-    	props: ['model', 'respuestas'],
-    	template: '#tplResumen',
-    	data() {
-    		return {
-    			correctas: 0,
-                incorrectas : 0,
-    		};
-    	},
-    	computed:{	
+		props: ['model', 'respuestas'],
+		template: '#tplResumen',
+		data() {
+			return {
+				correctas: 0,
+				incorrectas: 0,
+			};
+		},
+		computed: {
 			estiloBarra() {
 				return {
-					width: this.model.exito + '%' 	
+					width: this.model.exito + '%'
 				}
 			}
-    	},
-    	created() { },
-    	methods: {
-    	},
-    	mounted() {
+		},
+		created() { },
+		methods: {
+		},
+		mounted() {
 			this.correctas = _.filter(this.respuestas, x => x.score > 0).length;
-         	this.incorrectas = this.respuestas.length - this.correctas;
-    	},
-    }
+			this.incorrectas = this.respuestas.length - this.correctas;
+		},
+	}
 
+	const CompCuestDetalle = {
+		props: ['percepcion', 'respuestas'],
+		template: '#tplCuestDetalle',
+		data() {
+			return {};
+		},
+		created() { },
+		methods: {
+		},
+		mounted() {
+		},
+	}
 
 	const CompRespuestas = {
-    	props: ['lista', 'retroPath'],
-    	template: '#tplRespuestas',
-    	data() {
-    		return {
-    			question: null,
-    		};
-    	},
-    	computed:{
+		props: ['lista', 'retroPath'],
+		template: '#tplRespuestas',
+		data() {
+			return {
+				question: null,
+			};
+		},
+		computed: {
 			tituloPregunta() {
 				const q = this.question;
-				return q ? "Pregunta "+ q.indice : 'Seleccione una pregunta'; 
+				return q ? "Pregunta " + q.indice : 'Seleccione una pregunta';
 			},
-    	},
-    	created() { },
-    	methods: {
-    		claseSelect(p) {
+		},
+		created() { },
+		methods: {
+			claseSelect(p) {
 				return this.question === p ? 'bg-info' : '';
 			},
 			imgRetro() {
 				return this.retroPath + '/' + this.question.imagenRetro
 			},
 			selPregunta(p, ix) {
-				p.indice = ix +1
+				p.indice = ix + 1
 				this.question = p
 			},
-    	},
-    	mounted() {
-    	},
-    }
+		},
+		mounted() {
+		},
+	}
 
 </script>

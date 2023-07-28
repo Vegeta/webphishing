@@ -8,11 +8,11 @@ public static class ModelExtensions {
 		return p.Datos == null ? default! : JSON.Parse<T>(p.Datos);
 	}
 
-	public static SesionFlujoWeb GetSesionFlujo(this SesionPersona p) {
-		return p.Flujo == null ? default! : JSON.Parse<SesionFlujoWeb>(p.Flujo);
+	public static EstadoExamen GetSesionFlujo(this SesionPersona p) {
+		return p.Flujo == null ? default! : JSON.Parse<EstadoExamen>(p.Flujo);
 	}
 
-	public static SesionFlujoWeb GetSesionFlujo(this VSesionPersona p) {
-		return p.Flujo == null ? default! : JSON.Parse<SesionFlujoWeb>(p.Flujo);
+	public static EstadoExamen GetSesionFlujo(this VSesionPersona p) {
+		return p.Flujo == null ? default! : JSON.Parse<EstadoExamen>(p.Flujo);
 	}
 }

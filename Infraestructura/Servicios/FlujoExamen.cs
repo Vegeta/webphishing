@@ -128,74 +128,7 @@ public class FlujoExamen {
 		return true;
 	}
 
-	public AccionFlujo ResponderCuestionario(SesionPersona sesion, IList<CuestionarioRespuesta> respuestas) {
-		var flujoWeb = sesion.GetSesionFlujo();
 
-		var calif = RespuestaCuestionario.Calificacion();
-
-		foreach (var item in respuestas) {
-			item.SesionId = sesion.Id;
-			var resp = item.Respuesta ?? "";
-			if (calif.TryGetValue(resp, out var value))
-				item.Puntaje = value;
-			_db.CuestionarioRespuesta.Add(item);
-		}
-
-		var pordim = new Dictionary<string, StatsDimension>();
-		// agrupar por dimensiones, sumar cada una y promedio de las sumas
-		var grupos = respuestas.GroupBy(x => x.Dimension ?? "");
-		foreach (var grupo in grupos) {
-			var t = new StatsDimension {
-				Dimension = grupo.Key,
-				Suma = grupo.Select(x => x.Puntaje).Sum(),
-				Prom = grupo.Select(x => x.Puntaje).Average()
-			};
-			pordim[grupo.Key] = t;
-		}
-		var avg = pordim.Values.Select(x => x.Suma).Average();
-		sesion.ScoreCuestionario = (float?)avg;
-		sesion.Percepcion = RespuestaCuestionario.Percepcion(Convert.ToDecimal(avg));
-		sesion.RespuestaCuestionario = JSON.Stringify(pordim.Values);
-
-		var accion = Avance(sesion, flujoWeb);
-		sesion.Flujo = JSON.Stringify(flujoWeb);
-		sesion.Estado = EstadoEnCurso;
-		_db.SaveChanges();
-		return accion;
-	}
-
-	public AccionFlujo RegistrarRespuesta(SesionPersona sesion, SesionRespuesta resp) {
-		var preg = _db.Pregunta
-			.AsNoTracking()
-			.Select(x => new Pregunta { Id = x.Id, Dificultad = x.Dificultad, Legitimo = x.Legitimo })
-			.FirstOrDefault(x => x.Id == resp.PreguntaId);
-		var flujo = sesion.GetSesionFlujo();
-		var score = EvaluarRespuesta(preg, resp);
-		sesion.Score ??= 0; // da fuq
-		sesion.Score += score;
-		flujo.Respuestas++;
-		var accion = Avance(sesion, flujo);
-		sesion.Flujo = JSON.Stringify(flujo);
-		sesion.FechaActividad = DateTime.Now;
-		sesion.Estado = EstadoEnCurso;
-
-		var tx = _db.Database.BeginTransaction();
-		try {
-			_db.SesionRespuesta.Add(resp);
-			_db.SaveChanges();
-
-			if (accion.Accion == "fin") {
-				FinalizarSesion(sesion);
-			}
-			_db.SaveChanges();
-			tx.Commit();
-		} catch (Exception ex) {
-			//TODO log esto
-			tx.Rollback();
-		}
-
-		return accion;
-	}
 
 	public int EvaluarRespuesta(Pregunta preg, SesionRespuesta resp) {
 		var correcto = (resp.Respuesta == "legitimo" && preg.Legitimo == 1)
@@ -340,47 +273,6 @@ public class SesionCreada {
 		Flujo = flujo;
 		Accion = accion;
 	}
-}
-
-public class EstadoExamen {
-	public int IndiceRespuesta { get; set; } = 0;
-	public int Score { get; set; } = 0;
-	public int? CuestionarioPos { get; set; }
-	public bool CuestionarioHecho { get; set; }
-
-	public List<PreguntaWebEstado> Lista { get; set; } = new();
-	public List<PreguntaWebEstado> Cola { get; set; } = new();
-
-	public PreguntaWebEstado? PreguntaActual() {
-		if (Cola.Count == 0)
-			return null;
-		// siempre deberia ser +1
-		return IndiceRespuesta >= Cola.Count ? null : Cola[IndiceRespuesta];
-	}
-
-	public bool TocaCuestionario() {
-		return IndiceRespuesta == CuestionarioPos && !CuestionarioHecho;
-	}
-
-	public int ScoreOffset(int tomar) {
-		var cuenta = Cola.Count;
-		if (cuenta < tomar)
-			return 0;
-		var score = 0;
-		for (var i = 1; i <= tomar; i++) {
-			var ix = IndiceRespuesta + 1 - i;
-			score += Cola[ix].Score;
-		}
-		return score;
-	}
-}
-
-public class PreguntaWebEstado {
-	public int Id { get; set; }
-	public string Dificultad { get; set; } = "";
-	public bool Usada { get; set; } = false;
-	public bool Respuesta { get; set; } = false;
-	public int Score { get; set; } = 0;
 }
 
 public class SesionFlujoWeb {

@@ -1,0 +1,352 @@
+﻿<style>
+	div.error, span.error {
+		color: #ed3c0d;
+	}
+
+	.menu-email {
+		border-top: 3px solid #47b2e4;
+		border-bottom: 3px solid #47b2e4;
+		background: #fff;
+		width: 100%;
+		box-shadow: 0 0 24px 0 rgba(0, 0, 0, 0.1);
+	}
+</style>
+
+<template id="tplExamen">
+	<div>
+		<section class="breadcrumbs">
+			<div class="container">
+				<ol v-if="simulacion">
+					<li>
+						<a :href="'@Url.Content("~/manage/Examenes/edit")' + '?id=' + model.id">
+							Regresar al Examen
+						</a>
+					</li>
+				</ol>
+
+				<div class="row" v-if="modo == 'pregunta'">
+					<div class="col-sm-4">
+						<b>MyEmail</b> -
+						<span v-text="model.email"></span>
+					</div>
+					<div class="col-sm-4 text-center">
+						<button type="button" class="btn btn-primary btn-sm me-lg-3" @@click="verInstrucciones()"
+								style="min-width: 10rem">
+							<i class="bi bi-info-circle"></i>
+							Instrucciones
+						</button>
+						<button type="button" class="btn btn-info btn-sm mt-sm-1 mt-lg-0" @@click="verAyuda()"
+								style="min-width: 10rem">
+							<i class="bi bi-question-circle"></i>
+							Ayuda
+						</button>
+					</div>
+					<div class="col-sm-4 text-end">
+						<i class="bi bi-person-circle"></i>
+						<span class="ms-2" v-text="model.nombre"></span>
+					</div>
+				</div>
+
+				<h4 class="text-center" v-if="modo == 'cuestionario'">Cuestionario</h4>
+
+				<h4 class="text-center" v-if="modo == 'reporte'">Resultados</h4>
+
+			</div>
+		</section>
+
+
+		<div class="container mb-5 mt-3" v-if="modo=='cuestionario'">
+			<cuestionario :datos="cuest" @@resp-cuestionario="cuestionarioOK"></cuestionario>
+		</div>
+
+
+		<div v-show="modo=='pregunta'">
+
+			<!-- ======= Contact Section ======= -->
+			<section id="contact" class="contact">
+				<div class="container">
+
+					<div class="row">
+						@*<div class="col-lg-3 d-flex align-items-stretch">*@
+						<div class="col-lg-3 align-items-stretch">
+							<div class="card menu-email">
+								<div class="card-header">
+
+									<div class="btn btn-primary btn-sm">
+										<i class="bi bi-envelope-plus-fill"></i>
+										Compose
+									</div>
+
+								</div>
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item">
+										<i class="bi bi-inbox"></i>
+										Inbox
+										<div class="float-end">
+											<span class="badge text-bg-info" v-text="badgeAvance"></span>
+										</div>
+
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-envelope"></i>
+										Sent
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-envelope-exclamation"></i>
+										Important
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-file-earmark"></i>
+										Drafts
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-star"></i>
+										Tags
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-trash"></i>
+										Trash
+									</li>
+								</ul>
+							</div>
+
+							<div class="card menu-email mt-3">
+								<div class="card-header">
+									Labels
+								</div>
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item">
+										<i class="bi bi-tag text-warning"></i>
+										Important
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-tag text-success"></i>
+										Business
+									</li>
+									<li class="list-group-item">
+										<i class="bi bi-tag text-dark"></i>
+										Inspiration
+									</li>
+								</ul>
+							</div>
+
+						</div>
+
+						@*<div class="col-lg-9 mt-5 mt-lg-0 d-flex align-items-stretch" style="min-height: 480px">*@
+						<div class="col-lg-9 mt-5 mt-lg-0" style="min-height: 480px">
+							<div class="card menu-email">
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item">
+										<i class="bi bi-star"></i>
+										&nbsp;
+										<span v-text="pregunta.subject" class="fw-bold"></span>
+
+										<div class="float-end">
+											<i class="bi bi-fast-forward"></i>
+											<i class="bi bi-printer ms-2"></i>
+											<i class="bi bi-trash ms-2"></i>
+										</div>
+									</li>
+									<li class="list-group-item">
+										<span class="">
+											De: {{ pregunta.sender }}
+											<span v-text="' <' + pregunta.email + '>'"></span>
+										</span>
+
+										para mi
+										<i class="bi bi-chevron-down"></i>
+
+										<div class="float-end">
+											Fecha
+										</div>
+									</li>
+								</ul>
+
+								<div class="card-body">
+									<div id="contenido">
+									</div>
+								</div>
+								<div class="card-footer small">
+									Attachments: <br />
+									<div v-if="pregunta.adjuntos">
+										<table class="table minitabla">
+											<tr v-for="a in pregunta.adjuntos">
+												<td>
+
+													<a :href="'//' + a.file" class="text-primary"
+													   v-on:mouseover="enterFile(a, $event)"
+													   v-on:mouseleave="exitFile(a, $event)"
+													   @@click="clickFile(a, $event)">
+														<i class="bi bi-paperclip"></i>
+														{{ a.name }} ({{ a.size }})
+													</a>
+												</td>
+											</tr>
+										</table>
+
+									</div>
+								</div>
+
+							</div>
+
+							<!--EVALUACION -->
+
+							<div class="card menu-email mt-3" v-show="showEval">
+								<div class="card-body">
+									<form id="formEval">
+										<div class="text-center">
+											<h5>Evaluación</h5>
+
+											<div class="mb-3">
+												El correo electrónico es:
+											</div>
+
+											<button type="button" class="btn btn-sm " :class="claseResp('legitimo')" @@click="toggleRespuesta('legitimo')">
+												<i class="bi bi-hand-thumbs-up"></i>
+												Legítimo
+											</button>
+
+											<button type="button" class="btn btn-sm ms-3" :class="claseResp('phish')" @@click="toggleRespuesta('phish')">
+												@*<i class='bx bxs-skull'></i>*@
+												<i class='bx bx-ghost'></i>
+												Phishing
+											</button>
+
+
+										</div>
+
+										<div class="text-center small" v-show="resp.errores.respuesta">
+											<div class="badge bg-danger">Por favor seleccione una respuesta</div>
+										</div>
+
+
+										<div class="small">
+											¿Por qué escogió esta respuesta?:
+											<textarea class="form-control form-control-sm" rows="2" maxlength="500" v-model="resp.comentario"></textarea>
+											<div class="badge bg-danger" v-show="resp.errores.comentario">* Campo requerido</div>
+										</div>
+
+										<div class="text-center mt-2">
+											<button type="submit" class="btn btn-primary btn-sm">
+												Siguiente
+											</button>
+										</div>
+									</form>
+								</div>
+							</div>
+
+							<div class="text-center mt-3">
+								<button type="button" class="btn btn-primary" id="btnEvaluar2" data-bs-placement="top" @@click="showEval = !showEval">
+									EVALUAR MENSAJE
+								</button>
+							</div>
+
+
+						</div>
+					</div>
+
+				</div>
+			</section><!-- End Contact Section -->
+		</div>
+
+	</div>
+
+</template>
+
+<template id="tplCuestionario">
+	<div>
+		<div class="text-center">
+			<p>Por favor conteste las siguientes preguntas</p>
+		</div>
+
+		<form id="formCuest" method="POST" action="nose">
+			<div class="card menu-email">
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item" v-for="p in datos.preguntas">
+						<h5 class="">{{ p.texto }}</h5>
+
+						<div class="mt-3 small">
+
+							<label v-for="o in datos.opciones" style="min-width: 100px;cursor: pointer" class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" @@click="p.error=null"
+									   :name="p.nombreRadio" :value="o.value" v-model="p.respuesta">
+								{{ o.text }}
+							</label>
+
+						</div>
+
+						<div class="badge bg-danger" v-show="p.error">
+							* Requerido
+						</div>
+
+					</li>
+				</ul>
+				<div class="card-body text-center">
+					<div>
+						<button type="submit" class="btn btn-primary">Continuar</button>
+					</div>
+
+					<div class="badge bg-danger" v-show="error">Por favor verifique el formulario</div>
+
+				</div>
+			</div>
+		</form>
+	</div>
+</template>
+
+<div class="modal fade in" tabindex="-1" id="popupIns" data-bs-backdrop="static" data-bs-keyboard="false">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Indicaciones</h5>
+			</div>
+			<div class="modal-body p-sm-4 text-center">
+				<p>
+					A continuación se le presentará una simulación de un cliente de correo web que le mostrará una secuencia de correos
+					electrónicos los cuales Usted deberá analizar.
+				</p>
+				<p>
+					<b>Observe con detalle</b> cada uno de los ejercicios que se van a desplegar a continuación y seleccione si es
+					<b>Phishing</b> o <b>Legítimo</b>.
+				</p>
+				<p>
+					Al finalizar el ejercicio se desplegará una ventana donde usted debe <b>escribir la razón o razones de su decisión</b>.
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continuar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade in" tabindex="-1" id="popupHelp">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Ayuda</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-sm-4 text-center">
+				<p>
+					Asegúrate de <strong> explorar las direcciones de correo electrónico </strong> y de consultar
+					las
+					<strong>URL </strong> de los vínculos.
+				</p>
+				<p>
+					Para esta tarea, <strong>desplázate sobre las URL o mantenlas presionadas.</strong>
+					No debes preocuparte, ya que ninguno de los vínculos funcionará.
+				</p>
+				<p>
+					<strong>No tenemos la intención de enviarte nada extraño.</strong>
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continuar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@await Html.PartialAsync("_Validation")
+<script src="~/js/evaluacion.js" asp-append-version="true"></script>

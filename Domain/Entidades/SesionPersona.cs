@@ -6,6 +6,11 @@ namespace Domain.Entidades;
 
 [Table("sesion_persona")]
 public partial class SesionPersona : BaseEntity {
+
+	public const string EstadoPendiente = "pendiente";
+	public const string EstadoEnCurso = "en_curso";
+	public const string EstadoTerminado = "terminado";
+
 	[Column("examen_id")]
 	public int? ExamenId { get; set; }
 

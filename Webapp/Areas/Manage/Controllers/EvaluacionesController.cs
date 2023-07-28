@@ -5,7 +5,6 @@ using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
 using Webapp.Controllers;
 using Webapp.Models;
 using Webapp.Models.Datatables;

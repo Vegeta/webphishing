@@ -1,0 +1,343 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+	Layout = "_LayoutClient";
+}
+
+<style>
+	div.error, span.error {
+		color: #ed3c0d;
+	}
+
+	.menu-email {
+		border-top: 3px solid #47b2e4;
+		border-bottom: 3px solid #47b2e4;
+		background: #fff;
+		width: 100%;
+		box-shadow: 0 0 24px 0 rgba(0, 0, 0, 0.1);
+	}
+</style>
+
+<div id="app">
+
+	<examen :datos="datos"
+			simulacion="1"
+			:url-imagen="urlImagen"
+			:retro-path="retroPath"
+			:base-url="baseUrl"></examen>
+
+	<hr />
+
+	<section class="breadcrumbs">
+		<div class="container">
+			<ol v-if="simulacion">
+				<li>
+					<a :href="'@Url.Content("~/manage/Examenes/edit")' + '?id=' + model.id">
+						Regresar al Examen
+					</a>
+				</li>
+			</ol>
+
+			<div class="row" v-if="modo == 'pregunta'">
+				<div class="col-sm-4">
+					<b>MyEmail</b> -
+					<span v-text="model.email"></span>
+				</div>
+				<div class="col-sm-4 text-center">
+					<button type="button" class="btn btn-primary btn-sm me-lg-3" @@click="verInstrucciones()"
+							style="min-width: 10rem">
+						<i class="bi bi-info-circle"></i>
+						Instrucciones
+					</button>
+					<button type="button" class="btn btn-info btn-sm mt-sm-1" @@click="verAyuda()"
+							style="min-width: 10rem">
+						<i class="bi bi-question-circle"></i>
+						Ayuda
+					</button>
+				</div>
+				<div class="col-sm-4 text-end">
+					<i class="bi bi-person-circle"></i>
+					<span class="ms-2" v-text="model.nombre"></span>
+				</div>
+			</div>
+
+			<h4 class="text-center" v-if="modo == 'cuestionario'">Cuestionario</h4>
+
+			<h4 class="text-center" v-if="modo == 'reporte'">Resultados</h4>
+
+		</div>
+	</section>
+
+
+	<div class="container mb-5 mt-3" v-if="cuest">
+		<cuestionario :datos="cuest" @@resp-cuestionario="cuestionarioOK"></cuestionario>
+	</div>
+
+
+	<div v-show="verPregunta">
+
+		<!-- ======= Contact Section ======= -->
+		<section id="contact" class="contact">
+			<div class="container">
+
+				<div class="row">
+					@*<div class="col-lg-3 d-flex align-items-stretch">*@
+					<div class="col-lg-3 align-items-stretch">
+						<div class="card menu-email">
+							<div class="card-header">
+
+								<div class="btn btn-primary btn-sm">
+									<i class="bi bi-envelope-plus-fill"></i>
+									Compose
+								</div>
+
+							</div>
+							<ul class="list-group list-group-flush">
+								<li class="list-group-item">
+									<i class="bi bi-inbox"></i>
+									Inbox
+									<div class="float-end">
+										<span class="badge text-bg-info" v-text="badgeAvance"></span>
+									</div>
+
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-envelope"></i>
+									Sent
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-envelope-exclamation"></i>
+									Important
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-file-earmark"></i>
+									Drafts
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-star"></i>
+									Tags
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-trash"></i>
+									Trash
+								</li>
+							</ul>
+						</div>
+
+						<div class="card menu-email mt-3">
+							<div class="card-header">
+								Labels
+							</div>
+							<ul class="list-group list-group-flush">
+								<li class="list-group-item">
+									<i class="bi bi-tag text-warning"></i>
+									Important
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-tag text-success"></i>
+									Business
+								</li>
+								<li class="list-group-item">
+									<i class="bi bi-tag text-dark"></i>
+									Inspiration
+								</li>
+							</ul>
+						</div>
+
+					</div>
+
+					@*<div class="col-lg-9 mt-5 mt-lg-0 d-flex align-items-stretch" style="min-height: 480px">*@
+					<div class="col-lg-9 mt-5 mt-lg-0" style="min-height: 480px">
+						<div class="card menu-email">
+							<ul class="list-group list-group-flush">
+								<li class="list-group-item">
+									<i class="bi bi-star"></i>
+									&nbsp;
+									<span v-text="pregunta.subject" class="fw-bold"></span>
+
+									<div class="float-end">
+										<i class="bi bi-fast-forward"></i>
+										<i class="bi bi-printer ms-2"></i>
+										<i class="bi bi-trash ms-2"></i>
+									</div>
+								</li>
+								<li class="list-group-item">
+									<span class="">
+										De: {{ pregunta.sender }}
+										<span v-text="' <' + pregunta.email + '>'"></span>
+									</span>
+
+									para mi
+									<i class="bi bi-chevron-down"></i>
+
+									<div class="float-end">
+										Fecha
+									</div>
+								</li>
+							</ul>
+
+							<div class="card-body">
+								<div id="contenido">
+								</div>
+							</div>
+							<div class="card-footer small">
+								Attachments: <br />
+								<div v-if="pregunta.adjuntos">
+									<table class="table minitabla">
+										<tr v-for="a in pregunta.adjuntos">
+											<td>
+
+												<a :href="'//' + a.file" class="text-primary"
+												   v-on:mouseover="enterFile(a, $event)"
+												   v-on:mouseleave="exitFile(a, $event)"
+												   @@click="clickFile(a, $event)">
+													<i class="bi bi-paperclip"></i>
+													{{ a.name }} ({{ a.size }})
+												</a>
+											</td>
+										</tr>
+									</table>
+
+								</div>
+							</div>
+
+						</div>
+
+						<!--EVALUACION -->
+
+						<div class="card menu-email mt-3" v-show="showEval">
+							<div class="card-body">
+								<form id="formEval">
+									<div class="text-center">
+										<h5>Evaluación</h5>
+
+										<div class="mb-3">
+											El correo electrónico es:
+										</div>
+
+										<button type="button" class="btn btn-sm " :class="claseResp('legitimo')" @@click="toggleRespuesta('legitimo')">
+											<i class="bi bi-hand-thumbs-up"></i>
+											Legítimo
+										</button>
+
+										<button type="button" class="btn btn-sm ms-3" :class="claseResp('phish')" @@click="toggleRespuesta('phish')">
+											@*<i class='bx bxs-skull'></i>*@
+											<i class='bx bx-ghost'></i>
+											Phishing
+										</button>
+
+
+									</div>
+
+									<div class="text-center small" v-show="resp.errores.respuesta">
+										<div class="badge bg-danger">Por favor seleccione una respuesta</div>
+									</div>
+
+
+									<div class="small">
+										¿Por qué escogió esta respuesta?:
+										<textarea class="form-control form-control-sm" rows="2" maxlength="500" v-model="resp.comentario"></textarea>
+										<div class="badge bg-danger" v-show="resp.errores.comentario">* Campo requerido</div>
+									</div>
+
+									<div class="text-center mt-2">
+										<button type="submit" class="btn btn-primary btn-sm">
+											Siguiente Pregunta
+										</button>
+									</div>
+								</form>
+							</div>
+						</div>
+
+						<div class="text-center mt-3">
+							<button type="button" class="btn btn-primary" id="btnEvaluar2" data-bs-placement="top" @@click="showEval = !showEval">
+								EVALUAR MENSAJE
+							</button>
+						</div>
+
+
+					</div>
+				</div>
+
+			</div>
+		</section><!-- End Contact Section -->
+	</div>
+
+	<div v-if="reporte">
+
+		<div class="container mb-5 mt-3">
+			<div class="row">
+				<div class="col-sm-12 col-lg-4">
+					<resumen :model="reporte.modelo" :respuestas="reporte.respuestas" style="font-size: smaller"></resumen>
+				</div>
+				<div class="col-sm-12 col-lg-4">
+					<graf-percepcion :model="reporte.modelo" :percepcion="reporte.percepcion"></graf-percepcion>
+				</div>
+				<div class="col-sm-12 col-lg-4">
+					<detalle-cuest :respuestas="reporte.cuest" :percepcion="reporte.percepcion"></detalle-cuest>
+				</div>
+			</div>
+
+			<div class="mt-3">
+				<respuestas :lista="reporte.respuestas" :retro-path="retroPath"></respuestas>
+			</div>
+
+		</div>
+
+	</div>
+
+
+</div>
+
+
+@section Scripts {
+	@await Html.PartialAsync("_Resultados")
+	@await Html.PartialAsync("_Examen")
+
+	<script>
+
+		$('#footer .footer-top').hide();
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.model),
+					pregunta: @Html.Raw(ViewBag.pregunta),
+					cuest: @Html.Raw(ViewBag.cuest),
+					baseUrl: '@ViewBag.self',
+					urlImagen: '@Url.Content("~/ejercicios")',
+					retroPath: '@Url.Content("~/retro")',
+					reporte: null,
+					datos: {
+						model: @Html.Raw(ViewBag.model),
+						pregunta: @Html.Raw(ViewBag.pregunta),
+						cuest: @Html.Raw(ViewBag.cuest),
+					}
+				}
+			},
+			computed: {
+				verPregunta() {
+					if (this.reporte)
+						return false;
+					return !this.cuest;
+				}
+			},
+			methods: {
+				verResultado(data) {
+					this.modo = 'reporte'
+					this.reporte = data;
+				}
+			},
+			extends: AppEvaluacion,
+		})
+		.component('cuestionario', Cuestionario)
+		.component('grafPercepcion', GraficoPercepcion)
+		.component('respuestas', CompRespuestas)
+		.component('resumen', CompResumen)
+		.component('detalleCuest', CompCuestDetalle)
+		.component('examen', CompExamen)
+		.use(globalDirectives)
+		.mount('#app');
+
+	</script>
+}

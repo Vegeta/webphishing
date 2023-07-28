@@ -34,8 +34,7 @@ public class AlgoritmoAsignacion {
 		return config;
 	}
 
-	public Step? Siguiente(int numRespuestas, int score) {
-		// TODO ajustar para mas de 10
+	public Step? SiguienteAsignacion(int numRespuestas, int score) {
 		foreach (var item in _config.Pasos) {
 			var paso = item.Evaluar(numRespuestas, score);
 			if (paso != null)
