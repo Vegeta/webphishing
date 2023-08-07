@@ -1,4 +1,4 @@
-using Infraestructura.Identity;
+﻿using Infraestructura.Identity;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 
@@ -104,7 +104,7 @@ namespace Webapp.Models {
 					}
 				),
 				new MenuItem {
-					Name = "Administraci�n",
+					Name = "Administración",
 					Icon = "bi-terminal-fill",
 					Accesos = "seguridad",
 				}.AddChildren(
