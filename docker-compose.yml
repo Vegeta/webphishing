@@ -1,0 +1,27 @@
+version: '3'
+services:
+  csharp_app:
+    container_name: phishapp
+    build:
+      context: .
+      dockerfile: Webapp/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      ConnectionStrings__phishingDb: "Host=db;Database=phishmodelo;Username=postgres;Password=postgres"
+  db: 
+    container_name: db
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=phishmodelo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata: {}

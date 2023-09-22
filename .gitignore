@@ -410,3 +410,4 @@ appsettings.json
 appsettings.Development.json
 
 notas.txt
+pgdata/*
