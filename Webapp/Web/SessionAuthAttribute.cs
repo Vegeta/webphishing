@@ -28,13 +28,13 @@ public class SessionAuthAttribute : ActionFilterAttribute {
 		var ajax = context.HttpContext.Request.IsAjaxRequest();
 		var cumple = !string.IsNullOrEmpty(userData);
 
+		var user = userMan?.CurrentUser() ?? new SessionInfo();
+
 		if (cumple && !string.IsNullOrEmpty(tipo)) {
-			var user = userMan?.CurrentUser() ?? new SessionInfo();
 			cumple = cumple && user.Tipo == tipo;
 		}
 
 		if (cumple && !string.IsNullOrEmpty(args)) {
-			var user = userMan?.CurrentUser() ?? new SessionInfo();
 			cumple = cumple && UsuariosService.AutorizarPermisos(user.Permisos, args);
 		}
 
@@ -51,5 +51,20 @@ public class SessionAuthAttribute : ActionFilterAttribute {
 			context.HttpContext.Session.SetString("returnUrl", url);
 			context.Result = res;
 		}
+	}
+
+	public override void OnActionExecuting(ActionExecutingContext context) {
+		if (context.Controller is not Controller con)
+			return;
+		var userMan = context.HttpContext.RequestServices.GetService<IUserAccesor>();
+		var user = userMan?.CurrentUser() ?? new SessionInfo();
+
+		if (string.IsNullOrEmpty(user.Apellidos))
+			return;
+
+		con.ViewData["userNombre"] = $"{user.Nombres} {user.Apellidos}";
+
+		var inicial = (user.Nombres.Length > 0) ? user.Nombres[0].ToString().ToUpper() + ". " : "";
+		con.ViewData["userCorto"] = $"{inicial}{user.Apellidos}";
 	}
 }

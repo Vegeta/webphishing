@@ -33,6 +33,16 @@ public class ConsoleService : IHostedService {
 	}
 
 	public Task StartAsync(CancellationToken cancellationToken) {
+		using var scope = services.CreateScope();
+		var db = services.GetRequiredService<AppDbContext>();
+		var con = new Consultas();
+		con.Consultar(db);
+
+		return Task.CompletedTask;
+	}
+
+
+	void PruebaFlujoExamen() {
 		var random = new Random();
 		using (var scope = services.CreateScope()) {
 			var db = services.GetRequiredService<AppDbContext>();
@@ -87,10 +97,7 @@ public class ConsoleService : IHostedService {
 
 			Dump(estado);
 		}
-
-		return Task.CompletedTask;
 	}
-
 
 	void PruebaFlujonuevo() {
 		var random = new Random();
@@ -120,7 +127,7 @@ public class ConsoleService : IHostedService {
 		}
 	}
 
-	void Dump(object? obj) {
+	public void Dump(object? obj) {
 		var s = ObjectDumper.Dump(obj, new DumpOptions { MaxLevel = 3, DumpStyle = DumpStyle.CSharp });
 		Console.WriteLine(s);
 	}

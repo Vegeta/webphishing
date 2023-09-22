@@ -88,19 +88,20 @@ public class EvaluacionController : BaseController {
 
 		var consultas = _control.Consultas();
 
+		// si existe una sesion en curso, continue sin crear una nueva
 		var check = consultas.SesionActualPersona(per.Id);
 		if (check != null) {
 			HttpContext.Session.SetString("token_examen", check.Token ?? "");
 			return Ok(new { url, error = "" });
 		}
 
-		// sesion rapida
+		// nueva sesion rapida
 		var con = new ConsultaEvaluacion(_db);
 		var sesion = consultas.CrearSesion(res.Data, "rapida");
 		sesion.CuestionarioId = con.IdPrimercuestionario();
 		var pregs = consultas.PreguntasRandom(10);
 		var estado = _control.CrearEstado(pregs, ControlExamenService.PosCuestionario);
-		sesion.MaxScore = estado.DatosExamen.MaxScore;
+		sesion.MaxScore = estado.DatosExamen?.MaxScore;
 		_db.SesionPersona.Add(sesion);
 		SaveSession(sesion, estado);
 

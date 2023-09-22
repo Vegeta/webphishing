@@ -34,6 +34,10 @@ public partial class SesionRespuesta : BaseEntity {
 	[DataType("text")]
 	public string? Comentario { get; set; }
 
+	[Column("dificultad")]
+	[StringLength(255)]
+	public string? Dificultad { get; set; }
+
 	[ForeignKey("PreguntaId")]
 	[InverseProperty("SesionRespuesta")]
 	public virtual Pregunta Pregunta { get; set; } = null!;

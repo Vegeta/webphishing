@@ -53,6 +53,8 @@ public class ControlExamenService {
 
 	public bool ResponderOperacionActual(EstadoExamen estado, SesionRespuesta resp, SesionPersona? sesion = null) {
 		var op = estado.OperacionActual();
+		if (op != null)
+			return false;
 		if (op.Accion != "pregunta" || !op.Asignada)
 			return false;
 		CalificarRespuesta(resp);
@@ -80,7 +82,11 @@ public class ControlExamenService {
 			Legitimo = x.Legitimo
 		}).FirstOrDefault(x => x.Id == resp.PreguntaId);
 
-		if (resp.Inicio.HasValue && resp.Fin.HasValue) {
+		if (dbPreg == null)
+			return;
+
+		//if (resp.Inicio.HasValue && resp.Fin.HasValue) {
+		if (resp is { Inicio: not null, Fin: not null }) {
 			var dif = resp.Fin - resp.Inicio;
 			resp.Tiempo = (float)dif.Value.TotalSeconds;
 		}
@@ -92,6 +98,7 @@ public class ControlExamenService {
 			puntos = DificultadPregunta.ScoreRespuesta(dbPreg.Dificultad ?? DificultadPregunta.Facil);
 		}
 		resp.Score = puntos;
+		resp.Dificultad = dbPreg.Dificultad; // para el registro
 	}
 
 	public void EvaluarCuestionario(EstadoExamen estado, IList<CuestionarioRespuesta> respuestas, SesionPersona? sesion = null) {
