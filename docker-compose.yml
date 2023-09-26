@@ -1,25 +1,30 @@
+# Este archivo levanta la infraestructura basica para el sistema en contenedores docker
+# Configuraciones adicionales deben realizarse de forma externa
 version: '3'
 services:
-  csharp_app:
+  webapp:
     container_name: phishapp
     build:
       context: .
       dockerfile: Webapp/Dockerfile
+    # en produccion, se puede cambiar de puerto al 80 para volumen bajo
+    # o poner un servidor nginx al frente para rutear las peticiones
     ports:
       - "8080:80"
     depends_on:
       - db
     environment:
-      ConnectionStrings__phishingDb: "Host=db;Database=phishmodelo;Username=postgres;Password=postgres"
+      ConnectionStrings__phishingDb: "Host=db;Database=phishmodelo;Username=postgres;Password=52H5rG$1Su-3"
   db: 
-    container_name: db
-    image: postgres:14-alpine
+    container_name: phishdb
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=52H5rG$1Su-3
       - POSTGRES_DB=phishmodelo
+    # en produccion, no exponer el puerto de postgres o utilizar un firewall
     ports:
-      - "5432:5432"
+      - "54329:5432"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
 

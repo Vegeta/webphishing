@@ -22,6 +22,10 @@ public class EstadisticasPreguntas {
 
 	}
 
+	public void EstadisticasExamenes() {
+		
+	}
+
 }
 
 
