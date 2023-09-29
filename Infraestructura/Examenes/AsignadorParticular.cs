@@ -21,7 +21,8 @@ public class AsignadorParticular : IAsignadorExamen {
 		var flujo = new FlujoExamenDto {
 			Aleatorio = config.Aleatorio,
 			CuestionarioPos = config.CuestionarioPos,
-			Tipo = TipoExamen.Personalizado
+			Tipo = TipoExamen.Personalizado,
+			ExamenId = config.IdExamen
 		};
 
 		var preguntas = Preguntas();

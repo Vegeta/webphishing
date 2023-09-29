@@ -1,4 +1,5 @@
 using AutoMapper;
+using Domain;
 using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Examenes;
@@ -8,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Webapp.Controllers;
 using Webapp.Models;
+using Webapp.Models.Evaluacion;
+
 
 namespace Webapp.Areas.Manage.Controllers;
 
@@ -15,34 +18,44 @@ public class SimuladorController : BaseAdminController {
 	AppDbContext _db;
 	private readonly IMapper _mapper;
 	private readonly ControlExamenService _control;
+	private readonly ManagerExamen _manager;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
 		Titulo("Simulador examenes");
 	}
 
-	public SimuladorController(AppDbContext db, IMapper mapper, ControlExamenService control) {
+	public SimuladorController(AppDbContext db, IMapper mapper, ControlExamenService control, ManagerExamen manager) {
 		_db = db;
 		_mapper = mapper;
 		_control = control;
+		_manager = manager;
 	}
 
 	public IActionResult Examen(int id) {
-		var rng = new Random();
 		var examen = _db.Examen.FirstOrDefault(x => x.Id == id);
-		var pregs = _control.Consultas().PreguntasExamen(id);
-		pregs = pregs.OrderBy(_ => rng.Next()).ToList();
-		var con = new ControlExamenService(_db);
-		var estado = con.CrearEstado(pregs, examen.CuestionarioPos);
+		if (examen == null) {
+			ErrorWeb("Examen no encontrado");
+			return RedirectToAction("Index", "Examenes");
+		}
+
+		var config = new ConfigExamen {
+			CuestionarioPos = examen.CuestionarioPos,
+			Tipo = TipoExamen.Personalizado,
+			Aleatorio = false,
+			IdExamen = examen.Id,
+		};
+
+		var flujo = _manager.CrearFlujo(config);
 
 		var model = new {
 			id,
 			nombre = "Simulacion",
 			email = "prueba@prueba.com",
-			total = estado.Lista.Count,
-			indice = estado.Respondidas,
+			total = flujo.NumPreguntas,
+			indice = 0, // respondidas?
 			token = "----",
-			estado,
+			estado = flujo,
 		};
 		ViewBag.model = JSON.Stringify(model);
 		ViewBag.cuest = "null";
@@ -50,13 +63,14 @@ public class SimuladorController : BaseAdminController {
 
 		var cons = new ConsultaEvaluacion(_db);
 
-		var op = estado.OperacionActual();
-		if (op.Accion == "pregunta") {
-			var data = cons.PreguntaData(op.PreguntaId.Value);
+		var paso = flujo.PasoActual();
+
+		if (paso.Accion == "pregunta") {
+			var data = cons.PreguntaData(paso.EntidadId);
 			ViewBag.pregunta = JSON.Stringify(data);
 		}
 
-		if (op.Accion == "cuestionario") {
+		if (paso.Accion == "cuestionario") {
 			var cuest = cons.CuestionarioData();
 			ViewBag.cuest = cuest == null ? "null" : JSON.Stringify(cuest);
 		}
@@ -65,40 +79,54 @@ public class SimuladorController : BaseAdminController {
 	}
 
 	[HttpPost]
-	public IActionResult Respuesta([FromBody] RespuestaWebSim resp) {
+	public IActionResult Respuesta([FromBody] RespuestaSim resp) {
 		var r = new SesionRespuesta {
 			Clicks = resp.Interaccion,
 			PreguntaId = resp.PreguntaId,
-			Respuesta = resp.Respuesta,
+			Respuesta = resp.Respuesta ?? "",
 			Comentario = resp.Comentario,
 			Inicio = resp.Inicio,
 			Fin = resp.Fin,
+			Tiempo = DbHelpers.DiferenciaSegundos(resp.Inicio, resp.Fin)
 		};
 
-		var estado = resp.Estado;
-		_control.ResponderOperacionActual(estado, r);
-		estado.IndiceRespuesta++;
+		var flujo = resp.Estado ?? new FlujoExamenDto();
 
-		var op = estado.OperacionActual();
-		var res = new AccionWeb {
-			Accion = op.Accion,
-			Indice = estado.Respondidas,
-			Estado = estado,
+		var config = new ConfigExamen {
+			CuestionarioPos = flujo.CuestionarioPos,
+			Tipo = TipoExamen.Personalizado,
+			Aleatorio = false,
+			IdExamen = flujo.ExamenId
 		};
+
+		_manager.RespuestaActual(config, flujo, r.Respuesta, r.Tiempo ?? 0);
+
+		return ContinuaFlujo(flujo);
+	}
+
+	protected IActionResult ContinuaFlujo(FlujoExamenDto flujo) {
+		var paso = flujo.PasoActual();
+		var res = new AccionExamenWeb {
+			Accion = paso.Accion,
+			Indice = flujo.Respondidas,
+			Estado = flujo
+		};
+
+		if (flujo.EsFin) {
+			res.Accion = "fin";
+			var sesion = new SesionPersona();
+			_manager.FinalizarSesion(flujo, sesion);
+			res.Data = DatosResultado(flujo, sesion);
+			return Ok(res);
+		}
 
 		var cons = new ConsultaEvaluacion(_db);
-		if (op.Accion == "pregunta") {
-			res.Data = cons.PreguntaData(op.PreguntaId.Value);
+		if (paso.Accion == "pregunta") {
+			res.Data = cons.PreguntaData(paso.EntidadId);
 		}
 
-		if (op.Accion == "cuestionario") {
+		if (paso.Accion == "cuestionario") {
 			res.Data = cons.CuestionarioData();
-		}
-
-		if (op.Accion == "fin") {
-			estado.Fin = r.Fin;
-			_control.FinalizarSesion(estado);
-			res.Data = Resultados(estado);
 		}
 
 		return Ok(res);
@@ -107,89 +135,69 @@ public class SimuladorController : BaseAdminController {
 	public IActionResult ResponderCuestionario([FromBody] RespuestaCuest data) {
 		var respuestas = data.Respuestas
 			.Select(x => new CuestionarioRespuesta {
-				Dimension = x.Dimension,
-				Pregunta = x.Texto,
-				Respuesta = x.Respuesta,
-			}
+					Dimension = x.Dimension,
+					Pregunta = x.Texto,
+					Respuesta = x.Respuesta,
+				}
 			).ToList();
 
-		var estado = data.Estado;
+		var flujo = data.Estado ??= new FlujoExamenDto();
 
-		_control.EvaluarCuestionario(estado, respuestas);
-		estado.CuestionarioHecho = true;
-		estado.IndiceRespuesta++;
-		estado.Inicio ??= DateTime.Now;
-		estado.DatosCuestionario.Respuestas = respuestas;
-		estado.DatosCuestionario.TiempoCuestionario = data.TiempoCuest;
+		var evaluador = new EvaluadorCuestionario(_db);
+		flujo.DatosCuestionario = evaluador.EvaluarCuestionario(respuestas);
 
-		var op = estado.OperacionActual();
-
-		var res = new AccionWeb {
-			Accion = op.Accion,
-			Indice = estado.Respondidas,
-			Estado = estado,
+		var config = new ConfigExamen {
+			CuestionarioPos = flujo.CuestionarioPos,
+			Tipo = TipoExamen.Personalizado,
+			Aleatorio = false,
+			IdExamen = flujo.ExamenId
 		};
 
-		var cons = new ConsultaEvaluacion(_db);
-		if (op.Accion == "pregunta") {
-			res.Data = cons.PreguntaData(op.PreguntaId.Value);
-		}
+		_manager.RespuestaActual(config, flujo, "OK", data.TiempoCuest ?? 0);
+		flujo.DatosCuestionario.Respuestas = respuestas;
 
-		if (op.Accion == "cuestionario") {
-			res.Data = cons.CuestionarioData();
-		}
-
-		if (op.Accion == "fin") {
-			estado.Fin = DateTime.Now;
-			_control.FinalizarSesion(estado);
-			res.Data = Resultados(estado);
-		}
-
-		return Ok(res);
+		return ContinuaFlujo(flujo);
 	}
 
-	protected object? Resultados(EstadoExamen estado) {
-		estado.DatosCuestionario ??= new DataCuestionario();
-		estado.DatosExamen ??= new DataExamen();
+	protected object? DatosResultado(FlujoExamenDto flujo, SesionPersona sesion) {
+		flujo.DatosCuestionario ??= new DataCuestionario();
 		var vses = new VSesionPersona {
 			Nombre = "Simulacion",
 			Nombres = "prueba",
 			Apellidos = "prueba",
-			Score = estado.Score,
+			Score = flujo.Score,
 			Estado = "terminado",
-			AvgScore = estado.DatosExamen.AvgScore,
-			AvgTiempo = estado.DatosExamen.AvgTiempo,
-			FechaExamen = estado.Inicio,
-			FechaFin = estado.Fin,
-			Exito = estado.DatosExamen.Exito,
-			TiempoCuestionario = estado.DatosCuestionario.TiempoCuestionario,
-			TiempoTotal = estado.DatosExamen.TiempoTotal,
-			MaxScore = estado.DatosExamen.MaxScore,
-			ScoreCuestionario = estado.DatosCuestionario.ScoreCuestionario,
-			Percepcion = estado.DatosCuestionario.Percepcion,
+			AvgScore = sesion.AvgScore,
+			AvgTiempo = sesion.AvgTiempo,
+			FechaExamen = sesion.FechaExamen,
+			FechaFin = sesion.FechaFin,
+			Exito = sesion.Exito,
+			TiempoCuestionario = flujo.DatosCuestionario.TiempoCuestionario,
+			TiempoTotal = sesion.TiempoTotal,
+			MaxScore = sesion.MaxScore,
+			ScoreCuestionario = flujo.DatosCuestionario.ScoreCuestionario,
+			Percepcion = flujo.DatosCuestionario.Percepcion,
 		};
 
-		var mapaRespuestas = estado.Operaciones.Where(x => x.HayRespuesta)
-			.ToDictionary(x => x.PreguntaId);
+		var mapaRespuestas = flujo.Pasos.Where(x => x.Ejecutado && x.Accion == "pregunta")
+			.ToDictionary(x => x.EntidadId);
 		var ids = mapaRespuestas.Keys.ToList();
 
 		var dbResp = _db.Pregunta.Where(x => ids.Contains(x.Id)).ToList();
 		var respuestas = dbResp.Select(x => MapeoPregunta(mapaRespuestas, x)).ToList();
 
-		estado.DatosCuestionario ??= new DataCuestionario();
-
-		var respCuest = estado.DatosCuestionario.RespuestaCuestionario;
+		var respCuest = flujo.DatosCuestionario.RespuestaCuestionario;
 
 		var res = new {
 			modelo = vses,
 			respuestas,
 			percepcion = respCuest == null ? new List<string>() : JSON.Parse<object>(respCuest),
-			cuest = estado.DatosCuestionario.Respuestas,
+			cuest = flujo.DatosCuestionario.Respuestas,
 		};
 		return res;
 	}
 
-	protected dynamic MapeoPregunta(IDictionary<int?, OperacionExamen> mapa, Pregunta x) {
+	protected dynamic MapeoPregunta(IDictionary<int, PasoExamen> mapa, Pregunta x) {
 		var res = mapa[x.Id];
 		var item = new {
 			x.ImagenRetro,
@@ -200,31 +208,10 @@ public class SimuladorController : BaseAdminController {
 			res.Respuesta,
 			tipo = x.Legitimo == 0 ? "PHISHING" : "LEGITIMO",
 			res.Score,
-			res.PreguntaId,
+			PreguntaId = res.EntidadId,
 			res.Tiempo,
 			comentario = "Test comentario",
 		};
 		return item;
 	}
-
-}
-
-public class RespuestaWebSim : RespuestaWeb {
-	public EstadoExamen? Estado { get; set; }
-}
-
-public class RespuestaCuest {
-	public List<CuestRespuestaModel> Respuestas { get; set; } = new();
-	public EstadoExamen? Estado { get; set; }
-	public float? TiempoCuest { get; set; }
-}
-
-public class AccionWeb {
-	public object? Data { get; set; }
-	public string Accion { get; set; } = "";
-
-	public object? Estado { get; set; }
-	public string? Error { get; set; }
-	public int Indice { get; set; }
-	public string? Url { get; set; }
 }

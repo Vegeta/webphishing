@@ -116,7 +116,7 @@ const Cuestionario = {
 	emits: ["respCuestionario"],
 	methods: {
 		continuar() {
-			var valido = true;
+			let valido = true;
 			this.datos.preguntas.forEach(x => {
 				x.error = x.respuesta ? null : 1;
 				if (x.error)
@@ -130,7 +130,7 @@ const Cuestionario = {
 		},
 	},
 	mounted() {
-		var i = 1;
+		let i = 1;
 		this.datos.preguntas.forEach(x => {
 			x.nombreRadio = `preg${i}`;
 			x.error = null;
@@ -177,7 +177,7 @@ const CompExamen = {
 			return this.datos.model.indice === 0 && !this.simulacion;
 		},
 		badgeAvance() {
-			var m = this.model;
+			let m = this.model;
 			return `${m.indice} / ${m.total}`;
 		},
 		cuest() { return this.datos.cuest },

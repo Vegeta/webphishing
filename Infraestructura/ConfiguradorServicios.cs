@@ -1,4 +1,5 @@
-﻿using Infraestructura.Persistencia;
+﻿using Infraestructura.Examenes;
+using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +32,8 @@ public static class ConfiguradorServicios {
 		services.AddScoped<FlujoExamen>();
 		services.AddScoped<EvaluacionesService>();
 		services.AddScoped<ControlExamenService>();
+		services.AddScoped<ManagerExamen>();
+		services.AddScoped<EvaluadorCuestionario>();
 		return services;
 	}
 }

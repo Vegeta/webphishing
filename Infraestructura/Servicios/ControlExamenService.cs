@@ -92,7 +92,7 @@ public class ControlExamenService {
 		}
 
 		var correcto = (resp.Respuesta == "legitimo" && dbPreg.Legitimo == 1)
-					   || (resp.Respuesta == "phish" && dbPreg.Legitimo is 0 or null);
+					   || (resp.Respuesta == "phishing" && dbPreg.Legitimo is 0 or null);
 		var puntos = 0;
 		if (correcto) {
 			puntos = DificultadPregunta.ScoreRespuesta(dbPreg.Dificultad ?? DificultadPregunta.Facil);

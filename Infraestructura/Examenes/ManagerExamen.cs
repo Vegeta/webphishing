@@ -4,10 +4,13 @@ using Infraestructura.Persistencia;
 
 namespace Infraestructura.Examenes;
 
-public class Configurador {
+/// <summary>
+/// Obnjeto principal de control para el flujo de evaluacion de examenes
+/// </summary>
+public class ManagerExamen {
 	private readonly AppDbContext _db;
 
-	public Configurador(AppDbContext db) {
+	public ManagerExamen(AppDbContext db) {
 		_db = db;
 	}
 
@@ -45,8 +48,10 @@ public class Configurador {
 		asignador.ResolverPreguntas(config, flujo);
 		CheckCuestionario(flujo);
 
-		if (flujo.IndicePaso + 1 < flujo.Pasos.Count)
-			flujo.IndicePaso++;
+		flujo.Inicio ??= DateTime.Now; // check inicio
+
+		//if (flujo.IndicePaso + 1 < flujo.Pasos.Count)
+		flujo.IndicePaso++;
 		return paso;
 	}
 
@@ -84,7 +89,8 @@ public class Configurador {
 		return cues?.Id ?? 0;
 	}
 
-	public void CalculoFinal(FlujoExamenDto flujo, SesionPersona sesion) {
+	public void FinalizarSesion(FlujoExamenDto flujo, SesionPersona sesion) {
+		sesion.FechaFin ??= flujo.Fin;
 		var respuestas = flujo.Pasos
 			.Where(x => x is { Accion: "pregunta", Ejecutado: true })
 			.ToList();
@@ -95,16 +101,12 @@ public class Configurador {
 		sesion.AvgTiempo = tiempos.Average();
 		var exitos = respuestas.Count(x => x.Score > 0);
 
-		if (flujo.Inicio.HasValue && flujo.Fin.HasValue) {
-			var ts = flujo.Fin - flujo.Inicio;
-			sesion.TiempoTotal = (float)ts.Value.TotalSeconds;
-		}
+		sesion.TiempoTotal = DbHelpers.DiferenciaSegundos(flujo.Inicio, flujo.Fin);
 
 		sesion.MaxScore = flujo.MaxScore;
 		sesion.Score = flujo.Score;
 		var tasa = ((float)exitos / (float)respuestas.Count) * 100;
 		sesion.Exito = Convert.ToInt32(tasa);
 		sesion.Estado = SesionPersona.EstadoTerminado;
-		sesion.FechaFin ??= flujo.Fin;
 	}
 }

@@ -7,10 +7,10 @@ using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Webapp.Areas.Manage.Controllers;
 using Webapp.Models;
+using Webapp.Models.Evaluacion;
 
-namespace Webapp.Controllers;
+namespace Webapp.Controllers; 
 
 public class EvaluacionController : BaseController {
 	private readonly AppDbContext _db;
@@ -190,7 +190,7 @@ public class EvaluacionController : BaseController {
 		SaveSession(local.Sesion, estado);
 
 		var op = estado.OperacionActual();
-		var res = new AccionWeb {
+		var res = new AccionExamenWeb {
 			Accion = op.Accion,
 			Indice = estado.Respondidas,
 		};
@@ -247,7 +247,7 @@ public class EvaluacionController : BaseController {
 
 		var op = estado.OperacionActual();
 
-		var res = new AccionWeb {
+		var res = new AccionExamenWeb {
 			Accion = op.Accion,
 			Indice = estado.Respondidas,
 			Estado = estado,
@@ -322,23 +322,6 @@ public class EvaluacionController : BaseController {
 		res.Sesion = ses;
 		return res;
 	}
-}
-
-public class RespuestaWeb {
-	public string Token { get; set; } = "";
-	public int PreguntaId { get; set; }
-	public DateTime? Inicio { get; set; }
-	public DateTime? Fin { get; set; }
-	public string? Respuesta { get; set; }
-	public string? Comentario { get; set; }
-	public string? Interaccion { get; set; } // esto es el JSON de clicks y focus
-}
-
-public class InfoExamen {
-	public SesionPersona Sesion { get; set; } = new();
-	public string Error { get; set; } = "";
-	public string Token { get; set; } = "";
-	public bool HasError => !string.IsNullOrEmpty(Error);
 }
 
 public class InicioModel {

@@ -7,7 +7,7 @@ namespace Probador;
 
 public class PruebaFLujo2 {
 	public void ProbarAleatorio(AppDbContext db) {
-		var conf = new Configurador(db);
+		var conf = new ManagerExamen(db);
 
 		var config = new ConfigExamen {
 			NumPreguntas = 10,
@@ -23,7 +23,7 @@ public class PruebaFLujo2 {
 		var flujo = conf.CrearFlujo(config);
 		flujo.Inicio = DateTime.Now;
 
-		for (var i = 0; i < config.NumPreguntas + 1; i++) {
+		for (var i = 0; i < flujo.NumPreguntas + 1; i++) {
 			var paso = conf.RespuestaActual(config, flujo, "phishing", 0.5f);
 			Console.WriteLine(paso.Dump());
 			Console.WriteLine(flujo.EsFin);
@@ -32,7 +32,7 @@ public class PruebaFLujo2 {
 		}
 		flujo.Fin = DateTime.Now;
 
-		conf.CalculoFinal(flujo, sesion);
+		conf.FinalizarSesion(flujo, sesion);
 
 		Console.WriteLine("---------------------------------");
 		Console.WriteLine(flujo.Dump());
@@ -40,7 +40,7 @@ public class PruebaFLujo2 {
 	}
 
 	public void PruebaParticular(AppDbContext db) {
-		var conf = new Configurador(db);
+		var conf = new ManagerExamen(db);
 
 		var examen = db.Examen.First(x => x.Id == 5);
 
@@ -67,7 +67,7 @@ public class PruebaFLujo2 {
 		}
 		flujo.Fin = DateTime.Now;
 
-		conf.CalculoFinal(flujo, sesion);
+		conf.FinalizarSesion(flujo, sesion);
 
 		Console.WriteLine("---------------------------------");
 		Console.WriteLine(flujo.Dump());

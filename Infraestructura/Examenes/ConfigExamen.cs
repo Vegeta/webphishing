@@ -2,6 +2,9 @@ using Domain;
 
 namespace Infraestructura.Examenes;
 
+/// <summary>
+/// Se utiliza en el manager para crear flujos de examenes y determinar la forma de asignacion
+/// </summary>
 public class ConfigExamen {
 	public int NumPreguntas { get; set; }
 	public int IdExamen { get; set; }

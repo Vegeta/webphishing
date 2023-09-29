@@ -133,7 +133,7 @@ public class FlujoExamen {
 
 	public int EvaluarRespuesta(Pregunta preg, SesionRespuesta resp) {
 		var correcto = (resp.Respuesta == "legitimo" && preg.Legitimo == 1)
-			|| (resp.Respuesta == "phish" && preg.Legitimo is 0 or null);
+			|| (resp.Respuesta == "phishing" && preg.Legitimo is 0 or null);
 		var puntos = 0;
 		if (correcto) {
 			puntos = DificultadPregunta.ScoreRespuesta(preg.Dificultad ?? DificultadPregunta.Facil);

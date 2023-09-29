@@ -20,7 +20,8 @@ public class AsignadorAleatorio : IAsignadorExamen {
 
 	public FlujoExamenDto CrearFlujo(ConfigExamen config) {
 		var flujo = new FlujoExamenDto {
-			NumPreguntas = config.NumPreguntas, CuestionarioPos = config.CuestionarioPos,
+			NumPreguntas = config.NumPreguntas,
+			CuestionarioPos = config.CuestionarioPos,
 			Aleatorio = true,
 			Tipo = TipoExamen.Predeterminado
 		};
@@ -36,7 +37,7 @@ public class AsignadorAleatorio : IAsignadorExamen {
 	}
 
 	public void ResolverPreguntas(ConfigExamen config, FlujoExamenDto flujo) {
-		var respondidas = flujo.Pasos.Count(x => x is { Accion: "pregunta", Ejecutado: true });
+		var respondidas = flujo.Respondidas;
 
 		var next = Algoritmo.SiguienteAsignacion(respondidas, flujo.Score);
 		if (next != null) {
@@ -88,7 +89,7 @@ public class AsignadorAleatorio : IAsignadorExamen {
 			.OrderBy("random()");
 
 		if (excluir.Count > 0) {
-			var inParams = DbHelpers.inParameters(excluir);
+			var inParams = DbHelpers.InParameters(excluir);
 			builder.Where($"id not in ({inParams})");
 		}
 
