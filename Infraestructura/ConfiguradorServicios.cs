@@ -33,7 +33,6 @@ public static class ConfiguradorServicios {
 		services.AddScoped<EvaluacionesService>();
 		services.AddScoped<ControlExamenService>();
 		services.AddScoped<ManagerExamen>();
-		services.AddScoped<EvaluadorCuestionario>();
 		return services;
 	}
 }

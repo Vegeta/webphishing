@@ -1,10 +1,8 @@
-using AutoMapper;
 using Domain;
 using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
-using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Webapp.Controllers;
@@ -15,9 +13,7 @@ using Webapp.Models.Evaluacion;
 namespace Webapp.Areas.Manage.Controllers;
 
 public class SimuladorController : BaseAdminController {
-	AppDbContext _db;
-	private readonly IMapper _mapper;
-	private readonly ControlExamenService _control;
+	readonly AppDbContext _db;
 	private readonly ManagerExamen _manager;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
@@ -25,10 +21,8 @@ public class SimuladorController : BaseAdminController {
 		Titulo("Simulador examenes");
 	}
 
-	public SimuladorController(AppDbContext db, IMapper mapper, ControlExamenService control, ManagerExamen manager) {
+	public SimuladorController(AppDbContext db, ManagerExamen manager) {
 		_db = db;
-		_mapper = mapper;
-		_control = control;
 		_manager = manager;
 	}
 
@@ -80,16 +74,7 @@ public class SimuladorController : BaseAdminController {
 
 	[HttpPost]
 	public IActionResult Respuesta([FromBody] RespuestaSim resp) {
-		var r = new SesionRespuesta {
-			Clicks = resp.Interaccion,
-			PreguntaId = resp.PreguntaId,
-			Respuesta = resp.Respuesta ?? "",
-			Comentario = resp.Comentario,
-			Inicio = resp.Inicio,
-			Fin = resp.Fin,
-			Tiempo = DbHelpers.DiferenciaSegundos(resp.Inicio, resp.Fin)
-		};
-
+		var tiempo = DbHelpers.DiferenciaSegundos(resp.Inicio, resp.Fin);
 		var flujo = resp.Estado ?? new FlujoExamenDto();
 
 		var config = new ConfigExamen {
@@ -99,7 +84,7 @@ public class SimuladorController : BaseAdminController {
 			IdExamen = flujo.ExamenId
 		};
 
-		_manager.RespuestaActual(config, flujo, r.Respuesta, r.Tiempo ?? 0);
+		_manager.RespuestaActual(config, flujo, resp.Respuesta ?? "", tiempo);
 
 		return ContinuaFlujo(flujo);
 	}
@@ -143,7 +128,7 @@ public class SimuladorController : BaseAdminController {
 
 		var flujo = data.Estado ??= new FlujoExamenDto();
 
-		var evaluador = new EvaluadorCuestionario(_db);
+		var evaluador = new EvaluadorCuestionario();
 		flujo.DatosCuestionario = evaluador.EvaluarCuestionario(respuestas);
 
 		var config = new ConfigExamen {
@@ -159,7 +144,7 @@ public class SimuladorController : BaseAdminController {
 		return ContinuaFlujo(flujo);
 	}
 
-	protected object? DatosResultado(FlujoExamenDto flujo, SesionPersona sesion) {
+	protected object DatosResultado(FlujoExamenDto flujo, SesionPersona sesion) {
 		flujo.DatosCuestionario ??= new DataCuestionario();
 		var vses = new VSesionPersona {
 			Nombre = "Simulacion",

@@ -1,17 +1,10 @@
 using Domain;
 using Domain.Entidades;
-using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 
 namespace Infraestructura.Examenes;
 
 public class EvaluadorCuestionario {
-	private readonly AppDbContext _db;
-
-	public EvaluadorCuestionario(AppDbContext db) {
-		_db = db;
-	}
-
 	public DataCuestionario EvaluarCuestionario(IList<CuestionarioRespuesta> respuestas, SesionPersona? sesion = null) {
 		var calif = RespuestaCuestionario.Calificacion();
 

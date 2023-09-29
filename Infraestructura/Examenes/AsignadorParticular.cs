@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructura.Examenes;
 
+/// <summary>
+/// Asignador para Examenes configuradose especificos
+/// </summary>
 public class AsignadorParticular : IAsignadorExamen {
 	private readonly AppDbContext _db;
 	private static readonly Random Rng = new();
