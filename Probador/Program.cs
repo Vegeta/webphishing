@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.RateLimiting;
 using Dapper;
+using Infraestructura.Examenes;
+using Infraestructura.Examenes.Asignacion;
 
 namespace Probador;
 
@@ -35,8 +37,12 @@ public class ConsoleService : IHostedService {
 	public Task StartAsync(CancellationToken cancellationToken) {
 		using var scope = services.CreateScope();
 		var db = services.GetRequiredService<AppDbContext>();
-		var con = new Consultas();
-		con.Consultar(db);
+
+		var f = new PruebaFLujo2();
+		f.PruebaParticular(db);
+
+		// var con = new Consultas();
+		// con.PruebaFluent(db);
 
 		return Task.CompletedTask;
 	}

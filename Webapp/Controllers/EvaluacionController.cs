@@ -13,7 +13,6 @@ using Webapp.Models;
 namespace Webapp.Controllers;
 
 public class EvaluacionController : BaseController {
-	private readonly ILogger<HomeController> _logger;
 	private readonly AppDbContext _db;
 	private readonly IMapper _mapper;
 	private readonly CatalogoGeneral _cat;
@@ -21,9 +20,8 @@ public class EvaluacionController : BaseController {
 	private readonly FlujoExamen _flujo;
 	private readonly ControlExamenService _control;
 
-	public EvaluacionController(ILogger<HomeController> logger, AppDbContext db,
+	public EvaluacionController(AppDbContext db,
 		IMapper mapper, CatalogoGeneral cat, RegistroService registro, FlujoExamen flujo, ControlExamenService control) {
-		_logger = logger;
 		_db = db;
 		_mapper = mapper;
 		_cat = cat;
@@ -225,10 +223,10 @@ public class EvaluacionController : BaseController {
 
 		var respuestas = data.Respuestas
 			.Select(x => new CuestionarioRespuesta {
-				Dimension = x.Dimension,
-				Pregunta = x.Texto,
-				Respuesta = x.Respuesta,
-			}
+					Dimension = x.Dimension,
+					Pregunta = x.Texto,
+					Respuesta = x.Respuesta,
+				}
 			).ToList();
 
 		var estado = local.Sesion.GetSesionFlujo();

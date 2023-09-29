@@ -29,8 +29,6 @@ public partial class AppDbContext : DbContext {
 
 	public virtual DbSet<Pregunta> Pregunta { get; set; } = default!;
 
-	public virtual DbSet<SesionGrupo> SesionGrupo { get; set; } = default!;
-
 	public virtual DbSet<SesionPersona> SesionPersona { get; set; } = default!;
 
 	public virtual DbSet<SesionRespuesta> SesionRespuesta { get; set; } = default!;
@@ -86,19 +84,6 @@ public partial class AppDbContext : DbContext {
 
 		modelBuilder.Entity<Pregunta>(entity => { entity.HasKey(e => e.Id).HasName("ejercicio_pkey"); });
 
-		modelBuilder.Entity<SesionGrupo>(entity => {
-			entity.HasKey(e => e.Id).HasName("sesion_grupo_pkey");
-
-			entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-			entity.Property(e => e.CodigoAcceso).HasComment("codigo acceso ui");
-			entity.Property(e => e.Token).HasComment("sync token");
-			entity.Property(e => e.UrlSlug).HasComment("codigo acceso web");
-
-			entity.HasOne(d => d.Examen).WithMany(p => p.SesionGrupo)
-				.OnDelete(DeleteBehavior.Cascade)
-				.HasConstraintName("fk_sesg_examen");
-		});
-
 		modelBuilder.Entity<SesionPersona>(entity => {
 			entity.HasKey(e => e.Id).HasName("persona_examen_pkey");
 
@@ -111,10 +96,6 @@ public partial class AppDbContext : DbContext {
 			entity.HasOne(d => d.Examen).WithMany(p => p.SesionPersona)
 				.OnDelete(DeleteBehavior.SetNull)
 				.HasConstraintName("fk_ses_examen");
-
-			entity.HasOne(d => d.Grupo).WithMany(p => p.SesionPersona)
-				.OnDelete(DeleteBehavior.Cascade)
-				.HasConstraintName("fk_grupo");
 
 			entity.HasOne(d => d.Persona).WithMany(p => p.SesionPersona)
 				.OnDelete(DeleteBehavior.Cascade)

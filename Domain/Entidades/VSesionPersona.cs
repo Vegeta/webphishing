@@ -44,9 +44,6 @@ public class VSesionPersona {
 	[Column("respuesta_cuestionario", TypeName = "json")]
 	public string? RespuestaCuestionario { get; set; }
 
-	[Column("grupo_id")]
-	public int? GrupoId { get; set; }
-
 	[Column("nombre")]
 	[StringLength(255)]
 	public string? Nombre { get; set; }

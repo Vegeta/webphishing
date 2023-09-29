@@ -1,10 +1,10 @@
+using Dapper;
 using Domain;
 using Domain.Entidades;
+using Infraestructura.Examenes;
+using Infraestructura.Examenes.Asignacion;
 using Infraestructura.Persistencia;
-using System.ComponentModel.DataAnnotations.Schema;
-using Dapper;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.ConstrainedExecution;
 
 namespace Infraestructura.Servicios;
 
@@ -317,24 +317,6 @@ public class EstadoExamen {
 			}
 		}
 	}
-}
-
-public class DataExamen {
-	public float? AvgScore { get; set; }
-	public float? AvgTiempo { get; set; }
-	public float? TiempoTotal { get; set; }
-	public int Exito { get; set; } = 0;
-	public string Estado { get; set; } = "";
-	public int MaxScore { get; set; }
-
-}
-
-public class DataCuestionario {
-	public string? Percepcion { get; set; }
-	public float? TiempoCuestionario { get; set; }
-	public float? ScoreCuestionario { get; set; }
-	public string? RespuestaCuestionario { get; set; }
-	public List<CuestionarioRespuesta> Respuestas { get; set; } = new();
 }
 
 public class PreguntaWebEstado {

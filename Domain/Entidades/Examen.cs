@@ -38,8 +38,6 @@ public partial class Examen : BaseEntity {
 	[InverseProperty("Examen")]
 	public virtual ICollection<ExamenPregunta> ExamenPregunta { get; } = new List<ExamenPregunta>();
 
-	[InverseProperty("Examen")] public virtual ICollection<SesionGrupo> SesionGrupo { get; } = new List<SesionGrupo>();
-
 	[InverseProperty("Examen")]
 	public virtual ICollection<SesionPersona> SesionPersona { get; } = new List<SesionPersona>();
 }

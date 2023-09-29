@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebUI", "WebUI\WebUI.csproj", "{37C85171-5F25-4854-BBA0-82466A50FE8E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{09C4332A-D5F2-4E87-A2E6-F4C1BBD20126}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E872807-A21B-4F88-9135-8DBFC3F869B7}"
@@ -32,10 +30,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{37C85171-5F25-4854-BBA0-82466A50FE8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{37C85171-5F25-4854-BBA0-82466A50FE8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{37C85171-5F25-4854-BBA0-82466A50FE8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{37C85171-5F25-4854-BBA0-82466A50FE8E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09C4332A-D5F2-4E87-A2E6-F4C1BBD20126}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{09C4332A-D5F2-4E87-A2E6-F4C1BBD20126}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09C4332A-D5F2-4E87-A2E6-F4C1BBD20126}.Release|Any CPU.ActiveCfg = Release|Any CPU

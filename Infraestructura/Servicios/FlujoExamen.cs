@@ -1,5 +1,6 @@
 ﻿using Domain;
 using Domain.Entidades;
+using Infraestructura.Examenes.Asignacion;
 using Infraestructura.Persistencia;
 using Microsoft.EntityFrameworkCore;
 

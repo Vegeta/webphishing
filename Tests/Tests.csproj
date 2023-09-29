@@ -21,8 +21,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\WebUI\WebUI.csproj" />
-  </ItemGroup>
-
 </Project>

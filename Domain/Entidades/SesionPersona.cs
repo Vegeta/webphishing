@@ -43,9 +43,6 @@ public partial class SesionPersona : BaseEntity {
 	[Column("respuesta_cuestionario", TypeName = "json")]
 	public string? RespuestaCuestionario { get; set; }
 
-	[Column("grupo_id")]
-	public int? GrupoId { get; set; }
-
 	[Column("nombre")]
 	[StringLength(255)]
 	public string? Nombre { get; set; }
@@ -92,10 +89,6 @@ public partial class SesionPersona : BaseEntity {
 	[ForeignKey("ExamenId")]
 	[InverseProperty("SesionPersona")]
 	public virtual Examen? Examen { get; set; } = null!;
-
-	[ForeignKey("GrupoId")]
-	[InverseProperty("SesionPersona")]
-	public virtual SesionGrupo? Grupo { get; set; }
 
 	[ForeignKey("PersonaId")]
 	[InverseProperty("SesionPersona")]

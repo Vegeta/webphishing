@@ -1,13 +1,11 @@
 using AutoMapper;
-using Domain;
 using Domain.Entidades;
-using Domain.Transferencia;
 using Infraestructura;
+using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
 using Webapp.Controllers;
 using Webapp.Models;
 
