@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+	<title>Phishing Detection @ViewBag.titulo</title>
+	<meta content="phishing, security" name="description">
+	<meta content="" name="keywords">
+
+	<!-- Favicons -->
+	<link href="~/img/client/favicon.png" rel="icon">
+	<link href="~/img/client/apple-touch-icon.png" rel="apple-touch-icon">
+
+	<!-- Google Fonts -->
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+	<!-- Vendor CSS Files -->
+	<link href="~/lib/aos/aos.css" rel="stylesheet">
+	<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="~/lib/bootstrap-icons/bootstrap-icons.css" rel="stylesheet"/>
+	<link href="~/lib/boxicons/css/boxicons.min.css" rel="stylesheet"/>
+	<link href="~/lib/glightbox/css/glightbox.min.css" rel="stylesheet">
+	<link href="~/lib/remixicon/remixicon.css" rel="stylesheet">
+	<link href="~/lib/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+	<!-- Template Main CSS File -->
+	<link href="~/css/client-style.css" rel="stylesheet">
+	<link href="~/css/site.css" rel="stylesheet">
+
+	<!-- =======================================================
+	* Template Name: Arsha
+	* Updated: Mar 10 2023 with Bootstrap v5.2.3
+	* Template URL: https://bootstrapmade.com/arsha-free-bootstrap-html-template-corporate/
+	* Author: BootstrapMade.com
+	* License: https://bootstrapmade.com/license/
+	======================================================== -->
+</head>
+
+<body>
+
+	<style>
+		h2, h3 {
+           page-break-after: avoid;
+        }
+        ul, img {
+           page-break-inside: avoid;
+        }
+        * {
+        	print-color-adjust: exact;
+        }
+	</style>
+	
+	<main id="main">
+		@RenderBody()
+	</main><!-- End #main -->
+	<!-- ======= Footer ======= -->
+
+	<!-- Vendor JS Files -->
+	<script src="~/lib/aos/aos.js"></script>
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/lib/glightbox/js/glightbox.min.js"></script>
+	<script src="~/lib/isotope-layout/isotope.pkgd.min.js"></script>
+	<script src="~/lib/swiper/swiper-bundle.min.js"></script>
+	<script src="~/lib/waypoints/noframework.waypoints.js"></script>
+
+	<environment include="Development">
+		<script src="~/lib/vue/dist/vue.global.js"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/lib/vue/dist/vue.global.prod.js"></script>
+	</environment>
+
+
+	<!-- Template Main JS File -->
+	<script src="~/js/client-main.js" asp-append-version="true"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+	<script>window.root = '@ViewBag.self';</script>
+
+	@await RenderSectionAsync("Scripts", required: false)
+
+</body>
+
+</html>

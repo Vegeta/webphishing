@@ -1,6 +1,5 @@
 using Domain.Entidades;
 using Infraestructura.Examenes;
-using Infraestructura.Servicios;
 
 namespace Webapp.Models.Evaluacion;
 

@@ -33,4 +33,17 @@ public class FlujoExamenDto {
 	public int Respondidas {
 		get { return Pasos.Count(x => x is { Ejecutado: true, Accion: "pregunta" }); }
 	}
+
+	/// <summary>
+	/// Esto calcula el score desde la ultima pregunta contestada X elementos atras
+	/// Para cuando el examen tiene mas de 10 elementos (algoritmo)
+	/// </summary>
+	/// <param name="tomar"></param>
+	/// <returns></returns>
+	public int ScoreOffset(int tomar) {
+		return Pasos.Where(x => x is { Ejecutado: true, Accion: "pregunta" })
+			.Reverse()
+			.Take(tomar)
+			.Sum(x => x.Score);
+	}
 }

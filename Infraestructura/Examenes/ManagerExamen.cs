@@ -14,20 +14,20 @@ public class ManagerExamen {
 		_db = db;
 	}
 
-	public IAsignadorExamen GetAsignador(ConfigExamen config) {
+	public IFlujoExamen GetAsignador(ConfigExamen config) {
 		if (config.Tipo == TipoExamen.Personalizado) {
 			if (config.IdExamen == 0)
 				throw new ArgumentException("Se requiere el id del examen para procesar");
-			return new AsignadorParticular(_db, config);
+			return new FlujoParticular(_db, config);
 		}
 		// por defecto
-		var obj = new AsignadorAleatorio(_db);
+		var obj = new FlujoAleatorio(_db, config);
 		return obj;
 	}
 
 	public FlujoExamenDto CrearFlujo(ConfigExamen config) {
 		var asigna = GetAsignador(config);
-		var flujo = asigna.CrearFlujo(config);
+		var flujo = asigna.CrearFlujo();
 		CheckCuestionario(flujo);
 		return flujo;
 	}
@@ -45,7 +45,7 @@ public class ManagerExamen {
 		}
 
 		var asignador = GetAsignador(config);
-		asignador.ResolverPreguntas(config, flujo);
+		asignador.ResolverPreguntas(flujo);
 		CheckCuestionario(flujo);
 
 		flujo.Inicio ??= DateTime.Now; // check inicio
@@ -89,8 +89,12 @@ public class ManagerExamen {
 		return cues?.Id ?? 0;
 	}
 
-	public void FinalizarSesion(FlujoExamenDto flujo, SesionPersona sesion) {
-		sesion.FechaFin ??= flujo.Fin;
+	public bool FinalizarSesion(FlujoExamenDto flujo, SesionPersona sesion) {
+		if (sesion.Estado == SesionPersona.EstadoTerminado)
+			return false;
+		var fin = DateTime.Now;
+		flujo.Fin = fin;
+		sesion.FechaFin = fin;
 		var respuestas = flujo.Pasos
 			.Where(x => x is { Accion: "pregunta", Ejecutado: true })
 			.ToList();
@@ -101,12 +105,13 @@ public class ManagerExamen {
 		sesion.AvgTiempo = tiempos.Average();
 		var exitos = respuestas.Count(x => x.Score > 0);
 
-		sesion.TiempoTotal = DbHelpers.DiferenciaSegundos(flujo.Inicio, flujo.Fin);
+		sesion.TiempoTotal = DbHelpers.DiferenciaSegundos(sesion.FechaExamen, sesion.FechaFin);
 
 		sesion.MaxScore = flujo.MaxScore;
 		sesion.Score = flujo.Score;
 		var tasa = ((float)exitos / (float)respuestas.Count) * 100;
 		sesion.Exito = Convert.ToInt32(tasa);
 		sesion.Estado = SesionPersona.EstadoTerminado;
+		return true;
 	}
 }

@@ -11,21 +11,22 @@ namespace Infraestructura.Examenes;
 /// Asignador para Examenes generales aleatorios que usan to do el pool
 /// de preguntas
 /// </summary>
-public class AsignadorAleatorio : IAsignadorExamen {
+public class FlujoAleatorio : IFlujoExamen {
 	private readonly AppDbContext _db;
 	private static readonly Random Rng = new();
-
+	private ConfigExamen _config;
 	public AlgoritmoAsignacion Algoritmo { get; }
 
-	public AsignadorAleatorio(AppDbContext db) {
+	public FlujoAleatorio(AppDbContext db, ConfigExamen config) {
 		_db = db;
+		_config = config;
 		Algoritmo = new AlgoritmoAsignacion();
 	}
 
-	public FlujoExamenDto CrearFlujo(ConfigExamen config) {
+	public FlujoExamenDto CrearFlujo() {
 		var flujo = new FlujoExamenDto {
-			NumPreguntas = config.NumPreguntas,
-			CuestionarioPos = config.CuestionarioPos,
+			NumPreguntas = _config.NumPreguntas,
+			CuestionarioPos = _config.CuestionarioPos,
 			Aleatorio = true,
 			Tipo = TipoExamen.Predeterminado
 		};
@@ -40,12 +41,31 @@ public class AsignadorAleatorio : IAsignadorExamen {
 		return flujo;
 	}
 
-	public void ResolverPreguntas(ConfigExamen config, FlujoExamenDto flujo) {
+	public void ResolverPreguntas(FlujoExamenDto flujo) {
 		var respondidas = flujo.Respondidas;
 
-		var next = Algoritmo.SiguienteAsignacion(respondidas, flujo.Score);
-		if (next != null) {
-			AsignarPreguntas(flujo, next);
+		// esto es para el caso cuando sean mas de 10 preguntas, aplica una correccion brutal
+		var score = flujo.Score;
+		var next = respondidas + 1;
+		var mod = next % AlgoritmoAsignacion.MaxPreguntas;
+
+		if (next >= AlgoritmoAsignacion.MaxPreguntas && mod == 0) {
+			Console.WriteLine("reiniciar");
+			var reinicio = Algoritmo.SiguienteAsignacion(0, 0);
+			if (reinicio != null) {
+				AsignarPreguntas(flujo, reinicio);
+				return;
+			}
+		}
+
+		if (respondidas >= AlgoritmoAsignacion.MaxPreguntas) {
+			score = flujo.ScoreOffset(mod);
+			respondidas = mod;
+		}
+
+		var nextPaso = Algoritmo.SiguienteAsignacion(respondidas, score);
+		if (nextPaso != null) {
+			AsignarPreguntas(flujo, nextPaso);
 		}
 	}
 
@@ -55,11 +75,10 @@ public class AsignadorAleatorio : IAsignadorExamen {
 		var idsUsados = flujo.Pasos
 			.Where(x => x.Accion == "pregunta")
 			.Select(x => x.EntidadId).ToList();
-		var cuenta = idsUsados.Count;
 		// TODO control num preguntas
 		var lista = new List<PasoExamen>();
 		foreach (var dificultad in pasoAlgo.TomarPreguntas) {
-			if (cuenta >= flujo.NumPreguntas)
+			if (idsUsados.Count >= flujo.NumPreguntas)
 				break;
 			var preg = SiguientePregunta(dificultad, idsUsados);
 			if (preg == null)
@@ -74,7 +93,6 @@ public class AsignadorAleatorio : IAsignadorExamen {
 			//flujo.Pasos.Add(item);
 			lista.Add(item);
 			flujo.MaxScore += DificultadPregunta.ScoreRespuesta(item.Dificultad);
-			cuenta++;
 		}
 		if (lista.Count == 0)
 			return;
@@ -84,6 +102,25 @@ public class AsignadorAleatorio : IAsignadorExamen {
 	}
 
 	public Pregunta? SiguientePregunta(string dificultad, List<int> excluir) {
+		// uso de funcion custom para el ordenamiento aleatorio
+		var q = _db.Pregunta.Where(x => x.Dificultad == dificultad);
+
+		if (excluir.Count > 0) {
+			q = q.Where(x => !excluir.Contains(x.Id));
+		}
+
+		return q.Select(res => new Pregunta {
+				Id = res.Id,
+				Dificultad = res.Dificultad,
+				Legitimo = res.Legitimo,
+				Nombre = res.Nombre
+			})
+			.OrderBy(x => AppDbContext.Random())
+			.FirstOrDefault();
+	}
+
+	public Pregunta? SiguientePreguntaDapper(string dificultad, List<int> excluir) {
+		// ----- ESTO ES UNA PRUEBA DE CONCEPTO CON DAPPER ------
 		// ojo, esto en teoria devuelve elementos aleatorios, probar
 		// esta desgracia es necesaria por que EF no es flexible, asdjajsdajhjs
 		// Dapper sql builder

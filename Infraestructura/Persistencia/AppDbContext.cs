@@ -8,6 +8,15 @@ public partial class AppDbContext : DbContext {
 
 	public AppDbContext() { }
 
+	/// <summary>
+	/// Mapeo de la funcion random() de postgresql para usarse en consultas con linq. Solo sirve ahi
+	/// https://blog.wiseowls.co.nz/index.php/2021/10/29/ef-core-6-custom-functions-with-dbfunction-attribute/
+	/// </summary>
+	/// <returns></returns>
+	/// <exception cref="NotImplementedException"></exception>
+	[DbFunction("RANDOM", IsBuiltIn = true, IsNullable = false)]
+	public static float Random() => throw new NotImplementedException();
+	
 	public AppDbContext(DbContextOptions<AppDbContext> options)
 		: base(options) { }
 

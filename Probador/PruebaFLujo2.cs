@@ -1,6 +1,7 @@
 using Dapper;
 using Domain;
 using Domain.Entidades;
+using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Probador;
 
 public class PruebaFLujo2 {
-	public void ProbarAleatorio(AppDbContext db) {
+	public void PruebaAleatorio(AppDbContext db) {
 		var conf = new ManagerExamen(db);
 
 		var config = new ConfigExamen {
-			NumPreguntas = 10,
+			NumPreguntas = 11,
 			CuestionarioPos = 5,
 			Aleatorio = true,
 			Tipo = TipoExamen.Predeterminado,
@@ -27,7 +28,7 @@ public class PruebaFLujo2 {
 
 		for (var i = 0; i < flujo.NumPreguntas + 1; i++) {
 			var paso = conf.RespuestaActual(config, flujo, "phishing", 0.5f);
-			Console.WriteLine(paso.Dump());
+			// Console.WriteLine(paso.Dump());
 			Console.WriteLine(flujo.EsFin);
 			if (flujo.EsFin)
 				break;
@@ -37,8 +38,11 @@ public class PruebaFLujo2 {
 		conf.FinalizarSesion(flujo, sesion);
 
 		Console.WriteLine("---------------------------------");
-		Console.WriteLine(flujo.Dump());
-		Console.WriteLine(sesion.Dump());
+		// Console.WriteLine(flujo.Dump());
+		// Console.WriteLine(sesion.Dump());
+		
+		Console.WriteLine(JSON.Stringify(flujo, true));
+		
 	}
 
 	public void PruebaParticular(AppDbContext db) {

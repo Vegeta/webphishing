@@ -5,7 +5,8 @@ namespace Infraestructura {
 	/// Codificacion y decodificacion de JSON usando la libreria de Microsoft con un api similar a Javascript
 	/// </summary>
 	public class JSON {
-		public static string Stringify(object data, bool pretty = false) {
+		public static string Stringify(object? data, bool pretty = false) {
+			if (data == null) return "null";
 			return JsonSerializer.Serialize(data, new JsonSerializerOptions {
 				WriteIndented = pretty,
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase

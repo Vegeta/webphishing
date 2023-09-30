@@ -8,28 +8,28 @@ namespace Infraestructura.Examenes;
 /// <summary>
 /// Asignador para Examenes configuradose especificos
 /// </summary>
-public class AsignadorParticular : IAsignadorExamen {
+public class FlujoParticular : IFlujoExamen {
 	private readonly AppDbContext _db;
 	private static readonly Random Rng = new();
 	public AlgoritmoAsignacion Algoritmo { get; }
 	private ConfigExamen _config;
 
-	public AsignadorParticular(AppDbContext db, ConfigExamen config) {
+	public FlujoParticular(AppDbContext db, ConfigExamen config) {
 		_db = db;
 		_config = config;
 		Algoritmo = new AlgoritmoAsignacion();
 	}
 
-	public FlujoExamenDto CrearFlujo(ConfigExamen config) {
+	public FlujoExamenDto CrearFlujo() {
 		var flujo = new FlujoExamenDto {
-			Aleatorio = config.Aleatorio,
-			CuestionarioPos = config.CuestionarioPos,
+			Aleatorio = _config.Aleatorio,
+			CuestionarioPos = _config.CuestionarioPos,
 			Tipo = TipoExamen.Personalizado,
-			ExamenId = config.IdExamen
+			ExamenId = _config.IdExamen
 		};
 
 		var preguntas = Preguntas();
-		if (config.Aleatorio)
+		if (_config.Aleatorio)
 			preguntas = preguntas.OrderBy(_ => Rng.Next()).ToList();
 
 		flujo.NumPreguntas = preguntas.Count;
@@ -54,7 +54,7 @@ public class AsignadorParticular : IAsignadorExamen {
 			}).ToList();
 	}
 
-	public void ResolverPreguntas(ConfigExamen config, FlujoExamenDto flujo) {
+	public void ResolverPreguntas(FlujoExamenDto flujo) {
 		// TODO tqal vez usar el algoritmo si se configura?
 	}
 }

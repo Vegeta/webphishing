@@ -2,6 +2,7 @@
 using Domain;
 using Domain.Entidades;
 using Infraestructura;
+using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -10,24 +11,22 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Webapp.Models;
 using Webapp.Models.Evaluacion;
 
-namespace Webapp.Controllers; 
+namespace Webapp.Controllers;
 
 public class EvaluacionController : BaseController {
 	private readonly AppDbContext _db;
 	private readonly IMapper _mapper;
 	private readonly CatalogoGeneral _cat;
 	private readonly RegistroService _registro;
-	private readonly FlujoExamen _flujo;
-	private readonly ControlExamenService _control;
+	private readonly ManagerExamen _manager;
 
 	public EvaluacionController(AppDbContext db,
-		IMapper mapper, CatalogoGeneral cat, RegistroService registro, FlujoExamen flujo, ControlExamenService control) {
+		IMapper mapper, CatalogoGeneral cat, RegistroService registro, ManagerExamen manager) {
 		_db = db;
 		_mapper = mapper;
 		_cat = cat;
 		_registro = registro;
-		_flujo = flujo;
-		_control = control;
+		_manager = manager;
 	}
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
@@ -84,7 +83,7 @@ public class EvaluacionController : BaseController {
 
 		per = res.Data;
 
-		var consultas = _control.Consultas();
+		var consultas = new ConsultasExamen(_db);
 
 		// si existe una sesion en curso, continue sin crear una nueva
 		var check = consultas.SesionActualPersona(per.Id);
@@ -94,14 +93,21 @@ public class EvaluacionController : BaseController {
 		}
 
 		// nueva sesion rapida
-		var con = new ConsultaEvaluacion(_db);
 		var sesion = consultas.CrearSesion(res.Data, "rapida");
-		sesion.CuestionarioId = con.IdPrimercuestionario();
-		var pregs = consultas.PreguntasRandom(10);
-		var estado = _control.CrearEstado(pregs, ControlExamenService.PosCuestionario);
-		sesion.MaxScore = estado.DatosExamen?.MaxScore;
+
+		// TODO esto deberia salir de alguna configuracion del sistema mismo	
+		var config = new ConfigExamen {
+			NumPreguntas = 3,
+			CuestionarioPos = 2,
+			Aleatorio = true,
+			Tipo = TipoExamen.Predeterminado,
+		};
+
+		// crear el flujo y la sesion y persistir
+		var flujo = _manager.CrearFlujo(config);
+		sesion.Flujo = JSON.Stringify(flujo);
 		_db.SesionPersona.Add(sesion);
-		SaveSession(sesion, estado);
+		SaveSession(sesion, flujo);
 
 		HttpContext.Session.SetString("token_examen", sesion.Token ?? "");
 		return Ok(new { url, error = "" });
@@ -120,13 +126,13 @@ public class EvaluacionController : BaseController {
 			nombre = $"{per.Nombre} {per.Apellido}";
 		}
 
-		var estado = local.Sesion.GetSesionFlujo();
+		var flujo = local.Sesion.GetSesionFlujo();
 
 		var model = new {
 			nombre,
-			email = per.Email,
-			total = estado.Lista.Count,
-			indice = estado.Respondidas,
+			email = per?.Email,
+			total = flujo.NumPreguntas,
+			indice = flujo.Respondidas,
 			token = local.Sesion.Token
 		};
 
@@ -135,32 +141,47 @@ public class EvaluacionController : BaseController {
 		ViewBag.pregunta = "{}";
 		ViewBag.reporte = "null";
 
-		var cons = new ConsultaEvaluacion(_db);
-		var op = estado.OperacionActual();
-
-		if (op.Accion == "pregunta") {
-			var data = cons.PreguntaData(op.PreguntaId.Value);
-			ViewBag.pregunta = JSON.Stringify(data);
-		}
-
-		if (op.Accion == "cuestionario") {
-			var cuest = cons.CuestionarioData();
-			ViewBag.cuest = cuest == null ? "null" : JSON.Stringify(cuest);
-		}
-
-		if (op.Accion == "fin") {
-			ViewBag.reporte = JSON.Stringify(Resultados(local.Sesion));
-		}
-
+		ContinuaFlujo(flujo, local.Sesion, true);
 		return View();
 	}
 
-	protected void SaveSession(SesionPersona ses, EstadoExamen estado) {
+	protected void SaveSession(SesionPersona ses, FlujoExamenDto flujo) {
 		ses.FechaActividad = DateTime.Now;
-		estado.DatosCuestionario = null;
-		estado.DatosExamen = null;
-		ses.Flujo = JSON.Stringify(estado);
+		ses.Flujo = JSON.Stringify(flujo);
 		_db.SaveChanges();
+	}
+
+	protected AccionExamenWeb ContinuaFlujo(FlujoExamenDto flujo, SesionPersona sesion, bool setViewbag = false) {
+		var paso = flujo.PasoActual();
+		var res = new AccionExamenWeb {
+			Accion = paso.Accion,
+			Indice = flujo.Respondidas,
+		};
+
+		if (flujo.EsFin) {
+			res.Accion = "fin";
+			if (_manager.FinalizarSesion(flujo, sesion))
+				SaveSession(sesion, flujo);
+			res.Data = Resultados(sesion);
+			if (setViewbag)
+				ViewBag.reporte = JSON.Stringify(res.Data);
+			return res;
+		}
+
+		var cons = new ConsultaEvaluacion(_db);
+		if (paso.Accion == "pregunta") {
+			res.Data = cons.PreguntaData(paso.EntidadId);
+			if (setViewbag)
+				ViewBag.pregunta = JSON.Stringify(res.Data);
+		}
+
+		if (paso.Accion == "cuestionario") {
+			res.Data = cons.CuestionarioData();
+			if (setViewbag)
+				ViewBag.cuest = JSON.Stringify(res.Data);
+		}
+
+		return res;
 	}
 
 	[HttpPost]
@@ -171,6 +192,8 @@ public class EvaluacionController : BaseController {
 			return Problem();
 		}
 
+		var flujo = local.Sesion.GetSesionFlujo();
+
 		var r = new SesionRespuesta {
 			Clicks = resp.Interaccion,
 			PreguntaId = resp.PreguntaId,
@@ -178,40 +201,28 @@ public class EvaluacionController : BaseController {
 			Comentario = resp.Comentario,
 			Inicio = resp.Inicio,
 			Fin = resp.Fin,
+			Tiempo = DbHelpers.DiferenciaSegundos(resp.Inicio, resp.Fin)
 		};
 
-		var estado = local.Sesion.GetSesionFlujo();
-		_control.ResponderOperacionActual(estado, r, local.Sesion);
-		estado.IndiceRespuesta++;
+		var config = new ConfigExamen {
+			CuestionarioPos = flujo.CuestionarioPos,
+			Tipo = flujo.Tipo,
+			Aleatorio = flujo.Aleatorio,
+			IdExamen = local.Sesion.ExamenId ?? 0
+		};
+
+		var paso = _manager.RespuestaActual(config, flujo, resp.Respuesta ?? "", r.Tiempo ?? 0);
+		r.SesionId = local.Sesion.Id;
+		r.Dificultad = paso.Dificultad;
+		r.Score = paso.Score;
+		local.Sesion.Score = flujo.Score;
+		local.Sesion.MaxScore = flujo.MaxScore; // un tipo es adaptativo
 
 		// persist
-		r.SesionId = local.Sesion.Id;
 		_db.SesionRespuesta.Add(r);
-		SaveSession(local.Sesion, estado);
+		SaveSession(local.Sesion, flujo);
 
-		var op = estado.OperacionActual();
-		var res = new AccionExamenWeb {
-			Accion = op.Accion,
-			Indice = estado.Respondidas,
-		};
-
-		var cons = new ConsultaEvaluacion(_db);
-		if (op.Accion == "pregunta") {
-			res.Data = cons.PreguntaData(op.PreguntaId.Value);
-		}
-
-		if (op.Accion == "cuestionario") {
-			res.Data = cons.CuestionarioData();
-		}
-
-		if (op.Accion == "fin") {
-			estado.Fin = r.Fin;
-			_control.FinalizarSesion(estado, local.Sesion);
-			SaveSession(local.Sesion, estado);
-			res.Data = Resultados(local.Sesion);
-		}
-
-		return Ok(res);
+		return Ok(ContinuaFlujo(flujo, local.Sesion));
 	}
 
 	public IActionResult ResponderCuestionario([FromBody] RespuestaCuest data) {
@@ -229,50 +240,32 @@ public class EvaluacionController : BaseController {
 				}
 			).ToList();
 
-		var estado = local.Sesion.GetSesionFlujo();
+		var flujo = local.Sesion.GetSesionFlujo();
 
-		_control.EvaluarCuestionario(estado, respuestas, local.Sesion);
-		estado.CuestionarioHecho = true;
-		estado.IndiceRespuesta++;
-		estado.Inicio ??= DateTime.Now;
+		var evaluador = new EvaluadorCuestionario();
+		flujo.DatosCuestionario = evaluador.EvaluarCuestionario(respuestas, local.Sesion);
+
+		var config = new ConfigExamen {
+			CuestionarioPos = flujo.CuestionarioPos,
+			Tipo = flujo.Tipo,
+			Aleatorio = flujo.Aleatorio,
+			IdExamen = local.Sesion.ExamenId ?? 0
+		};
+		_manager.RespuestaActual(config, flujo, "OK", data.TiempoCuest ?? 0);
 
 		// persist
 		local.Sesion.TiempoCuestionario = data.TiempoCuest;
-		local.Sesion.FechaExamen ??= estado.Inicio;
+		local.Sesion.FechaExamen ??= flujo.Inicio;
 		foreach (var respuesta in respuestas) {
 			respuesta.SesionId = local.Sesion.Id;
 			_db.CuestionarioRespuesta.Add(respuesta);
 		}
-		SaveSession(local.Sesion, estado);
+		SaveSession(local.Sesion, flujo);
 
-		var op = estado.OperacionActual();
-
-		var res = new AccionExamenWeb {
-			Accion = op.Accion,
-			Indice = estado.Respondidas,
-			Estado = estado,
-		};
-
-		var cons = new ConsultaEvaluacion(_db);
-		if (op.Accion == "pregunta") {
-			res.Data = cons.PreguntaData(op.PreguntaId.Value);
-		}
-
-		if (op.Accion == "cuestionario") {
-			res.Data = cons.CuestionarioData();
-		}
-
-		if (op.Accion == "fin") {
-			estado.Fin = DateTime.Now;
-			_control.FinalizarSesion(estado, local.Sesion);
-			SaveSession(local.Sesion, estado);
-			res.Data = Resultados(local.Sesion);
-		}
-
-		return Ok(res);
+		return Ok(ContinuaFlujo(flujo, local.Sesion));
 	}
 
-	protected object Resultados(SesionPersona sesion) {
+	private dynamic Resultados(SesionPersona sesion) {
 		var ses = _db.VSesiones
 			.First(x => x.Id == sesion.Id);
 
@@ -286,6 +279,20 @@ public class EvaluacionController : BaseController {
 			cuest = new List<string>(), // placeholder
 		};
 		return data;
+	}
+
+	public IActionResult Print() {
+		var local = SesionActual();
+		if (local.HasError) {
+			ErrorWeb(local.Error);
+			return Problem();
+		}
+		Titulo("Resultados");
+		var res = Resultados(local.Sesion);
+		ViewBag.modelo = JSON.Stringify(res.modelo);
+		ViewBag.respuestas = JSON.Stringify(res.respuestas);
+		ViewBag.percepcion = JSON.Stringify(res.percepcion);
+		return View();
 	}
 
 	[HttpPost]
@@ -304,7 +311,7 @@ public class EvaluacionController : BaseController {
 		return Ok(res);
 	}
 
-	protected InfoExamen SesionActual() {
+	private InfoExamen SesionActual() {
 		var res = new InfoExamen();
 		var token = HttpContext.Session.GetString("token_examen");
 		if (string.IsNullOrEmpty(token)) {
@@ -313,7 +320,7 @@ public class EvaluacionController : BaseController {
 		}
 
 		res.Token = token;
-		var ses = _control.Consultas().SesionPorToken(token);
+		var ses = new ConsultasExamen(_db).SesionPorToken(token);
 		if (ses == null) {
 			res.Error = "No se encontró el examen requerido";
 			return res;

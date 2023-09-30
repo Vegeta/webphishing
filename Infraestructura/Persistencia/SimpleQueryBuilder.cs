@@ -5,7 +5,7 @@ using Dapper;
 
 namespace Infraestructura.Persistencia;
 
-public class SimpleSqlBuilder {
+public class SimpleQueryBuilder {
 	private readonly MySqlBuilder _builder;
 	private Dictionary<string, bool> _existsClause = new();
 
@@ -20,7 +20,7 @@ public class SimpleSqlBuilder {
 		public dynamic Parameters { get; set; }
 	}
 
-	public SimpleSqlBuilder() {
+	public SimpleQueryBuilder() {
 		_builder = new MySqlBuilder();
 	}
 
@@ -39,22 +39,26 @@ public class SimpleSqlBuilder {
 			string postfix = "", bool isInclusive = false) {
 			return AddClause(name, sql, parameters, joiner, prefix, postfix, isInclusive);
 		}
-
 	}
 
-	public SimpleSqlBuilder From(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder AddParameters(dynamic parameters) {
+		_builder.AddParameters(parameters);
+		return this;
+	}
+
+	public SimpleQueryBuilder From(string exp, dynamic parameters = null) {
 		CheckClause("from");
 		_builder.From(exp, parameters);
 		return this;
 	}
 
-	public SimpleSqlBuilder Select(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Select(string exp, dynamic parameters = null) {
 		CheckClause("select");
 		_builder.Select(exp, parameters);
 		return this;
 	}
 
-	public SimpleSqlBuilder Where(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Where(string exp, dynamic parameters = null) {
 		CheckClause("where");
 		if (Regex.IsMatch(exp, @"^(\w|_)+$") && parameters != null) {
 			specialPar++;
@@ -69,7 +73,7 @@ public class SimpleSqlBuilder {
 		return this;
 	}
 
-	protected SimpleSqlBuilder InClause<T>(string op, string field, ICollection<T> list) {
+	protected SimpleQueryBuilder InClause<T>(string op, string field, ICollection<T> list) {
 		CheckClause("where");
 		specialPar++;
 		var i = 0;
@@ -88,33 +92,33 @@ public class SimpleSqlBuilder {
 		return this;
 	}
 
-	public SimpleSqlBuilder WhereIn<T>(string field, ICollection<T> list) {
+	public SimpleQueryBuilder WhereIn<T>(string field, ICollection<T> list) {
 		return InClause("in", field, list);
 	}
 
-	public SimpleSqlBuilder WhereNotIn<T>(string field, ICollection<T> list) {
+	public SimpleQueryBuilder WhereNotIn<T>(string field, ICollection<T> list) {
 		return InClause("not in", field, list);
 	}
 
-	public SimpleSqlBuilder OrderBy(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder OrderBy(string exp, dynamic parameters = null) {
 		CheckClause("orderby");
 		_builder.OrderBy(exp, parameters);
 		return this;
 	}
 
-	public SimpleSqlBuilder GroupBy(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder GroupBy(string exp, dynamic parameters = null) {
 		CheckClause("groupby");
 		_builder.GroupBy(exp, parameters);
 		return this;
 	}
 
-	public SimpleSqlBuilder Having(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Having(string exp, dynamic parameters = null) {
 		CheckClause("having");
 		_builder.Having(exp, parameters);
 		return this;
 	}
 
-	public SimpleSqlBuilder Join(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Join(string exp, dynamic parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "JOIN",
@@ -124,7 +128,7 @@ public class SimpleSqlBuilder {
 		return this;
 	}
 
-	public SimpleSqlBuilder InnerJoin(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder InnerJoin(string exp, dynamic parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "INNER JOIN",
@@ -134,7 +138,7 @@ public class SimpleSqlBuilder {
 		return this;
 	}
 
-	public SimpleSqlBuilder LeftJoin(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder LeftJoin(string exp, dynamic parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "LEFT JOIN",
@@ -144,7 +148,7 @@ public class SimpleSqlBuilder {
 		return this;
 	}
 
-	public SimpleSqlBuilder RightJoin(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder RightJoin(string exp, dynamic parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "RIGHT JOIN",
@@ -154,13 +158,14 @@ public class SimpleSqlBuilder {
 		return this;
 	}
 
-	public SimpleSqlBuilder Limit(int num) {
+	public SimpleQueryBuilder Limit(int num) {
 		CheckClause("limit");
 		_builder.Add("limit", num.ToString(), null!, "", "LIMIT ", "\n", false);
 		return this;
 	}
 
 	private SqlBuilder.Template tpl;
+
 	protected void BuildStuff() {
 		var checks = new List<string>() {
 			"select", "from", "joins", "where",
@@ -215,5 +220,4 @@ public class SimpleSqlBuilder {
 			return tpl.RawSql;
 		}
 	}
-
 }

@@ -38,3 +38,9 @@ div.error {
 .error-examen {
 	background: rgb(211, 53, 53);
 }
+
+@media print {
+	.noprint {
+		visibility: hidden;
+	}
+}
