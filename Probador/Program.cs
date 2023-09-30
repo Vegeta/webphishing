@@ -38,11 +38,21 @@ public class ConsoleService : IHostedService {
 		using var scope = services.CreateScope();
 		var db = services.GetRequiredService<AppDbContext>();
 
-		var f = new PruebaFLujo2();
-		f.PruebaParticular(db);
+		// var f = new PruebaFLujo2();
+		// f.PruebaParticular(db);
 
 		// var con = new Consultas();
 		// con.PruebaFluent(db);
+
+		var ss = new SimpleSqlBuilder();
+		ss.From("usuario u")
+			.WhereIn("id", new [] { 1, 2, 3 })
+			.Limit(1);
+		Console.WriteLine(ObjectDumper.Dump(ss.Parameters));
+		Console.WriteLine(ss.Sql);
+		var u = db.Database.GetDbConnection()
+			.QueryFirst(ss.Sql, ss.Parameters);
+		Console.WriteLine(ObjectDumper.Dump(u));
 
 		return Task.CompletedTask;
 	}
