@@ -1,0 +1,211 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+	<div class="row">
+		<div class="col-sm-6">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Parámetros</h5>
+
+					<form id="frmGeneral">
+
+						<p>Configuración de preguntas para el examen general</p>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-4 col-form-label"># Preguntas</label>
+							<div class="col-sm-8">
+								<input class="form-control integer" v-autoname v-model="general.numPreguntas" required>
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-4 col-form-label">Posicion Cuestionario</label>
+							<div class="col-sm-8">
+								<input class="form-control integer" v-autoname v-model="general.posCuestionario">
+							</div>
+						</div>
+
+						<div class="row mb-3">
+							<label for="" class="col-sm-4 col-form-label">Usar Examen</label>
+							<div class="col-sm-6">
+								<select v-autoname="" v-model="general.idPredeterminado">
+									<option></option>
+									<option v-for="e in examenes" :value="e.id" v-text="e.nombre"></option>
+								</select>
+							</div>
+							<div class="col-sm-2">
+								<a target="_blank" v-if="general.idPredeterminado" :href="hrefExamen()">Ver Examen</a>
+
+							</div>
+						</div>
+
+						<button type="submit" class="btn btn-sm btn-primary">
+							<i class="bi bi-save"></i>
+							Guardar
+						</button>
+
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-6">
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Lista de carreras</h5>
+
+					<form id="frmCarreras">
+
+						<table class="table minitabla table-hover">
+							<tr>
+								<th class="">Nombre</th>
+								<th style="width: 50px"></th>
+							</tr>
+							<tr v-for="p in carreras">
+								<td>
+									<input v-model="p.nombre" class="form-control input-sm" required maxlength="255"/>
+								</td>
+								<td>
+									<button type="button" class="btn btn-sm btn-primary" @@click="delCarrera(p)">
+										<i class="bi bi-trash"></i>
+									</button>
+								</td>
+							</tr>
+						</table>
+						<button type="button" class="btn btn-sm btn-primary" @@click="addCarrera()">
+							<i class="bi bi-plus"></i>
+							Adicionar
+						</button>
+
+						<hr/>
+
+						<button type="submit" class="btn btn-sm btn-primary">
+							<i class="bi bi-save"></i>
+							Guardar
+						</button>
+
+					</form>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		let noModel = {
+			carreras : @Html.Raw(ViewBag.carreras),
+		}
+
+		Vue.createApp({
+			data() {
+				return {
+					general: @Html.Raw(ViewBag.general),
+					carreras: [],
+					urlExamen : '@Url.Content("~/manage/Examenes/edit")',
+					baseurl: '@ViewBag.self',
+					examenes: @Html.Raw(ViewBag.examenes),
+				}
+			},
+			watch:{
+				'general.idPredeterminado'(val) {
+					let g = this.general;
+					if (!val) {
+						g.idPredeterminado = null
+						return;
+					}
+					let ex = this.examenes.find(x=>x.id == val)
+					console.log(ex)
+					if (ex) {
+						g.numPreguntas = ex.num;
+						g.posCuestionario = ex.pos;
+					}
+				}
+			},
+			methods: {
+				hrefExamen() {
+					let id = this.general.idPredeterminado
+					if(!id) return '';
+					return this.urlExamen + '/' + id
+				},
+				delCarrera(p) {
+					if (p.nombre) {
+						if (!confirm(`Eliminar carrera ${p.nombre}?`))
+							return;
+					}
+					var ix = this.carreras.indexOf(p);
+					this.carreras.splice(ix, 1);
+				},
+				addCarrera() {
+					this.carreras.push({nombre:null	})
+				},
+				reordenar() {
+					// todo ordenar carreras?
+					let list = _.sortBy(this.model.preguntas, ['orden'])
+					this.model.preguntas = list
+				},
+				guardar(nombre, data) {
+					let payload = {
+						data: data,
+						nombre : nombre
+					}
+					let url = this.baseurl + '/guardar'
+					$('.boton').prop('disabled', true)
+					jsonPost(url, payload).then(r => {
+						if (r.error) {
+							return alert(r.error)
+						}
+						alert("Datos guardados")
+					})
+				}
+			},
+			created() {
+				// pasar arreglo a objetos por el binding
+				noModel.carreras.forEach(x=>{
+					this.carreras.push({nombre:x})
+				});
+			},
+			mounted() {
+				var self = this;
+
+				$('#frmCarreras').validate({
+					submitHandler() {
+						// convertir
+						let lista = [];
+						self.carreras.forEach(x=>{
+							if (x.nombre != '')
+								lista.push(x.nombre)
+						})
+						// mas validacion?
+						self.guardar('carreras', lista);
+						return false;
+					}
+				})
+				
+				$('#frmGeneral').validate({
+					submitHandler() {
+						var g = self.general;
+						let keys = Object.keys(g);
+						keys.forEach(k => {
+                          if (g[k] === '')
+							  g[k] = null;
+                        });
+						
+						self.guardar('general', self.general);
+						return false;
+					}
+				})
+				
+			}
+		}).mount('#app')
+
+	</script>
+}

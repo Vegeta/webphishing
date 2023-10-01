@@ -75,7 +75,6 @@ namespace Webapp.Models {
 					Name = "Contenido",
 					Accesos = "preguntas|examenes",
 					Icon = "bi-journal-text",
-
 				}.AddChildren(
 					new MenuItem {
 						Name = "Preguntas",
@@ -108,6 +107,10 @@ namespace Webapp.Models {
 					Icon = "bi-terminal-fill",
 					Accesos = "seguridad",
 				}.AddChildren(
+					new MenuItem {
+						Name = "Configuración",
+						Link = "~/manage/Configuracion",
+					},
 					new MenuItem {
 						Name = "Usuarios",
 						Link = "~/manage/Usuarios",
