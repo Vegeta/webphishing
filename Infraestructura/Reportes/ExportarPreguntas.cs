@@ -15,6 +15,7 @@ public class ExportarPreguntas {
 	}
 
 	private static int? NumAdjuntos(string? txt) {
+		// para usar en vez de la funcion rara esa mapeada en el dbcontext
 		if (string.IsNullOrEmpty(txt))
 			return null;
 		try {
@@ -42,7 +43,7 @@ public class ExportarPreguntas {
 				p.Subject,
 				p.Sender,
 				p.Email,
-				Adjuntos = NumAdjuntos(p.Adjuntos)
+				Adjuntos = AppDbContext.JsonArrayLength(p.Adjuntos),
 			};
 		var headers = new[] {
 			"Nombre Pregunta",

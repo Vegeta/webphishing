@@ -5,17 +5,19 @@
 			<div class="card-body">
 				<h5 class="card-title">Preguntas</h5>
 
-				<div>
-					<a class="btn btn-primary btn-sm" href="@Url.Content("~/Manage/Preguntas/crear")">
-						<i class="bi bi-plus-square"></i>
-						Crear
-					</a>
-					
-					<a class="btn btn-secondary btn-sm ms-1" href="@Url.Content("~/Manage/Preguntas/exportar")">
-						<i class="bi bi-printer"></i>
-						Exportar Excel
-					</a>
-					
+				<div class="row mb-2">
+					<div class="col-sm-6">
+						<a class="btn btn-primary btn-sm" href="@Url.Content("~/Manage/Preguntas/crear")">
+							<i class="bi bi-plus-square"></i>
+							Crear Pregunta
+						</a>
+					</div>
+					<div class="col-sm-6 text-end">
+						<a class="btn btn-secondary btn-sm ms-1" @@click="exportar()" title="No se incluye el HTML por limitantes de Excel">
+							<i class="bi bi-printer"></i>
+							Exportar Excel
+						</a>
+					</div>
 				</div>
 
 
@@ -47,13 +49,18 @@
 
 		Vue.createApp({
 			data() {
-				return {baseUrl:'@ViewBag.self'}
+				return {
+					baseUrl: '@ViewBag.self',
+				}
 			},
 			methods: {
 				consultar() {
 					$.post(this.baseUrl + '/lista').then(r => {
 						$('#tpreguntas').DataTable().clear().rows.add(r).draw();
 					})
+				},
+				exportar() {
+					window.location.href = '@Url.Content("~/Manage/Preguntas/exportar")';
 				}
 			},
 			mounted() {

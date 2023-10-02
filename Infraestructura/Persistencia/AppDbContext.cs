@@ -1,12 +1,17 @@
-﻿using Domain.Entidades;
+﻿using System.Linq.Expressions;
+using Domain.Entidades;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Infraestructura.Persistencia;
 
 public partial class AppDbContext : DbContext {
 	public const string ConnStringName = "phishingDb";
 
-	public AppDbContext() { }
+	public AppDbContext() {
+	}
 
 	/// <summary>
 	/// Mapeo de la funcion random() de postgresql para usarse en consultas con linq. Solo sirve ahi
@@ -16,12 +21,15 @@ public partial class AppDbContext : DbContext {
 	/// <exception cref="NotImplementedException"></exception>
 	[DbFunction("RANDOM", IsBuiltIn = true, IsNullable = false)]
 	public static float Random() => throw new NotImplementedException();
-	
+
 	[DbFunction("json_array_length", IsBuiltIn = true, IsNullable = true)]
-	public static int? PgJsonArrayLength(string column) => throw new NotImplementedException();
-	
+	public static int? JsonArrayLength(string column) {
+		throw new NotSupportedException();
+	}
+
 	public AppDbContext(DbContextOptions<AppDbContext> options)
-		: base(options) { }
+		: base(options) {
+	}
 
 	public virtual DbSet<Auditoria> Auditoria { get; set; } = default!;
 
@@ -49,9 +57,13 @@ public partial class AppDbContext : DbContext {
 
 	public virtual DbSet<VSesionPersona> VSesiones { get; set; } = default!;
 
-	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+	}
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+		modelBuilder.HasDbFunction(() => AppDbContext.JsonArrayLength(default!));
+
+
 		modelBuilder.Entity<Auditoria>(entity => {
 			entity.HasKey(e => e.Id).HasName("log_evento_pkey");
 
@@ -150,7 +162,4 @@ public partial class AppDbContext : DbContext {
 	}
 
 	partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
-
-
-
 }
