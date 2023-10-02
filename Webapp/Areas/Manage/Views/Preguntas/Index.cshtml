@@ -10,6 +10,12 @@
 						<i class="bi bi-plus-square"></i>
 						Crear
 					</a>
+					
+					<a class="btn btn-secondary btn-sm ms-1" href="@Url.Content("~/Manage/Preguntas/exportar")">
+						<i class="bi bi-printer"></i>
+						Exportar Excel
+					</a>
+					
 				</div>
 
 
@@ -76,11 +82,7 @@
 					],
 					order: []
 				});
-
-
 				self.consultar();
-
-
 			}
 		}).mount('#app')
 

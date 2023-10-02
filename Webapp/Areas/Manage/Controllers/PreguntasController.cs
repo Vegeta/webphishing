@@ -3,6 +3,7 @@ using Domain.Entidades;
 using Domain.Transferencia;
 using Infraestructura;
 using Infraestructura.Persistencia;
+using Infraestructura.Reportes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
@@ -133,8 +134,21 @@ public class PreguntasController : BaseAdminController {
 	}
 
 	public IActionResult UploadImage(UploadModel model) {
-		if(model.File != null)
+		if (model.File != null)
 			_imgService.SaveUpload(model.File);
 		return Ok("OK");
+	}
+
+	public IActionResult Exportar() {
+		var exportador = new ExportarPreguntas(_db);
+		using var wb = exportador.Exportar();
+		using var stream = new MemoryStream();
+		wb.SaveAs(stream);
+		var content = stream.ToArray();
+		return File(
+			content,
+			ExcelUtils.TipoMime,
+			"preguntas.xlsx"
+		);
 	}
 }

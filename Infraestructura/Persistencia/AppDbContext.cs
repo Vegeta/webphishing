@@ -17,6 +17,9 @@ public partial class AppDbContext : DbContext {
 	[DbFunction("RANDOM", IsBuiltIn = true, IsNullable = false)]
 	public static float Random() => throw new NotImplementedException();
 	
+	[DbFunction("json_array_length", IsBuiltIn = true, IsNullable = true)]
+	public static int? PgJsonArrayLength(string column) => throw new NotImplementedException();
+	
 	public AppDbContext(DbContextOptions<AppDbContext> options)
 		: base(options) { }
 

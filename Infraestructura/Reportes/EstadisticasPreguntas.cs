@@ -5,12 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructura.Reportes;
 
 public class EstadisticasPreguntas {
-
 	private readonly AppDbContext _db;
 
 	public EstadisticasPreguntas(AppDbContext db) {
@@ -19,13 +20,8 @@ public class EstadisticasPreguntas {
 
 	public void TopDificiiles() {
 		// _db.Database.GetDbConnection().QueryAsync()
-
 	}
 
 	public void EstadisticasExamenes() {
-		
 	}
-
 }
-
-
