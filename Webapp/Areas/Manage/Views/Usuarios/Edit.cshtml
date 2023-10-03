@@ -153,7 +153,6 @@
 						return alert("Password vacio");
 					var url = this.baseurl + '/cambiarPassword'
 					$.post(url, { id: this.model.id, pass: this.password }).then(r => {
-						console.log(r)
 						alert(r.msg)
 					})
 				}

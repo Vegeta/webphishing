@@ -77,7 +77,6 @@ class ExamenTimer {
 	enterFile(file, ev) {
 		let key = 'f:' + file
 		this.cache[key] = new Date();
-		console.log(file)
 	}
 
 	exitFile(file, ev) {
@@ -238,7 +237,6 @@ const CompExamen = {
 			return false;
 		},
 		procesarRespuesta(r) {
-			console.log(r);
 			if (r.error)
 				return alert(r.error);
 			if (r.estado)
@@ -327,7 +325,7 @@ const CompExamen = {
 
 		$('#popupIns')[0].addEventListener('hide.bs.modal',
 			ev => {
-				console.log(ev);
+				//console.log(ev);
 			});
 
 		$('#formEval').validate({

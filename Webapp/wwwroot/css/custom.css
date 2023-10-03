@@ -78,3 +78,56 @@ a {
 .smaller {
 	font-size: smaller
 }
+
+div.error {
+	color: #fff;
+	background: #ed3c0d;
+	text-align: left;
+	padding: 15px;
+	font-weight: 600;
+}
+
+.acierto-examen {
+	background: #16be7e;
+	background: rgba(22, 190, 126, 0.938) !important;
+}
+
+.error-examen {
+	background: rgb(211, 53, 53);
+}
+
+@media print {
+	.noprint {
+		visibility: hidden;
+	}
+}
+
+/* FORM REDUCIDO */
+
+.smallForm label {
+	font-size: smaller !important;
+	padding: 3px 10px !important;
+}
+
+.smallForm select {
+	font-size: smaller !important;
+	padding: 3px 10px !important;
+}
+
+.smallForm .form-group {
+	margin-bottom: 4px !important;
+}
+
+.smallForm input.form-control {
+	font-size: smaller !important;
+	padding: 4px 10px !important;
+}
+
+.smallForm button.dropdown-toggle {
+	font-size: smaller !important;
+	padding: 3px 10px !important;
+}
+
+.smallForm .form-control {
+	height: auto !important;
+}

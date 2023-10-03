@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Infraestructura;
 using Infraestructura.Servicios;
 using Webapp.Models;
@@ -19,6 +20,9 @@ namespace Webapp {
 			builder.Services.AddControllersWithViews()
 				.AddJsonOptions(options => {
 					options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+					options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+					options.JsonSerializerOptions.Converters.Add(new JsonConverterNullableInt());
+					options.JsonSerializerOptions.Converters.Add(new JsonConverterDoubleInt());
 				})
 				.AddSessionStateTempDataProvider();
 

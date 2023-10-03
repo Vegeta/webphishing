@@ -28,4 +28,11 @@ public static class ExcelUtils {
 		}
 		return col;
 	}
+
+	public static string? UpperNoUnder(string? txt) {
+		if (string.IsNullOrEmpty(txt))
+			return null;
+		return txt.ToUpperInvariant().Replace("_", " ");
+	}
+
 }

@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
+using Domain;
 using Infraestructura;
 using Infraestructura.Filtros;
 using Infraestructura.Persistencia;
+using Infraestructura.Reportes;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Webapp.Controllers;
 using Webapp.Models;
 using Webapp.Models.Datatables;
@@ -30,7 +33,16 @@ public class EvaluacionesController : BaseAdminController {
 	}
 
 	public IActionResult Index() {
-		return View();
+		var vm = new FiltrosEvaluacionVm {
+			Meses = OpcionesConfig.MesesWeb()
+		};
+		var mapaActividad = new CatalogoGeneral(_db).Carreras()
+			.ToDictionary(keySelector: m => m, elementSelector: m => m);
+		vm.Actividades = OpcionesConfig.ComboDict(mapaActividad, "");
+		vm.Generos = OpcionesConfig.ComboDict(Generos.Mapa(), "");
+		vm.Ocupaciones = OpcionesConfig.ComboDict(Ocupaciones.Mapa(), "");
+
+		return View(vm);
 	}
 
 	[HttpPost]
@@ -40,7 +52,6 @@ public class EvaluacionesController : BaseAdminController {
 		var orden = model.FirstOrder();
 		filtros.OrdenCampo = orden.Campo;
 		filtros.OrdenDir = orden.Dir;
-
 
 		var q = _sesiones.Sesiones(filtros);
 
@@ -80,11 +91,35 @@ public class EvaluacionesController : BaseAdminController {
 		ViewBag.respuestas = JSON.Stringify(respuestas);
 		ViewBag.percepcion = ses.RespuestaCuestionario ?? "[]";
 		ViewBag.cuest = JSON.Stringify(cuest);
-		
+
 		return View();
 	}
 
 	public IActionResult preguntaDet(int id) {
 		return Ok();
 	}
+
+	[HttpPost]
+	public IActionResult Exportar(string filtros) {
+		var filObj = JSON.Parse<FiltroEvaluacion>(filtros);
+
+		var query = _sesiones.Sesiones(filObj);
+		var exportador = new ExportarSesiones();
+		using var wb = exportador.Exportar(query);
+		using var stream = new MemoryStream();
+		wb.SaveAs(stream);
+		var content = stream.ToArray();
+		return File(
+			content,
+			ExcelUtils.TipoMime,
+			"sesiones.xlsx"
+		);
+	}
+}
+
+public class FiltrosEvaluacionVm {
+	public List<SelectListItem> Meses { get; set; } = new();
+	public List<SelectListItem> Generos { get; set; } = new();
+	public List<SelectListItem> Ocupaciones { get; set; } = new();
+	public List<SelectListItem> Actividades { get; set; } = new();
 }

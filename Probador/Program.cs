@@ -17,14 +17,27 @@ namespace Probador;
 
 public class Program {
 	private static void Main(string[] args) {
-		Host.CreateDefaultBuilder(args)
-			.ConfigureServices((hostContext, services) => {
-				var config = hostContext.Configuration;
-				services.AddDatabase(config);
-				services.AddServices(config);
-				services.AddHostedService<ConsoleService>();
-			}).RunConsoleAsync();
+		// Host.CreateDefaultBuilder(args)
+		// 	.ConfigureServices((hostContext, services) => {
+		// 		var config = hostContext.Configuration;
+		// 		services.AddDatabase(config);
+		// 		services.AddServices(config);
+		// 		services.AddHostedService<ConsoleService>();
+		// 	}).RunConsoleAsync();
+
+		var json = "{\"que\":\"\"}";
+		var o = JSON.Parse<What>(json);
+
+		Console.WriteLine(ObjectDumper.Dump(o));
+
+		o.Que = 4;
+
+		Console.WriteLine(JSON.Stringify(o));
 	}
+}
+
+public class What {
+	public int? Que { get; set; }
 }
 
 public class ConsoleService : IHostedService {

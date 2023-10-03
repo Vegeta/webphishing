@@ -5,7 +5,6 @@ using Infraestructura.Filtros;
 namespace Infraestructura.Servicios;
 
 public class EvaluacionesService {
-
 	private readonly AppDbContext _db;
 
 	public EvaluacionesService(AppDbContext db) {
@@ -22,6 +21,10 @@ public class EvaluacionesService {
 		if (!string.IsNullOrEmpty(f.Apellidos))
 			q = q.Where(x => x.Apellidos.ToUpper().Contains(f.Apellidos.ToUpper()));
 
+		// nombre completo
+		if (!string.IsNullOrEmpty(f.Nombre))
+			q = q.Where(x => x.Nombre.ToUpperInvariant().Contains(f.Nombre.ToUpper()));
+
 		if (f.MinExito.HasValue)
 			q = q.Where(x => x.Exito >= f.MinExito);
 		if (f.MaxExito.HasValue)
@@ -32,9 +35,19 @@ public class EvaluacionesService {
 		if (f.TomadoHasta.HasValue)
 			q = q.Where(x => x.FechaFin >= f.TomadoHasta);
 		if (f.Mes.HasValue)
-			q = q.Where(x => x.FechaExamen.Value.Month == f.Mes);
+			q = q.Where(x => x.FechaExamen.HasValue && x.FechaExamen.Value.Month == f.Mes);
 		if (f.Anio.HasValue)
-			q = q.Where(x => x.FechaExamen.Value.Year == f.Mes);
+			q = q.Where(x => x.FechaExamen.HasValue && x.FechaExamen.Value.Year == f.Anio);
+
+		if (f.Actividad.Any())
+			q = q.Where(x => f.Actividad.Contains(x.Actividad));
+
+		if (!string.IsNullOrEmpty(f.Estado))
+			q = q.Where(x => x.Estado == f.Estado);
+		if (!string.IsNullOrEmpty(f.Ocupacion))
+			q = q.Where(x => x.Ocupacion == f.Ocupacion);
+		if (!string.IsNullOrEmpty(f.Genero))
+			q = q.Where(x => x.Ocupacion == f.Genero);
 
 		var ordenador = new SortExpressionHelper<VSesionPersona>()
 			.Add("email", x => x.Email)
@@ -54,5 +67,4 @@ public class EvaluacionesService {
 
 		return q;
 	}
-
 }

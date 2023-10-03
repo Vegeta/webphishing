@@ -12,18 +12,18 @@
 
 <section class="section">
 <div class="row">
-	<div class="col-sm-8">
+	<div class="col-sm-10">
 		<div class="card">
 			<div class="card-body">
 				<h5 class="card-title">Bienvenido!</h5>
 
-				<div style="display: flex; flex-direction: row;">
-					<div class="text-center" style="width:40%">
+				<div class="row">
+					<div class="col-lg-4 text-center d-sm-none d-md-block" style="min-width: 310px">
 						<a href="@Url.Content("~/")" target="_blank">
 							<img alt="Deteccion de Phishing" src="~/img/imgPhishing.jpg" width="300"/>
 						</a>
 					</div>
-					<div class="" style="width:70%">
+					<div class="col-sm-12 col-lg-8">
 						<p>
 							Bienvenido al sistema de Entrenamiento para Detección de Phishing.
 						</p>
@@ -31,11 +31,11 @@
 							Utilice las opciones del menú del lado izquierdo para acceder a cada sección del área de contenido y mantenimiento.
 						</p>
 						<p>
-							Para acceder a la pàgina principal de la aplicación haga clic en la imagen izquierda.
+							Para acceder a la pàgina principal de la aplicación haga clic en la imagen izquierda o 
+							<a href="@Url.Content("~/")" target="_blank">Aquí</a>.
 						</p>
 					</div>
 				</div>
-
 			</div>
 		</div>
 	</div>

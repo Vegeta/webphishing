@@ -1,36 +1,58 @@
-﻿<div class="row" id="app">
+﻿@model Webapp.Areas.Manage.Controllers.FiltrosEvaluacionVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="row" id="app">
 	<div class="col-sm-12">
 
 		<div class="card">
-			<div class="card-body">
+			<div class="card-body smallForm">
 				<h5 class="card-title">Filtros</h5>
 
 				<form id="formFiltros" method="post">
 					<div class="row">
 						<div class="col-sm-4">
 							<div class="row mb-3">
+								<label for="" class="col-sm-2 col-form-label">Mes</label>
+								<div class="col-sm-5">
+									<select asp-items="Model.Meses" v-model="filtros.mes" name="mes"
+									        class="form-select">
+									</select>
+								</div>
+								<label for="" class="col-sm-2 col-form-label">Año</label>
+								<div class="col-sm-3">
+									<input type="text" class="form-control form-control-sm integer" name="anio" v-model="filtros.anio" maxlength="4">
+								</div>
+							</div>
+
+							<div class="row mb-3">
 								<label class="col-sm-2 col-form-label col-form-label-sm">Email</label>
 								<div class="col-sm-10">
 									<input type="text" class="form-control form-control-sm" name="email" v-model="filtros.email">
 								</div>
+							</div>
 
-							</div>
+
 						</div>
 						<div class="col-sm-4">
 							<div class="row mb-3">
-								<label class="col-sm-2 col-form-label col-form-label-sm">Nombres</label>
-								<div class="col-sm-10">
-									<input type="text" class="form-control form-control-sm" name="nombre" v-model="filtros.nombres">
+								<label class="col-sm-3 col-form-label col-form-label-sm">Nombre/Apellido</label>
+								<div class="col-sm-9">
+									<input type="text" class="form-control form-control-sm" name="nombre" v-model="filtros.nombre">
 								</div>
 							</div>
+
+							<div class="row mb-3">
+								<label class="col-sm-3 col-form-label col-form-label-sm">Actividades</label>
+								<div class="col-sm-9">
+									<select asp-items="Model.Actividades" v-model="filtros.actividades" name="actividades[]"
+									        class="">
+									</select>
+								</div>
+							</div>
+
 						</div>
 						<div class="col-sm-4">
-							<div class="row mb-3">
-								<label class="col-sm-2 col-form-label col-form-label-sm">Apellidos</label>
-								<div class="col-sm-10">
-									<input type="text" class="form-control form-control-sm" name="nombre" v-model="filtros.apellidos">
-								</div>
-							</div>
+
 						</div>
 					</div>
 
@@ -40,6 +62,12 @@
 							<i class="bi bi-search"></i>
 							Filtrar
 						</button>
+
+						<a class="btn btn-secondary btn-sm ms-1" @@click="exportar()">
+							<i class="bi bi-printer"></i>
+							Exportar Excel
+						</a>
+
 					</div>
 				</form>
 			</div>
@@ -70,12 +98,18 @@
 
 		</div>
 	</div>
+
+	<form id="frmExport" method="post" action="@Url.Content("~/Manage/Evaluaciones/Exportar")">
+		<input type="hidden" name="filtros" id="filtroJson"/>
+	</form>
+
 </div>
 
 
 @section Scripts {
 	@await Html.PartialAsync("_Datatables")
 	@await Html.PartialAsync("_Validation")
+	@* @await Html.PartialAsync("_Select") *@
 
 	<script>
 		Vue.createApp({
@@ -84,8 +118,10 @@
 					baseUrl:'@ViewBag.self',
 					filtros:{
 						email:null,
-						apellidos:null,
-						nombres:null,
+						nombre: null,
+						mes: null,
+						anio: null,
+						actividades: [],
 					},
 					lista:[]
 				}
@@ -93,9 +129,15 @@
 			methods: {
 				filtrar() {
 					$('#tlista').DataTable().ajax.reload();
+				},
+				exportar(){
+					$('#filtroJson').val(JSON.stringify(this.filtros));
+					$('#frmExport').submit()
 				}
 			},
 			mounted() {
+				$('.integer').numeric("positiveInteger");
+
 				var self = this;
 				var tabla = $('#tlista').DataTable({
 					language: {
@@ -141,7 +183,6 @@
 								});
 							}
 
-							console.log(d);
 						},
 					},
 				});

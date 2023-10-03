@@ -29,4 +29,12 @@
     <Folder Include="Areas\Manage\Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\lib\bootstrap-select\bootstrap-select.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\bootstrap-select\bootstrap-select.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\bootstrap-select\defaults-es_ES.min.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\bootstrap-select\mod-bootstrap-select.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\bootstrap-select\mod-bootstrap-select.min.js" />
+  </ItemGroup>
+
 </Project>
