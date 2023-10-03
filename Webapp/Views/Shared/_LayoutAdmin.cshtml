@@ -20,11 +20,11 @@
 	<!-- Vendor CSS Files -->
 	<!-- Template Main CSS File -->
 
-	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-	<link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.css" />
-	<link rel="stylesheet" href="~/lib/boxicons/css/boxicons.min.css" />
-	<link rel="stylesheet" href="~/css/admin-style.css" asp-append-version="true" />
-	<link rel="stylesheet" href="~/css/custom.css" asp-append-version="true" />
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.css"/>
+	<link rel="stylesheet" href="~/lib/boxicons/css/boxicons.min.css"/>
+	<link rel="stylesheet" href="~/css/admin-style.css" asp-append-version="true"/>
+	<link rel="stylesheet" href="~/css/custom.css" asp-append-version="true"/>
 
 	<!-- =======================================================
 	* Template Name: NiceAdmin
@@ -37,212 +37,212 @@
 
 <body>
 
-	<!-- ======= Header ======= -->
-	<header id="header" class="header fixed-top d-flex align-items-center">
+<!-- ======= Header ======= -->
+<header id="header" class="header fixed-top d-flex align-items-center">
 
-		<div class="d-flex align-items-center justify-content-between">
-			<a href="@Url.Content("~/Manage")" class="logo d-flex align-items-center">
-				<img src="~/img/logo.png" alt="">
-				<span class="d-none d-lg-block">Phishing Detection</span>
+	<div class="d-flex align-items-center justify-content-between">
+		<a href="@Url.Content("~/Manage")" class="logo d-flex align-items-center">
+			<img src="~/img/logo.png" alt="">
+			<span class="d-none d-lg-block">Phishing Detection</span>
+		</a>
+		<i class="bi bi-list toggle-sidebar-btn"></i>
+	</div><!-- End Logo -->
+	@* <div class="search-bar"> *@
+	@* 	<form class="search-form d-flex align-items-center" method="POST" action="#"> *@
+	@* 		<input type="text" name="query" placeholder="Buscar" title="Ingrese un termino"> *@
+	@* 		<button type="submit" title="Search"><i class="bi bi-search"></i></button> *@
+	@* 	</form> *@
+	@* </div><!-- End Search Bar --> *@
+
+	<nav class="header-nav ms-auto">
+		<ul class="d-flex align-items-center">
+
+			<li class="nav-item d-block d-lg-none">
+				<a class="nav-link nav-icon search-bar-toggle " href="#">
+					<i class="bi bi-search"></i>
+				</a>
+			</li><!-- End Search Icon-->
+
+
+			<li class="nav-item dropdown pe-3">
+
+				<a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+					@*<img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">*@
+					<img src="~/img/profile.jpg" alt="Profile" class="rounded-circle">
+					@* <span class="d-none d-md-block dropdown-toggle ps-2">S. Admin</span> *@
+					<span class="d-none d-md-block dropdown-toggle ps-2">@ViewBag.userNombre</span>
+				</a><!-- End Profile Iamge Icon -->
+
+				<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+					<li class="dropdown-header">
+						<h6>@ViewBag.userCorto</h6>
+						@* <h6>Kevin Anderson</h6> *@
+						@* <span>Web Designer</span> *@
+					</li>
+					<li>
+						<hr class="dropdown-divider">
+					</li>
+
+					<li>
+						<a class="dropdown-item d-flex align-it ems-center" href="users-profile.html">
+							<i class="bi bi-person"></i>
+							<span>Mi Perfil</span>
+						</a>
+					</li>
+					<li>
+						<hr class="dropdown-divider">
+					</li>
+
+					@* <li> *@
+					@* 	<a class="dropdown-item d-flex align-items-center" href="users-profile.html"> *@
+					@* 		<i class="bi bi-gear"></i> *@
+					@* 		<span>Account Settings</span> *@
+					@* 	</a> *@
+					@* </li> *@
+					<li>
+						<hr class="dropdown-divider">
+					</li>
+
+					<li>
+						<a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
+							<i class="bi bi-question-circle"></i>
+							<span>Ayuda</span>
+						</a>
+					</li>
+					<li>
+						<hr class="dropdown-divider">
+					</li>
+
+					<li>
+						<a class="dropdown-item d-flex align-items-center" href="@Url.Content("~/Logout")">
+							<i class="bi bi-box-arrow-right"></i>
+							<span>Salir</span>
+						</a>
+					</li>
+
+				</ul><!-- End Profile Dropdown Items -->
+			</li><!-- End Profile Nav -->
+
+		</ul>
+	</nav><!-- End Icons Navigation -->
+
+</header><!-- End Header -->
+<!-- ======= Sidebar ======= -->
+<aside id="sidebar" class="sidebar">
+
+	<ul class="sidebar-nav" id="sidebar-nav1">
+		<li class="nav-item" v-for="sec in menu">
+
+			<a class="nav-link "
+			   :class="{collapsed : !isCurrSection(sec)}"
+			   :href="sec.link" v-if="sec.children.length == 0">
+				<i :class="'bi ' + sec.icon"></i>
+				<span>{{ sec.name }}</span>
 			</a>
-			<i class="bi bi-list toggle-sidebar-btn"></i>
-		</div><!-- End Logo -->
-		@* <div class="search-bar"> *@
-		@* 	<form class="search-form d-flex align-items-center" method="POST" action="#"> *@
-		@* 		<input type="text" name="query" placeholder="Buscar" title="Ingrese un termino"> *@
-		@* 		<button type="submit" title="Search"><i class="bi bi-search"></i></button> *@
-		@* 	</form> *@
-		@* </div><!-- End Search Bar --> *@
-
-		<nav class="header-nav ms-auto">
-			<ul class="d-flex align-items-center">
-
-				<li class="nav-item d-block d-lg-none">
-					<a class="nav-link nav-icon search-bar-toggle " href="#">
-						<i class="bi bi-search"></i>
-					</a>
-				</li><!-- End Search Icon-->
-
-
-				<li class="nav-item dropdown pe-3">
-
-					<a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-						@*<img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">*@
-						<img src="~/img/profile.jpg" alt="Profile" class="rounded-circle">
-						@* <span class="d-none d-md-block dropdown-toggle ps-2">S. Admin</span> *@
-						<span class="d-none d-md-block dropdown-toggle ps-2">@ViewBag.userNombre</span>
-					</a><!-- End Profile Iamge Icon -->
-
-					<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-						<li class="dropdown-header">
-							<h6>@ViewBag.userCorto</h6>
-							@* <h6>Kevin Anderson</h6> *@
-							@* <span>Web Designer</span> *@
-						</li>
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-
-						<li>
-							<a class="dropdown-item d-flex align-it ems-center" href="users-profile.html">
-								<i class="bi bi-person"></i>
-								<span>Mi Perfil</span>
-							</a>
-						</li>
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-
-						@* <li> *@
-						@* 	<a class="dropdown-item d-flex align-items-center" href="users-profile.html"> *@
-						@* 		<i class="bi bi-gear"></i> *@
-						@* 		<span>Account Settings</span> *@
-						@* 	</a> *@
-						@* </li> *@
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-
-						<li>
-							<a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-								<i class="bi bi-question-circle"></i>
-								<span>Ayuda</span>
-							</a>
-						</li>
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-
-						<li>
-							<a class="dropdown-item d-flex align-items-center" href="@Url.Content("~/Logout")">
-								<i class="bi bi-box-arrow-right"></i>
-								<span>Salir</span>
-							</a>
-						</li>
-
-					</ul><!-- End Profile Dropdown Items -->
-				</li><!-- End Profile Nav -->
-
-			</ul>
-		</nav><!-- End Icons Navigation -->
-
-	</header><!-- End Header -->
-	<!-- ======= Sidebar ======= -->
-	<aside id="sidebar" class="sidebar">
-
-		<ul class="sidebar-nav" id="sidebar-nav1">
-			<li class="nav-item" v-for="sec in menu">
-
+			<template v-else>
 				<a class="nav-link "
 				   :class="{collapsed : !isCurrSection(sec)}"
-				   :href="sec.link" v-if="sec.children.length == 0">
+				   :data-bs-target="'#' + sec.navid" data-bs-toggle="collapse" href="#">
 					<i :class="'bi ' + sec.icon"></i>
 					<span>{{ sec.name }}</span>
+					<i class="bi bi-chevron-down ms-auto"></i>
 				</a>
-				<template v-else>
-					<a class="nav-link "
-					   :class="{collapsed : !isCurrSection(sec)}"
-					   :data-bs-target="'#' + sec.navid" data-bs-toggle="collapse" href="#">
-						<i :class="'bi ' + sec.icon"></i>
-						<span>{{ sec.name }}</span>
-						<i class="bi bi-chevron-down ms-auto"></i>
-					</a>
-					<ul :id="sec.navid" class="nav-content collapse"
-						:class="{show:isCurrSection(sec)}"
-						data-bs-parent="#sidebar-nav">
-						<li v-for="item in sec.children">
-							<a :href="item.link" :class="{active:isCurrItem(item)}">
-								<i class="bi bi-circle"></i>
-								<span>{{ item.name }}</span>
-							</a>
+				<ul :id="sec.navid" class="nav-content collapse"
+				    :class="{show:isCurrSection(sec)}"
+				    data-bs-parent="#sidebar-nav">
+					<li v-for="item in sec.children">
+						<a :href="item.link" :class="{active:isCurrItem(item)}">
+							<i class="bi bi-circle"></i>
+							<span>{{ item.name }}</span>
+						</a>
+					</li>
+				</ul>
+			</template>
+		</li>
+	</ul>
+
+</aside><!-- End Sidebar-->
+
+<main id="main" class="main">
+
+	@if (TempData.ContainsKey("confirma")) {
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			@TempData["confirma"]
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+	@if (TempData.ContainsKey("error")) {
+		<div class="alert alert-dark alert-dismissible fade show" role="alert">
+			@TempData["error"]
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+	<div class="pagetitle">
+		<h1>@ViewData["titulo"]</h1>
+		@if (BreadcrumbsBuilder.Exists(ViewData)) {
+			<nav>
+				<ol class="breadcrumb">
+					@foreach (var i in BreadcrumbsBuilder.Lista(ViewData)) {
+						<li class="breadcrumb-item @i.Activo">
+							@if (i.HasUri) {
+								<a href="@Url.Content(i.Uri)">@i.Name</a>
+							} else {
+								@i.Name
+							}
 						</li>
-					</ul>
-				</template>
-			</li>
-		</ul>
-
-	</aside><!-- End Sidebar-->
-
-	<main id="main" class="main">
-
-		@if (TempData.ContainsKey("confirma")) {
-			<div class="alert alert-success alert-dismissible fade show" role="alert">
-				@TempData["confirma"]
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-			</div>
-		}
-		@if (TempData.ContainsKey("error")) {
-			<div class="alert alert-dark alert-dismissible fade show" role="alert">
-				@TempData["error"]
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-			</div>
-		}
-
-		<div class="pagetitle">
-			<h1>@ViewData["titulo"]</h1>
-			@if (BreadcrumbsBuilder.Exists(ViewData)) {
-				<nav>
-					<ol class="breadcrumb">
-						@foreach (var i in BreadcrumbsBuilder.Lista(ViewData)) {
-							<li class="breadcrumb-item @i.Activo">
-								@if (i.HasUri) {
-									<a href="@Url.Content(i.Uri)">@i.Name</a>
-								} else {
-									@i.Name
-								}
-							</li>
 
 							@*<li class="breadcrumb-item active">Breadcrumbs</li>*@
-						}
-					</ol>
-				</nav>
-			}
-		</div><!-- End Page Title -->
-		<section class="section">
-			@RenderBody()
-		</section>
+					}
+				</ol>
+			</nav>
+		}
+	</div><!-- End Page Title -->
+	<section class="section">
+		@RenderBody()
+	</section>
 
-	</main><!-- End #main -->
-	<!-- ======= Footer ======= -->
-	<footer id="footer" class="footer">
-		<div class="copyright">
-			&copy; Copyright
-			<strong>
-				@* <span>NiceAdmin</span> *@
-				<span>2023</span>
-			</strong>. Derechos Reservados
-		</div>
-		<div class="credits">
-			<!-- All the links in the footer should remain intact. -->
-			<!-- You can delete the links only if you purchased the pro version. -->
-			<!-- Licensing information: https://bootstrapmade.com/license/ -->
-			<!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
-			@* Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> *@
-			Diseño por <a href="https://bootstrapmade.com/">BootstrapMade</a>
-		</div>
-	</footer><!-- End Footer -->
+</main><!-- End #main -->
+<!-- ======= Footer ======= -->
+<footer id="footer" class="footer">
+	<div class="copyright">
+		&copy; Copyright
+		<strong>
+			@* <span>NiceAdmin</span> *@
+			<span>2023</span>
+		</strong>. Derechos Reservados
+	</div>
+	<div class="credits">
+		<!-- All the links in the footer should remain intact. -->
+		<!-- You can delete the links only if you purchased the pro version. -->
+		<!-- Licensing information: https://bootstrapmade.com/license/ -->
+		<!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
+		@* Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> *@
+		Diseño por <a href="https://bootstrapmade.com/">BootstrapMade</a>
+	</div>
+</footer><!-- End Footer -->
 
-	<a href="#" class="back-to-top d-flex align-items-center justify-content-center">
-		<i class="bi bi-arrow-up-short"></i>
-	</a>
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center">
+	<i class="bi bi-arrow-up-short"></i>
+</a>
 
-	<!-- Vendor JS Files -->
+<!-- Vendor JS Files -->
 
-	<script src="~/lib/jquery/dist/jquery.min.js"></script>
-	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-	<environment include="Development">
-		<script src="~/lib/vue/dist/vue.global.js"></script>
-	</environment>
-	<environment exclude="Development">
-		<script src="~/lib/vue/dist/vue.global.prod.js"></script>
-	</environment>
+<environment include="Development">
+	<script src="~/lib/vue/dist/vue.global.js"></script>
+</environment>
+<environment exclude="Development">
+	<script src="~/lib/vue/dist/vue.global.prod.js"></script>
+</environment>
 
-	<!-- Template Main JS File -->
-	<script src="~/js/admin-main.js" asp-append-version="true"></script>
-	<script src="~/js/site.js" asp-append-version="true"></script>
+<!-- Template Main JS File -->
+<script src="~/js/admin-main.js" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 		const { createApp } = Vue
 
 		createApp({
@@ -270,7 +270,7 @@
 		}).mount('#sidebar')
 	</script>
 
-	@await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", required: false)
 
 </body>
 

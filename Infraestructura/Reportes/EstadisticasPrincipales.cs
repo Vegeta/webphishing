@@ -11,10 +11,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructura.Reportes;
 
-public class EstadisticasPreguntas {
+public class EstadisticasPrincipales {
 	private readonly AppDbContext _db;
 
-	public EstadisticasPreguntas(AppDbContext db) {
+	public EstadisticasPrincipales(AppDbContext db) {
 		_db = db;
 	}
 
@@ -22,6 +22,18 @@ public class EstadisticasPreguntas {
 		// _db.Database.GetDbConnection().QueryAsync()
 	}
 
-	public void EstadisticasExamenes() {
+	public void EstadisticasExamenes() { }
+
+	public dynamic HomeScreenStats() {
+		var numSesiones = _db.Database.GetDbConnection()
+			.QuerySingle<int>("select count(*) num from sesion_persona");
+		var numPersonas = _db.Database.GetDbConnection()
+			.QuerySingle<int>("select count(*) num from persona");
+
+		return new {
+			numSesiones,
+			numPersonas
+		};
 	}
+
 }

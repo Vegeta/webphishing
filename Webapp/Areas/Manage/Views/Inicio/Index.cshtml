@@ -1,4 +1,8 @@
-﻿<div class="pagetitle">
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+
+<div class="pagetitle">
 	<h1>Entrenamiento de Detección de Phishing</h1>
 	<nav>
 		<ol class="breadcrumb">
@@ -31,7 +35,7 @@
 							Utilice las opciones del menú del lado izquierdo para acceder a cada sección del área de contenido y mantenimiento.
 						</p>
 						<p>
-							Para acceder a la pàgina principal de la aplicación haga clic en la imagen izquierda o 
+							Para acceder a la pàgina principal de la aplicación haga clic en la imagen izquierda o
 							<a href="@Url.Content("~/")" target="_blank">Aquí</a>.
 						</p>
 					</div>
@@ -42,173 +46,257 @@
 </div>
 
 <div class="row">
-	<div class="col-lg-6">
+<div class="col-lg-6">
 
-		<div class="card">
-			<div class="card-body">
-				<h5 class="card-title">Default Breadcrumbs</h5>
 
+	<div class="card info-card sales-card">
+		<div class="card-body">
+			<h5 class="card-title">Uso</h5>
+
+			<div class="d-flex align-items-center">
+				<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+					<i class="bi bi-mortarboard ri-2x"></i>
+				</div>
+
+				<div class="ps-3">
+					<h6 v-text="est.numSesiones"></h6>
+					@* <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span> *@
+					<span class="text-success small pt-1 fw-bold">Examenes tomados</span>
+				</div>
+
+				<div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+					<i class="bi bi-mortarboard"></i>
+				</div>
+
+				<div class="ps-3">
+					<h6 v-text="est.numPersonas"></h6>
+					@* <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span> *@
+					<span class="text-success small pt-1 fw-bold">Examenes tomados</span>
+				</div>
+
+			</div>
+			@* *@
+			@* <div class="d-flex align-items-center"> *@
+			@* 	<div class="ps-3"> *@
+			@* 		<h6>124</h6> *@
+			@* 		$1$ <span class="text-success small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">increase</span> #1# *@
+			@* 		<span class="text-muted small pt-2 ps-1">Personas registradas</span> *@
+			@* 	</div> *@
+			@* </div> *@
+
+		</div>
+	</div>
+
+
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Default Breadcrumbs</h5>
+
+			<nav>
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Default</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Centered</h5>
+
+			<nav class="d-flex justify-content-center">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Centered Position</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Right Positioned</h5>
+
+			<nav class="d-flex justify-content-end">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Right Position</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">With Home Icon</h5>
+
+			<nav>
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">
+							<i class="bi bi-house-door"></i>
+						</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Default</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+</div>
+
+<div class="col-lg-6">
+
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Breadcrumbs with a page title</h5>
+
+			<div class="pagetitle">
+				<h1>Page Title</h1>
 				<nav>
 					<ol class="breadcrumb">
 						<li class="breadcrumb-item">
 							<a href="index.html">Home</a>
 						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Default</li>
+						<li class="breadcrumb-item">Components</li>
+						<li class="breadcrumb-item active">Breadcrumbs</li>
 					</ol>
 				</nav>
-			</div>
+			</div><!-- End Breadcrumbs with a page title -->
+
 		</div>
-
-		<div class="card">
-			<div class="card-body">
-				<h5 class="card-title">Centered</h5>
-
-				<nav class="d-flex justify-content-center">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Centered Position</li>
-					</ol>
-				</nav>
-			</div>
-		</div>
-
-		<div class="card">
-			<div class="card-body">
-				<h5 class="card-title">Right Positioned</h5>
-
-				<nav class="d-flex justify-content-end">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Right Position</li>
-					</ol>
-				</nav>
-			</div>
-		</div>
-
-		<div class="card">
-			<div class="card-body">
-				<h5 class="card-title">With Home Icon</h5>
-
-				<nav>
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">
-								<i class="bi bi-house-door"></i>
-							</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Default</li>
-					</ol>
-				</nav>
-			</div>
-		</div>
-
 	</div>
 
-	<div class="col-lg-6">
+	<div class="card">
+		<div class="card-body">
+			<h5 class="card-title">Breadcrumbs with different dividers</h5>
 
-		<div class="card">
-			<div class="card-body">
-				<h5 class="card-title">Breadcrumbs with a page title</h5>
+			<nav style="--bs-breadcrumb-divider: '>';">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Data</li>
+				</ol>
+			</nav>
 
-				<div class="pagetitle">
-					<h1>Page Title</h1>
-					<nav>
-						<ol class="breadcrumb">
-							<li class="breadcrumb-item">
-								<a href="index.html">Home</a>
-							</li>
-							<li class="breadcrumb-item">Components</li>
-							<li class="breadcrumb-item active">Breadcrumbs</li>
-						</ol>
-					</nav>
-				</div><!-- End Breadcrumbs with a page title -->
+			<nav style="--bs-breadcrumb-divider: '|';">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Data</li>
+				</ol>
+			</nav>
 
-			</div>
+			<nav style="--bs-breadcrumb-divider: '-';">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Data</li>
+				</ol>
+			</nav>
+
+			<nav style="--bs-breadcrumb-divider: '•';">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Data</li>
+				</ol>
+			</nav>
+
+			<nav style="--bs-breadcrumb-divider: '';">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item">
+						<a href="index.html">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<a href="#">Library</a>
+					</li>
+					<li class="breadcrumb-item active">Data</li>
+				</ol>
+			</nav>
+
 		</div>
-
-		<div class="card">
-			<div class="card-body">
-				<h5 class="card-title">Breadcrumbs with different dividers</h5>
-
-				<nav style="--bs-breadcrumb-divider: '>';">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Data</li>
-					</ol>
-				</nav>
-
-				<nav style="--bs-breadcrumb-divider: '|';">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Data</li>
-					</ol>
-				</nav>
-
-				<nav style="--bs-breadcrumb-divider: '-';">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Data</li>
-					</ol>
-				</nav>
-
-				<nav style="--bs-breadcrumb-divider: '•';">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Data</li>
-					</ol>
-				</nav>
-
-				<nav style="--bs-breadcrumb-divider: '';">
-					<ol class="breadcrumb">
-						<li class="breadcrumb-item">
-							<a href="index.html">Home</a>
-						</li>
-						<li class="breadcrumb-item">
-							<a href="#">Library</a>
-						</li>
-						<li class="breadcrumb-item active">Data</li>
-					</ol>
-				</nav>
-
-			</div>
-		</div>
-
 	</div>
+
+</div>
 </div>
 </section>
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+		Vue.createApp({
+			data() {
+				return {
+					baseurl: '@ViewBag.self',
+					est : @Html.Raw(ViewBag.est),
+				}
+			},
+			watch:{
+			},
+			methods: {
+				guardar(nombre, data) {
+					let payload = {
+						data: data,
+						nombre : nombre
+					}
+					let url = this.baseurl + '/guardar'
+					$('.boton').prop('disabled', true)
+					jsonPost(url, payload).then(r => {
+						if (r.error) {
+							return alert(r.error)
+						}
+						alert("Datos guardados")
+					})
+				}
+			},
+			created() {
+
+			},
+			mounted() {
+				var self = this;
+			
+			}
+		}).mount('#app')
+
+	</script>
+}
