@@ -1,4 +1,5 @@
-﻿using Infraestructura.Persistencia;
+﻿using Infraestructura;
+using Infraestructura.Persistencia;
 using Infraestructura.Reportes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -21,7 +22,7 @@ namespace Webapp.Areas.Manage.Controllers {
 			var rep = new EstadisticasPrincipales(_db);
 			var est = rep.HomeScreenStats();
 
-			ViewBag.est = est;
+			ViewBag.est = JSON.Stringify(est);
 
 			return View();
 		}

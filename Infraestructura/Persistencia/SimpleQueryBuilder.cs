@@ -6,7 +6,7 @@ using Dapper;
 namespace Infraestructura.Persistencia;
 
 public class SimpleQueryBuilder {
-	private readonly MySqlBuilder _builder;
+	private readonly InnerSqlBuilder _builder;
 	private Dictionary<string, bool> _existsClause = new();
 
 	private int specialPar = 0;
@@ -21,7 +21,7 @@ public class SimpleQueryBuilder {
 	}
 
 	public SimpleQueryBuilder() {
-		_builder = new MySqlBuilder();
+		_builder = new InnerSqlBuilder();
 	}
 
 	protected void CheckClause(string clause) {
@@ -29,7 +29,7 @@ public class SimpleQueryBuilder {
 		_existsClause[clause] = true;
 	}
 
-	public class MySqlBuilder : SqlBuilder {
+	public class InnerSqlBuilder : SqlBuilder {
 		public SqlBuilder From(string sql, dynamic parameters = null) =>
 			AddClause("from", sql, parameters, " , ", "FROM ", "\n", false);
 
@@ -46,21 +46,21 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	public SimpleQueryBuilder From(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder From(string exp, dynamic? parameters = null) {
 		CheckClause("from");
 		_builder.From(exp, parameters);
 		return this;
 	}
 
-	public SimpleQueryBuilder Select(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Select(string exp, dynamic? parameters = null) {
 		CheckClause("select");
 		_builder.Select(exp, parameters);
 		return this;
 	}
 
-	public SimpleQueryBuilder Where(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Where(string exp, dynamic? parameters = null) {
 		CheckClause("where");
-		if (Regex.IsMatch(exp, @"^(\w|_)+$") && parameters != null) {
+		if (Regex.IsMatch(exp, @"^(\w|\d|_|\.)+$") && parameters != null) {
 			specialPar++;
 			var name = $"pes{specialPar}";
 			exp = $"{exp} = @{name}";
@@ -82,7 +82,7 @@ public class SimpleQueryBuilder {
 		var parStr = new List<string>();
 		foreach (var item in list) {
 			var par = $"p{specialPar}_{i}";
-			((IDictionary<string, object>)cust)[par] = item;
+			((IDictionary<string, object>)cust)[par] = item!;
 			parStr.Add("@" + par);
 			i++;
 		}
@@ -100,25 +100,25 @@ public class SimpleQueryBuilder {
 		return InClause("not in", field, list);
 	}
 
-	public SimpleQueryBuilder OrderBy(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder OrderBy(string exp, dynamic? parameters = null) {
 		CheckClause("orderby");
 		_builder.OrderBy(exp, parameters);
 		return this;
 	}
 
-	public SimpleQueryBuilder GroupBy(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder GroupBy(string exp, dynamic? parameters = null) {
 		CheckClause("groupby");
 		_builder.GroupBy(exp, parameters);
 		return this;
 	}
 
-	public SimpleQueryBuilder Having(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Having(string exp, dynamic? parameters = null) {
 		CheckClause("having");
 		_builder.Having(exp, parameters);
 		return this;
 	}
 
-	public SimpleQueryBuilder Join(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder Join(string exp, dynamic? parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "JOIN",
@@ -128,7 +128,7 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	public SimpleQueryBuilder InnerJoin(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder InnerJoin(string exp, dynamic? parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "INNER JOIN",
@@ -138,7 +138,7 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	public SimpleQueryBuilder LeftJoin(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder LeftJoin(string exp, dynamic? parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "LEFT JOIN",
@@ -148,7 +148,7 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	public SimpleQueryBuilder RightJoin(string exp, dynamic parameters = null) {
+	public SimpleQueryBuilder RightJoin(string exp, dynamic? parameters = null) {
 		CheckClause("join");
 		_joins.Add(new JoinDef {
 			Tipo = "RIGHT JOIN",

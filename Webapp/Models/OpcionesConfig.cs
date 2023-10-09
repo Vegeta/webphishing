@@ -22,16 +22,16 @@ public class OpcionesConfig {
 		return list;
 	}
 
-	static string[] _meses = new[] { "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre" };
+	private static readonly string[] ListasMeses = new[] { "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre" };
 
-	public static List<string> Meses => _meses.ToList();
+	public static List<string> Meses => ListasMeses.ToList();
 
 	public static List<SelectListItem> MesesWeb(string prompt = "") {
 		var l = new List<SelectListItem>();
 		if (!string.IsNullOrEmpty(prompt))
 			l.Add(new SelectListItem(prompt, ""));
 		var i = 1;
-		foreach (var item in _meses) {
+		foreach (var item in ListasMeses) {
 			l.Add(new SelectListItem(item, i.ToString()));
 			i++;
 		}

@@ -66,7 +66,7 @@ public class JsonConverterDoubleInt : JsonConverter<float?> {
 				throw new JsonException("Valor no puede ser convertido en float");
 			return val;
 		}
-		return reader.GetInt32();
+		return (float?)reader.GetDouble();
 	}
 
 	public override void Write(Utf8JsonWriter writer, float? value, JsonSerializerOptions options) {

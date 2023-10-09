@@ -83,6 +83,15 @@ public class VSesionPersona {
 	[Column("score_cuestionario")]
 	public float? ScoreCuestionario { get; set; }
 
+	// OJO que estas dos columnas son casteadas a integer DESDE LA BASE! si no, no vale
+	// y si le cambio a decimal o algo, pues no tiene sentido
+	// ...ridiculos lenguajes fuertemente tipados
+	[Column("mes")]
+	public int? Mes { get; set; }
+
+	[Column("anio")]
+	public int? Anio { get; set; }
+
 	// porcion de persona
 
 	[Column("nombres")]

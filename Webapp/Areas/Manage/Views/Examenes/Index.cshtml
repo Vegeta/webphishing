@@ -5,39 +5,30 @@
 			<div class="card-body">
 				@*<h5 class="card-title">Filtros</h5>*@
 
-				<div class="mt-3">
-					<a class="btn btn-primary btn-sm" href="@Url.Content("~/Manage/Examenes/crear")">
-						<i class="bi bi-plus-square"></i>
-						Crear
-					</a>
-				</div>
-
-				<form id="formFiltros" method="post">
-				</form>
-			</div>
-
-
-			<div class="card">
-				<div class="card-body">
-
-					<div class="mt-3">
-						<table class="display minitabla" id="texamenes" style="width:100%">
-							<thead>
-								<tr>
-									<th>Titulo</th>
-									<th>Tipo</th>
-									<th>Activo</th>
-									<th>Creación</th>
-									<th>Modificación</th>
-								</tr>
-							</thead>
-							<tbody>
-							</tbody>
-						</table>
+				<div class="row mb-2 mt-3">
+					<div class="col-sm-6">
+						<a class="btn btn-primary btn-sm" href="@Url.Content("~/Manage/Examenes/crear")">
+							<i class="bi bi-plus-square"></i>
+							Crear Examen
+						</a>
 					</div>
 				</div>
-			</div>
 
+				<table class="display minitabla" id="texamenes" style="width:100%">
+					<thead>
+						<tr>
+							<th>Titulo</th>
+							<th>Tipo</th>
+							<th>Activo</th>
+							<th>Creación</th>
+							<th>Modificación</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+
+			</div>
 		</div>
 	</div>
 </div>
@@ -87,8 +78,6 @@
 
 
 				self.consultar();
-
-
 			}
 		}).mount('#app')
 

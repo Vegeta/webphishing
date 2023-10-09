@@ -15,6 +15,10 @@ public class FiltroEvaluacion : Ordenable {
 	public DateTime? TomadoDesde { get; set; }
 	public DateTime? TomadoHasta { get; set; }
 
+	public string? Dificultad { get; set; }
+	public string? Clase { get; set; }
+
+
 	[JsonConverter(typeof(JsonConverterNullableInt))]
 	public int? Mes { get; set; }
 
@@ -27,4 +31,5 @@ public class FiltroEvaluacion : Ordenable {
 		OrdenCampo = "fechaExamen";
 		OrdenDir = "desc";
 	}
+	
 }

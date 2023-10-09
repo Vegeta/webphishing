@@ -50,15 +50,15 @@ public class EvaluacionesService {
 			q = q.Where(x => x.Ocupacion == f.Genero);
 
 		var ordenador = new SortExpressionHelper<VSesionPersona>()
-			.Add("email", x => x.Email)
-			.Add("nombres", x => x.Apellidos, x => x.Nombres)
-			.Add("nombreCompleto", x => x.Apellidos, x => x.Nombres)
-			.Add("fechaExamen", x => x.FechaExamen)
-			.Add("exito", x => x.Exito)
-			.Add("tiempo", x => x.TiempoTotal)
-			.Add("avgTiempo", x => x.AvgTiempo)
-			.Add("avgScore", x => x.AvgScore)
-			.Add("score", x => x.Score);
+			.Add("email", x => x.Email!)
+			.Add("nombres", x => x.Apellidos!, x => x.Nombres!)
+			.Add("nombreCompleto", x => x.Apellidos!, x => x.Nombres!)
+			.Add("fechaExamen", x => x.FechaExamen!)
+			.Add("exito", x => x.Exito!)
+			.Add("tiempo", x => x.TiempoTotal!)
+			.Add("avgTiempo", x => x.AvgTiempo!)
+			.Add("avgScore", x => x.AvgScore!)
+			.Add("score", x => x.Score!);
 
 		var order = f.OrdenCampo;
 		if (!string.IsNullOrEmpty(f.OrdenCampo)) {

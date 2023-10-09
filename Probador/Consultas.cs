@@ -17,7 +17,7 @@ namespace Probador;
 
 public class Consultas {
 	public void PruebaDapperBuilder(AppDbContext db) {
-		var id = "facil";
+		//var id = "facil";
 
 		var builder = new SqlBuilder();
 		var tpl = builder.AddTemplate(@"select r.pregunta_id, r.nombre, r.dificultad, count(*), sum(r.correcta) as correctas,
@@ -64,8 +64,8 @@ public class Consultas {
 		builder.Where($"id not in ({inParams})");
 
 		var tpl = builder.AddTemplate("select /**select**/ from pregunta /**where**/ /**orderby**/ limit 1");
-		
-		
+
+
 		var res = db.Database.GetDbConnection()
 			.QueryFirst(tpl.RawSql, tpl.Parameters);
 

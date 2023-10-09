@@ -3,24 +3,25 @@
 
 		<div class="card">
 			<div class="card-body">
-				<h5 class="card-title">Preguntas</h5>
+				@* <h5 class="card-title">Preguntas</h5> *@
 
-				<div class="row mb-2">
+				<div class="row mb-2 mt-3">
 					<div class="col-sm-6">
 						<a class="btn btn-primary btn-sm" href="@Url.Content("~/Manage/Preguntas/crear")">
 							<i class="bi bi-plus-square"></i>
 							Crear Pregunta
 						</a>
-					</div>
-					<div class="col-sm-6 text-end">
+						
 						<a class="btn btn-secondary btn-sm ms-1" @@click="exportar()" title="No se incluye el HTML por limitantes de Excel">
 							<i class="bi bi-printer"></i>
 							Exportar Excel
 						</a>
+
+					</div>
+					<div class="col-sm-6 text-end">
 					</div>
 				</div>
-
-
+				
 				<table class="display minitabla" id="tpreguntas" style="width:100%">
 					<thead>
 						<tr>
