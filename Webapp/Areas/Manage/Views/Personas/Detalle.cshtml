@@ -1,0 +1,74 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+
+	<div class="row">
+		<div class="col-sm-6">
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Persona registrada</h5>
+
+					<table class="table minitabla">
+						<tr v-for="d in model.detalle">
+							<th v-text="d.item1" class="col-sm-3"></th>
+							<td v-text="d.item2"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-sm-6">
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Actividad</h5>
+
+					<table class="table minitabla">
+						<thead>
+							<th>Estado Examen</th>
+							<th>Numero</th>
+							<th>Fecha ultimo examen</th>
+							<th>Fecha actividad</th>
+						</thead>
+						<tr v-for="d in model.actividad">
+							<td v-text="d.estado"></td>
+							<td v-text="d.num"></td>
+							<td v-text="fechaHora(d.fexamen)"></td>
+							<td v-text="fechaHora(d.factividad)"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+				}
+			},
+			computed: {
+			},
+			methods: {
+			},
+			mounted() {
+			}
+		})
+		.use(globalDirectives)
+		.mount('#app')
+
+	</script>
+}

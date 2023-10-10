@@ -5,70 +5,43 @@ using Domain.Entidades;
 namespace Infraestructura.Reportes;
 
 public class ExportarSesiones {
-
 	public XLWorkbook Exportar(IQueryable<VSesionPersona> query) {
 		var wb = new XLWorkbook();
 		var ws = wb.AddWorksheet("Preguntas");
 
-		var headers = new[] {
-			"Fecha Examen",
-			"Fecha Fin",
-			"Estado",
-			"Tipo Prueba",
-			"Score",
-			"Tiempo Total(s)",
-			"Prom. Score",
-			"Prom. Tiempo (s)",
-			"% Exito",
-			"Max. Score",
-			"Percepcion Seguridad",
-			"Tiempo Cuestionario (s)",
-			"Score Cuestionario",
-			"Apellidos",
-			"Nombres",
-			"Genero",
-			"Edad",
-			"Ocupación",
-			"Actividad",
-			"Años exp. seguridad",
-			"Email",
-			"idSesion",
-			"idPersona"
-		};
+		var campos = new CamposExcel<VSesionPersona>();
+		campos
+			.AddCampo("Fecha Examen", x => x.FechaExamen!)
+			.AddCampo("Fecha Fin", x => x.FechaFin!)
+			.AddCampo("Estado", x => ExcelUtils.UpperNoUnder(x.Estado)!)
+			.AddCampo("Tipo Prueba", x => x.Tipo!)
+			.AddCampo("Score", x => x.Score!)
+			.AddCampo("Tiempo Total(s)", x => x.TiempoTotal!)
+			.AddCampo("Prom. Score", x => x.AvgScore!)
+			.AddCampo("Prom. Tiempo (s)", x => x.AvgTiempo!)
+			.AddCampo("% Exito", x => x.Exito!)
+			.AddCampo("Max. Score", x => x.MaxScore!)
+			.AddCampo("Percepcion Seguridad", x => x.Percepcion!)
+			.AddCampo("Tiempo Cuestionario (s)", x => x.TiempoCuestionario!)
+			.AddCampo("Score Cuestionario", x => x.ScoreCuestionario!)
+			.AddCampo("Apellidos", x => x.Apellidos!)
+			.AddCampo("Nombres", x => x.Nombres!)
+			.AddCampo("Genero", x => x.Genero!)
+			.AddCampo("Edad", x => x.Edad!)
+			.AddCampo("Ocupación", x => x.Ocupacion!)
+			.AddCampo("Actividad", x => x.Actividad!)
+			.AddCampo("Años exp. seguridad", x => x.ExperienciaSeguridad!)
+			.AddCampo("Email", x => x.Email!)
+			.AddCampo("idSesion", x => x.Id)
+			.AddCampo("idPersona", x => x.PersonaId!);
 
-		ExcelUtils.LlenarHeader(ws, 1, headers);
+		ExcelUtils.LlenarHeader(ws, 1, campos.GetHeader());
 
-		var row = 2;
+		campos.Row = 2;
 		foreach (var rec in query) {
-			var col = 0;
-			ws.Cell(row, ++col).Value = rec.FechaExamen;
-			ws.Cell(row, ++col).Value = rec.FechaFin;
-			ws.Cell(row, ++col).Value = ExcelUtils.UpperNoUnder(rec.Estado);
-			ws.Cell(row, ++col).Value = rec.Tipo;
-			ws.Cell(row, ++col).Value = rec.Score;
-			ws.Cell(row, ++col).Value = rec.TiempoTotal;
-			ws.Cell(row, ++col).Value = rec.AvgScore;
-			ws.Cell(row, ++col).Value = rec.AvgTiempo;
-			ws.Cell(row, ++col).Value = rec.Exito;
-			ws.Cell(row, ++col).Value = rec.MaxScore;
-			ws.Cell(row, ++col).Value = rec.Percepcion;
-			ws.Cell(row, ++col).Value = rec.TiempoCuestionario;
-			ws.Cell(row, ++col).Value = rec.ScoreCuestionario;
-			ws.Cell(row, ++col).Value = rec.Apellidos;
-			ws.Cell(row, ++col).Value = rec.Nombres;
-			ws.Cell(row, ++col).Value = rec.Genero;
-			ws.Cell(row, ++col).Value = rec.Edad;
-			ws.Cell(row, ++col).Value = rec.Ocupacion;
-			ws.Cell(row, ++col).Value = rec.Actividad;
-			ws.Cell(row, ++col).Value = rec.ExperienciaSeguridad;
-			ws.Cell(row, ++col).Value = rec.Email;
-			ws.Cell(row, ++col).Value = rec.Id;
-			ws.Cell(row, ++col).Value = rec.PersonaId;
-			row++;
+			campos.WriteRow(ws, rec);
 		}
 
 		return wb;
 	}
-
-
 }

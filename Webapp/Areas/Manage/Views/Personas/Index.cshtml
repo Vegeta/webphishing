@@ -11,18 +11,6 @@
 				<form id="formFiltros" method="post">
 					<div class="row">
 						<div class="col-sm-4">
-							<div class="row mb-3">
-								<label for="" class="col-sm-2 col-form-label">Mes</label>
-								<div class="col-sm-5">
-									<select asp-items="Model.Meses" v-model="filtros.mes" name="mes"
-									        class="form-select">
-									</select>
-								</div>
-								<label for="" class="col-sm-2 col-form-label">Año</label>
-								<div class="col-sm-3">
-									<input type="text" class="form-control form-control-sm integer" name="anio" v-model="filtros.anio" maxlength="4">
-								</div>
-							</div>
 
 							<div class="row mb-3">
 								<label class="col-sm-2 col-form-label col-form-label-sm">Email</label>
@@ -30,9 +18,8 @@
 									<input type="text" class="form-control form-control-sm" name="email" v-model="filtros.email">
 								</div>
 							</div>
-
-
 						</div>
+
 						<div class="col-sm-4">
 							<div class="row mb-3">
 								<label class="col-sm-3 col-form-label col-form-label-sm">Nombre/Apellido</label>
@@ -80,15 +67,14 @@
 						<table class="display minitabla" id="tlista" style="width:100%">
 							<thead>
 								<tr>
-									<th>Fecha Examen</th>
 									<th>Nombre completo</th>
 									<th>Email</th>
-									<th>% Exito</th>
-									<th>Score</th>
-									<th>Tiempo total(s)</th>
-									<th>Prom. tiempo(s)</th>
-									<th>Percepción Seg.</th>
-									<th>Estado</th>
+									<th>Genero</th>
+									<th>Ocupación</th>
+									<th>Actividad</th>
+									<th>Edad</th>
+									<th title="Años de experiencia en seguridad">Exp. Seguridad</th>
+									<th>Fecha registro</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -101,7 +87,7 @@
 		</div>
 	</div>
 
-	<form id="frmExport" method="post" action="@Url.Content("~/Manage/Evaluaciones/Exportar")">
+	<form id="frmExport" method="post" action="@Url.Content("~/Manage/Personas/Exportar")">
 		<input type="hidden" name="filtros" id="filtroJson"/>
 	</form>
 
@@ -119,11 +105,14 @@
 				return {
 					baseUrl:'@ViewBag.self',
 					filtros:{
-						email:null,
-						nombre: null,
-						mes: null,
-						anio: null,
+						email: null,
+						nombres: null,
+						apellidos: null,
 						actividades: [],
+						ocupacion: null,
+						genero: null,
+						edad: null,
+						experiencia: null,
 					},
 					lista:[]
 				}
@@ -143,25 +132,25 @@
 				var self = this;
 				var tabla = $('#tlista').DataTable({
 					language: {
-						url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-AR.json',
+						//url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-AR.json',
+						url: window.datatablesI18N,
 					},
 					columns: [
 						{
-							data: 'fechaExamen',
+							data: 'nombreCompleto',
 							render: function (data, type, row) {
 								let url = self.baseUrl + '/detalle/' + row.id;
-								return `<a href="${url}">${row.fechaExamen}</a>`
+								return `<a href="${url}">${row.nombreCompleto}</a>`
 							}
 						},
 						//{ data: 'activo', orderable: false },
-						{ data: 'nombreCompleto' },
 						{ data: 'email' },
-						{ data: 'exito' },
-						{ data: 'score' },
-						{ data: 'tiempo' },
-						{ data: 'avgTiempo' },
-						{ data: 'percepcion' },
-						{ data: 'estado' },
+						{ data: 'genero' },
+						{ data: 'ocupacion' },
+						{ data: 'actividad' },
+						{ data: 'edad' },
+						{ data: 'experiencia' },
+						{ data: 'creacion' },
 					],
 					order: [[0, 'desc']],
 					searching: false,
@@ -199,7 +188,9 @@
 				})
 
 			}
-		}).mount('#app')
+		})
+		.use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }

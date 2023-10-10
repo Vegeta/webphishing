@@ -33,8 +33,7 @@ const globalDirectives = {
 
 		app.mixin({
 			data() {
-				return {
-				}
+				return {}
 			},
 			created() {
 				// no reactive
@@ -57,6 +56,9 @@ const globalDirectives = {
 					if (!d)
 						return '<ERROR>';
 					return d.locale('es').format(formato || 'YYYY-MM-DD');
+				},
+				fechaHora(val) {
+					return this.fecha(val, 'YYYY-MM-DD hh:mm:ss')
 				},
 				porcentaje: function (val, decimales = 0) {
 					if (!val || val === '' || val === null || isNaN(val))

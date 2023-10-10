@@ -32,10 +32,10 @@
 									<option></option>
 									<option v-for="e in examenes" :value="e.id" v-text="e.nombre"></option>
 								</select>
+								<a target="_blank" class="ps-2" v-if="general.idPredeterminado" :href="hrefExamen()">Ver Examen</a>
 							</div>
 							<div class="col-sm-2">
-								<a target="_blank" v-if="general.idPredeterminado" :href="hrefExamen()">Ver Examen</a>
-
+								<a @@click="defecto()">Por Defecto</a>
 							</div>
 						</div>
 
@@ -130,6 +130,11 @@
 				}
 			},
 			methods: {
+				defecto() {
+					this.general.numPreguntas = 10;
+					this.general.posCuestionario = 5;
+					this.general.idPredeterminado = null;
+				},
 				hrefExamen() {
 					let id = this.general.idPredeterminado
 					if(!id) return '';

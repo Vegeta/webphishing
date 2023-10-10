@@ -101,6 +101,11 @@ namespace Webapp.Models {
 						Name = "Evaluaciones",
 						Link = "~/manage/Evaluaciones"
 					}
+				).AddChildren(
+					new MenuItem {
+						Name = "Personas",
+						Link = "~/manage/Personas"
+					}
 				),
 				new MenuItem {
 					Name = "Administración",

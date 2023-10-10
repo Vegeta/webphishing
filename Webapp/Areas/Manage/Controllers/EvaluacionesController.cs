@@ -15,9 +15,9 @@ using Webapp.Models.Datatables;
 namespace Webapp.Areas.Manage.Controllers;
 
 public class EvaluacionesController : BaseAdminController {
-	AppDbContext _db;
+	private readonly AppDbContext _db;
 	private readonly IMapper _mapper;
-	private readonly EvaluacionesService _sesiones;
+	private readonly ConsultasService _consultas;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
@@ -26,14 +26,14 @@ public class EvaluacionesController : BaseAdminController {
 		Titulo("Resultados evaluaciones");
 	}
 
-	public EvaluacionesController(AppDbContext db, IMapper mapper, EvaluacionesService sesiones) {
+	public EvaluacionesController(AppDbContext db, IMapper mapper, ConsultasService consultas) {
 		_db = db;
 		_mapper = mapper;
-		_sesiones = sesiones;
+		_consultas = consultas;
 	}
 
 	public IActionResult Index() {
-		var vm = new FiltrosEvaluacionVm {
+		var vm = new FiltroCatalogoVm {
 			Meses = OpcionesConfig.MesesWeb()
 		};
 		var mapaActividad = new CatalogoGeneral(_db).Carreras()
@@ -53,7 +53,7 @@ public class EvaluacionesController : BaseAdminController {
 		filtros.OrdenCampo = orden.Campo;
 		filtros.OrdenDir = orden.Dir;
 
-		var q = _sesiones.Sesiones(filtros);
+		var q = _consultas.Sesiones(filtros);
 
 		var proj = q.Select(x => new {
 			id = x.Id,
@@ -66,6 +66,8 @@ public class EvaluacionesController : BaseAdminController {
 			exito = x.Exito,
 			avgTiempo = x.AvgTiempo,
 			avgScore = x.AvgScore,
+			x.Estado,
+			x.Percepcion
 		});
 
 		var paged = proj.GetPaged(model.Page, model.Length);
@@ -103,7 +105,7 @@ public class EvaluacionesController : BaseAdminController {
 	public IActionResult Exportar(string filtros) {
 		var filObj = JSON.Parse<FiltroEvaluacion>(filtros);
 
-		var query = _sesiones.Sesiones(filObj);
+		var query = _consultas.Sesiones(filObj);
 		var exportador = new ExportarSesiones();
 		using var wb = exportador.Exportar(query);
 		using var stream = new MemoryStream();
@@ -117,7 +119,7 @@ public class EvaluacionesController : BaseAdminController {
 	}
 }
 
-public class FiltrosEvaluacionVm {
+public class FiltroCatalogoVm {
 	public List<SelectListItem> Meses { get; set; } = new();
 	public List<SelectListItem> Generos { get; set; } = new();
 	public List<SelectListItem> Ocupaciones { get; set; } = new();

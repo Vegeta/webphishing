@@ -1,6 +1,6 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<section id="app">
+<section id="app" class="dashboard">
 
 	<div class="pagetitle">
 		<h1>Entrenamiento de Detección de Phishing</h1>
@@ -24,7 +24,7 @@
 						<div class="row">
 							<div class="col-lg-4 text-center d-sm-none d-md-block" style="min-width: 310px">
 								<a href="@Url.Content("~/")" target="_blank">
-									<img alt="Deteccion de Phishing" src="~/img/imgPhishing.jpg" width="300" />
+									<img alt="Deteccion de Phishing" src="~/img/imgPhishing.jpg" width="300"/>
 								</a>
 							</div>
 							<div class="col-sm-12 col-lg-8">
@@ -53,26 +53,25 @@
 					<div class="card-body">
 						<h5 class="card-title">Registros en el sistema <i class="bi bi-mortarboard"></i></h5>
 
-						<table class="table minitabla">
+						<table class="table table-sm">
 							<tr>
 								<td class="border-0">
-									<h5 v-text="est.numSesiones"></h5>
-									<h6 class="text-success fw-bold">Exámenes tomados</h6>
+									<h6 v-text="est.numSesiones" class=""></h6>
+									<div class="text-success fw-bold small">Exámenes tomados</div>
 								</td>
 								<td class="border-0">
-									<h5 v-text="est.numPersonas"></h5>
-									<h6 class="text-success fw-bold">Personas registradas</h6>
+									<h6 v-text="est.numPersonas"></h6>
+									<div class="text-success fw-bold small">Personas registradas</div>
 								</td>
 								<td class="border-0">
-									<h5 v-text="est.numPreguntas"></h5>
-									<h6 class="text-success fw-bold">Preguntas ingresadas</h6>
+									<h6 v-text="est.numPreguntas"></h6>
+									<div class="text-success fw-bold small">Preguntas ingresadas</div>
 								</td>
 							</tr>
 						</table>
 
 					</div>
 				</div>
-
 
 
 				<div class="card">
@@ -109,12 +108,12 @@
 
 						<table class="table minitabla table-hover">
 							<thead>
-							<th>Pregunta</th>
-							<th>Dificultad</th>
-							<th>Clase</th>
-							<th>Erradas</th>
-							<th>Correctas</th>
-							<th>% Exito</th>
+								<th>Pregunta</th>
+								<th>Dificultad</th>
+								<th>Clase</th>
+								<th>Erradas</th>
+								<th>Correctas</th>
+								<th>% Exito</th>
 							</thead>
 
 							<tr v-for="p in est.exitoPreguntas">
@@ -143,29 +142,29 @@
 
 	<script>
 		Vue.createApp({
-				data() {
-					return {
-						baseurl: '@ViewBag.self',
-						est: @Html.Raw(ViewBag.est),
-					}
+			data() {
+				return {
+					baseurl: '@ViewBag.self',
+					est: @Html.Raw(ViewBag.est),
+				}
+			},
+			watch: {
+			},
+			methods: {
+				linkEval(e) {
+					var href = "@Url.Content("~/Manage/Evaluaciones/detalle/")" + e.id
+					return href;
 				},
-				watch: {
-				},
-				methods: {
-					linkEval(e) {
-						var href = "@Url.Content("~/Manage/Evaluaciones/detalle/")" + e.id
-						return href;
-					},
-					nombreEstado(e) {
-						if (!e) return '';
-						return e.toUpperCase().replace('_', ' ');
-					}
-				},
-				created() {},
-				mounted() {}
-			})
-			.use(globalDirectives)
-			.mount('#app');
+				nombreEstado(e) {
+					if (!e) return '';
+					return e.toUpperCase().replace('_', ' ');
+				}
+			},
+			created() {},
+			mounted() {}
+		})
+		.use(globalDirectives)
+		.mount('#app');
 
 	</script>
 }

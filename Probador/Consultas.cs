@@ -43,18 +43,18 @@ public class Consultas {
 		}
 	}
 
-	public string inParameters<T>(List<T> lista) {
+	public static string InParameters<T>(List<T> lista) {
 		Type tipo = lista.GetType().GetGenericArguments().Single();
 		if (tipo == typeof(string))
 			return string.Join(",", lista.Select(x => $"'{x}'"));
-		return string.Join(",", lista.Select(x => x.ToString()));
+		return string.Join(",", lista.Select(x => x!.ToString()));
 	}
 
 	public void PruebaFluent(AppDbContext db) {
 		var dif = "dificil";
 		var excluir = new List<int> { 1, 2, 3 };
 		// Type myListElementType = myList.GetType().GetGenericArguments().Single();
-		var inParams = inParameters(excluir);
+		var inParams = InParameters(excluir);
 
 		var builder = new SqlBuilder();
 		builder.Select("id, nombre")

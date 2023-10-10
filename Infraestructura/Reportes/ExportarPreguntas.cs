@@ -14,16 +14,8 @@ public class ExportarPreguntas {
 		_db = db;
 	}
 
-	private static int? NumAdjuntos(string? txt) {
-		// para usar en vez de la funcion rara esa mapeada en el dbcontext
-		if (string.IsNullOrEmpty(txt))
-			return null;
-		try {
-			var temp = JSON.Parse<List<object>>(txt);
-			return temp.Count;
-		} catch {
-			return null;
-		}
+	class PreguntaExport : Pregunta {
+		public int? NumAdjuntos { get; set; }
 	}
 
 	public XLWorkbook Exportar() {
@@ -31,48 +23,39 @@ public class ExportarPreguntas {
 		var wb = new XLWorkbook();
 		var ws = wb.AddWorksheet("Preguntas");
 
-		var l = from p in _db.Pregunta
+		var lista = from p in _db.Pregunta
 			orderby p.Nombre
-			select new {
-				p.Id,
-				p.Nombre,
-				p.Legitimo,
-				p.Dificultad,
-				p.Explicacion,
-				p.ImagenRetro,
-				p.Subject,
-				p.Sender,
-				p.Email,
-				Adjuntos = AppDbContext.JsonArrayLength(p.Adjuntos),
+			select new PreguntaExport {
+				Id = p.Id,
+				Nombre = p.Nombre,
+				Legitimo = p.Legitimo,
+				Dificultad = p.Dificultad,
+				Explicacion = p.Explicacion,
+				ImagenRetro = p.ImagenRetro,
+				Subject = p.Subject,
+				Sender = p.Sender,
+				Email = p.Email,
+				NumAdjuntos = AppDbContext.JsonArrayLength(p.Adjuntos) ?? 0,
 			};
-		var headers = new[] {
-			"Nombre Pregunta",
-			"Dificultad",
-			"Legitimo",
-			"Titulo Email",
-			"Remitente",
-			"Direccion Remitente",
-			"# Adjuntos",
-			"Explicacion",
-			"Imagen retroalimentacion",
-		};
 
-		ExcelUtils.LlenarHeader(ws, 1, headers);
+		var campos = new CamposExcel<PreguntaExport>();
+		campos.AddCampo("Nombre Pregunta", x => x.Nombre!)
+			.AddCampo("Dificultad", x => x.Dificultad!)
+			.AddCampo("Legitimo", x => x.Legitimo!)
+			.AddCampo("Titulo Email", x => x.Subject!)
+			.AddCampo("Remitente", x => x.Sender!)
+			.AddCampo("Direccion Remitente", x => x.Email!)
+			.AddCampo("# Adjuntos", x => x.NumAdjuntos!)
+			.AddCampo("Explicacion", x => x.Explicacion!)
+			.AddCampo("Imagen retroalimentacion", x => x.ImagenRetro!);
 
-		var row = 2;
-		foreach (var preg in l) {
-			var col = 0;
-			ws.Cell(row, ++col).Value = preg.Nombre;
-			ws.Cell(row, ++col).Value = preg.Dificultad;
-			ws.Cell(row, ++col).Value = preg.Legitimo;
-			ws.Cell(row, ++col).Value = preg.Subject;
-			ws.Cell(row, ++col).Value = preg.Sender;
-			ws.Cell(row, ++col).Value = preg.Email;
-			ws.Cell(row, ++col).Value = preg.Adjuntos;
-			ws.Cell(row, ++col).Value = preg.Explicacion;
-			ws.Cell(row, ++col).Value = preg.ImagenRetro;
-			row++;
+		ExcelUtils.LlenarHeader(ws, 1, campos.GetHeader());
+
+		campos.Row = 2;
+		foreach (var preg in lista) {
+			campos.WriteRow(ws, preg);
 		}
+
 		return wb;
 	}
 }

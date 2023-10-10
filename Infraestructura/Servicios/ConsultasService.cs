@@ -1,13 +1,15 @@
-﻿using Infraestructura.Persistencia;
+﻿using Dapper;
+using Infraestructura.Persistencia;
 using Domain.Entidades;
 using Infraestructura.Filtros;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructura.Servicios;
 
-public class EvaluacionesService {
+public class ConsultasService {
 	private readonly AppDbContext _db;
 
-	public EvaluacionesService(AppDbContext db) {
+	public ConsultasService(AppDbContext db) {
 		_db = db;
 	}
 
@@ -40,7 +42,7 @@ public class EvaluacionesService {
 			q = q.Where(x => x.FechaExamen.HasValue && x.FechaExamen.Value.Year == f.Anio);
 
 		if (f.Actividad.Any())
-			q = q.Where(x => f.Actividad.Contains(x.Actividad));
+			q = q.Where(x => f.Actividad.Contains(x.Actividad!));
 
 		if (!string.IsNullOrEmpty(f.Estado))
 			q = q.Where(x => x.Estado == f.Estado);
@@ -58,6 +60,8 @@ public class EvaluacionesService {
 			.Add("tiempo", x => x.TiempoTotal!)
 			.Add("avgTiempo", x => x.AvgTiempo!)
 			.Add("avgScore", x => x.AvgScore!)
+			.Add("estado", x => x.Estado!)
+			.Add("percepcion", x => x.Percepcion!)
 			.Add("score", x => x.Score!);
 
 		var order = f.OrdenCampo;
@@ -66,5 +70,54 @@ public class EvaluacionesService {
 		}
 
 		return q;
+	}
+
+	public IQueryable<Persona> Personas(FiltroEvaluacion f) {
+		IQueryable<Persona> q = _db.Persona;
+
+		if (!string.IsNullOrEmpty(f.Email))
+			q = q.Where(x => x.Email!.ToUpper().Contains(f.Email.ToUpper()));
+		if (!string.IsNullOrEmpty(f.Nombres))
+			q = q.Where(x => x.Nombre!.ToUpper().Contains(f.Nombres.ToUpper()));
+		if (!string.IsNullOrEmpty(f.Apellidos))
+			q = q.Where(x => x.Apellido!.ToUpper().Contains(f.Apellidos.ToUpper()));
+
+		if (f.Actividad.Any())
+			q = q.Where(x => f.Actividad.Contains(x.Actividad!));
+
+		if (!string.IsNullOrEmpty(f.Ocupacion))
+			q = q.Where(x => x.Ocupacion == f.Ocupacion);
+		if (!string.IsNullOrEmpty(f.Genero))
+			q = q.Where(x => x.Ocupacion == f.Genero);
+
+		var ordenador = new SortExpressionHelper<Persona>()
+			.Add("email", x => x.Email!)
+			.Add("ocupacion", x => x.Ocupacion!)
+			.Add("actividad", x => x.Actividad!)
+			.Add("edad", x => x.Edad!)
+			.Add("experiencia", x => x.ExperienciaSeguridad!)
+			.Add("nombreCompleto", x => x.Apellido!, x => x.Nombre!)
+			.Add("creacion", x => x.Creacion!)
+			.Add("genero", x => x.Genero!);
+
+		var order = f.OrdenCampo;
+		if (!string.IsNullOrEmpty(f.OrdenCampo)) {
+			q = ordenador.SetOrder(q, f.OrdenCampo, f.OrdenDir);
+		}
+
+		return q;
+	}
+
+	public dynamic ActividadPersona(int id) {
+		var sql = @"select estado, count(*) num, max(fecha_examen) fexamen, max(fecha_actividad) factividad
+			from sesion_persona
+			where persona_id = @id
+			group by persona_id, estado
+			order by estado;";
+
+		var lista = _db.Database.GetDbConnection()
+			.Query<dynamic>(sql, new { id });
+
+		return lista;
 	}
 }

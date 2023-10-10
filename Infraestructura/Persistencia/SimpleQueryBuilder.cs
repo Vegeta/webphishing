@@ -5,6 +5,10 @@ using Dapper;
 
 namespace Infraestructura.Persistencia;
 
+/// <summary>
+/// Constructor de queries SQL con cadenas y parametros dinamicos,
+/// Simple, como mandan los dioses
+/// </summary>
 public class SimpleQueryBuilder {
 	private readonly InnerSqlBuilder _builder;
 	private Dictionary<string, bool> _existsClause = new();
@@ -15,8 +19,8 @@ public class SimpleQueryBuilder {
 	private List<JoinDef> _joins = new();
 
 	class JoinDef {
-		public string Tipo { get; set; }
-		public string Sql { get; set; }
+		public string Tipo { get; set; } = "";
+		public string Sql { get; set; } = "";
 		public dynamic Parameters { get; set; }
 	}
 
