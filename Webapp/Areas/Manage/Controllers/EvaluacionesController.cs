@@ -38,7 +38,7 @@ public class EvaluacionesController : BaseAdminController {
 		};
 		var mapaActividad = new CatalogoGeneral(_db).Carreras()
 			.ToDictionary(keySelector: m => m, elementSelector: m => m);
-		vm.Actividades = OpcionesConfig.ComboDict(mapaActividad, "");
+		vm.Actividades = OpcionesConfig.ComboDict(mapaActividad);
 		vm.Generos = OpcionesConfig.ComboDict(Generos.Mapa(), "");
 		vm.Ocupaciones = OpcionesConfig.ComboDict(Ocupaciones.Mapa(), "");
 

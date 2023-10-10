@@ -10,6 +10,12 @@ public class FiltroEvaluacion : Ordenable {
 	public string? Email { get; set; }
 	public string? Nombres { get; set; }
 	public string? Apellidos { get; set; }
+
+	public string? Nombre { get; set; }
+
+	public int? EdadMin { get; set; }
+	public int? EdadMax { get; set; }
+
 	public int? MinExito { get; set; }
 	public int? MaxExito { get; set; }
 	public DateTime? TomadoDesde { get; set; }
@@ -25,11 +31,8 @@ public class FiltroEvaluacion : Ordenable {
 	[JsonConverter(typeof(JsonConverterNullableInt))]
 	public int? Anio { get; set; }
 
-	public string? Nombre { get; set; }
-
 	public FiltroEvaluacion() {
 		OrdenCampo = "fechaExamen";
 		OrdenDir = "desc";
 	}
-	
 }

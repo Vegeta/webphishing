@@ -13,11 +13,25 @@
 						<div class="col-sm-4">
 
 							<div class="row mb-3">
-								<label class="col-sm-2 col-form-label col-form-label-sm">Email</label>
-								<div class="col-sm-10">
+								<label class="col-sm-3 col-form-label col-form-label-sm">Email</label>
+								<div class="col-sm-9">
 									<input type="text" class="form-control form-control-sm" name="email" v-model="filtros.email">
 								</div>
 							</div>
+
+							<div class="row mb-3">
+								<label class="col-sm-3 col-form-label col-form-label-sm">Edad (entre)</label>
+								<div class="col-sm-3">
+									<input type="text" class="integer form-control form-control-sm" v-autoname v-model="filtros.edadMin" maxlength="2">
+								</div>
+								<div class="col-sm-1 small">
+									y
+								</div>
+								<div class="col-sm-3">
+									<input type="text" class="integer form-control form-control-sm" v-autoname v-model="filtros.edadMax" maxlength="2">
+								</div>
+							</div>
+
 						</div>
 
 						<div class="col-sm-4">
@@ -31,8 +45,10 @@
 							<div class="row mb-3">
 								<label class="col-sm-3 col-form-label col-form-label-sm">Actividades</label>
 								<div class="col-sm-9">
-									<select asp-items="Model.Actividades" v-model="filtros.actividades" name="actividades[]"
-									        class="">
+									<select asp-items="Model.Actividades" v-model="filtros.actividad" name="actividad[]"
+									        data-width="100%"
+									        id="actividades" multiple
+									        class="selectpicker">
 									</select>
 								</div>
 							</div>
@@ -50,6 +66,10 @@
 							Filtrar
 						</button>
 
+						<button type="button" class="btn btn-primary btn-sm ms-1" @@click="todos()">
+                        	Ver Todos
+                        </button>
+						
 						<a class="btn btn-secondary btn-sm ms-1" @@click="exportar()">
 							<i class="bi bi-printer"></i>
 							Exportar Excel
@@ -108,7 +128,7 @@
 						email: null,
 						nombres: null,
 						apellidos: null,
-						actividades: [],
+						actividad: [],
 						ocupacion: null,
 						genero: null,
 						edad: null,
@@ -121,6 +141,14 @@
 				filtrar() {
 					$('#tlista').DataTable().ajax.reload();
 				},
+				todos() {
+					for (let k in this.filtros) {
+						this.filtros[k] = null;
+					}
+					this.filtros.actividad = [];
+					$('.selectpicker').selectpicker('deselectAll')
+					this.filtrar();
+				},
 				exportar(){
 					$('#filtroJson').val(JSON.stringify(this.filtros));
 					$('#frmExport').submit()
@@ -128,7 +156,7 @@
 			},
 			mounted() {
 				$('.integer').numeric("positiveInteger");
-
+			
 				var self = this;
 				var tabla = $('#tlista').DataTable({
 					language: {

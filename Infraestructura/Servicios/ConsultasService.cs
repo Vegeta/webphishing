@@ -25,7 +25,7 @@ public class ConsultasService {
 
 		// nombre completo
 		if (!string.IsNullOrEmpty(f.Nombre))
-			q = q.Where(x => x.Nombre.ToUpperInvariant().Contains(f.Nombre.ToUpper()));
+			q = q.Where(x => x.Nombre.ToUpper().Contains(f.Nombre.ToUpper()));
 
 		if (f.MinExito.HasValue)
 			q = q.Where(x => x.Exito >= f.MinExito);
@@ -89,6 +89,12 @@ public class ConsultasService {
 			q = q.Where(x => x.Ocupacion == f.Ocupacion);
 		if (!string.IsNullOrEmpty(f.Genero))
 			q = q.Where(x => x.Ocupacion == f.Genero);
+
+		if (f.EdadMin.HasValue)
+			q = q.Where(x => x.Edad >= f.EdadMin);
+
+		if (f.EdadMax.HasValue)
+			q = q.Where(x => x.Edad <= f.EdadMax);
 
 		var ordenador = new SortExpressionHelper<Persona>()
 			.Add("email", x => x.Email!)

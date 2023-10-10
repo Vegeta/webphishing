@@ -32,7 +32,7 @@ public static class ExcelUtils {
 	public static string? UpperNoUnder(string? txt) {
 		if (string.IsNullOrEmpty(txt))
 			return null;
-		return txt.ToUpperInvariant().Replace("_", " ");
+		return txt.ToUpper().Replace("_", " ");
 	}
 
 }

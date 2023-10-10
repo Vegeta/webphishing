@@ -85,7 +85,7 @@ public class PermisosApp {
 			{"seguridad" , "Editar usuarios, perfiles" },
 			{"preguntas" , "Editar preguntas" },
 			{"examenes" , "Editar Tests" },
-			{"resultados" , "Ver resultados" },
+			{"reportes" , "Ver Reportes" },
 		};
 	}
 }

@@ -115,8 +115,12 @@
 					</tr>
 					<tr>
 						<th>Puntaje promedio</th>
-						<td class="text-center" v-text="model.avgScore"></td>
+						<td class="text-center" v-text="numero(model.avgScore)"></td>
 					</tr>
+					<tr v-if="model.tiempoCuestionario">
+                    	<th>Tiempo promedio Cuestionario</th>
+                    	<td class="text-center" v-text="numero(model.tiempoCuestionario) + ' seg'"></td>
+                    </tr>
 
 				</tbody>
 			</table>

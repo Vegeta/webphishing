@@ -6,7 +6,9 @@
 	<section id="breadcrumbs" class="breadcrumbs">
 		<div class="container">
 			<ol>
-				<li><a href="@Url.Content("~/")">Inicio</a></li>
+				<li>
+					<a href="@Url.Content("~/")">Inicio</a>
+				</li>
 				<li>Evaluación</li>
 			</ol>
 		</div>
@@ -19,7 +21,7 @@
 				<h2>Evaluación de Detección de Phishing</h2>
 			</div>
 
-			<div class="row">
+			<div class="row smallForm">
 
 				<div class="col-lg-12 mt-lg-0 d-flex align-items-stretch">
 					<form action="" method="post" role="form" class="php-email-form" id="formRegistro">
@@ -48,37 +50,45 @@
 							<div class="form-group col-md-6">
 								<label for="">Género</label>
 								<select asp-items="Model.Generos" v-model="registro.genero" v-autoname
-										class="form-select input-sm"></select>
+								        class="form-select input-sm">
+								</select>
 							</div>
 							<div class="form-group col-md-6">
 								<label for="">Ocupación</label>
 								<select asp-items="Model.Ocupaciones" v-model="registro.ocupacion" v-autoname
-										class="form-select input-sm"></select>
+								        class="form-select input-sm">
+								</select>
 							</div>
 						</div>
 
 						<div class="row">
 							<div class="form-group col-md-6">
 								<label for="">Edad</label>
-								<input class="form-control input-sm" v-autoname v-model="registro.edad" maxlength="2">
+								<input class="form-control input-sm integer" v-autoname v-model="registro.edad" maxlength="2">
 							</div>
 							<div class="form-group col-md-6">
 								<label for="">Actividad</label>
-								<select asp-items="Model.Actividades" v-model="registro.actividad" v-autoname
-										class="form-select input-sm"></select>
+								<select asp-items="Model.Actividades" v-model="registro.actividad" name="actividad[]"
+								        class="form-control input-sm">
+								</select>
 							</div>
 						</div>
 
-						<div class="form-group">
-							<label for="">Años de experiencia en cyber-seguridad</label>
-							<select asp-items="Model.Anios" v-model="registro.experienciaSeguridad" v-autoname
-									class="form-select input-sm"></select>
-						</div>
+						<div class="row">
+							<div class="form-group col-md-6">
+								<label for="">Años de experiencia en cyber-seguridad</label>
+								<select asp-items="Model.Anios" v-model="registro.experienciaSeguridad" v-autoname
+								        class="form-select input-sm">
+								</select>
+							</div>
 
-						<div class="form-group">
-							<label for="">Correo electrónico</label>
-							<input type="email" class="form-control input-sm" v-autoname maxlength="100" v-model="registro.email">
+							<div class="form-group col-md-6">
+								<label for="">Correo electrónico</label>
+								<input type="email" class="form-control input-sm" v-autoname maxlength="100" v-model="registro.email">
+							</div>
 						</div>
+						
+						
 
 						<div class="text-center">
 							<p>La información ingresada es 100% confidencial</p>
@@ -125,6 +135,7 @@
 				},
 			},
 			mounted() {
+				$('.integer').numeric("positiveInteger");
 				var self = this;
 				$('#formRegistro').validate({
 					submitHandler: this.registrar

@@ -44,7 +44,7 @@ public class SimuladorController : BaseAdminController {
 
 		var model = new {
 			id,
-			nombre = "Simulacion",
+			nombre = "Simulación",
 			email = "prueba@prueba.com",
 			total = flujo.NumPreguntas,
 			indice = 0, // respondidas?
@@ -147,7 +147,7 @@ public class SimuladorController : BaseAdminController {
 	protected object DatosResultado(FlujoExamenDto flujo, SesionPersona sesion) {
 		flujo.DatosCuestionario ??= new DataCuestionario();
 		var vses = new VSesionPersona {
-			Nombre = "Simulacion",
+			Nombre = "Simulación",
 			Nombres = "prueba",
 			Apellidos = "prueba",
 			Score = flujo.Score,
