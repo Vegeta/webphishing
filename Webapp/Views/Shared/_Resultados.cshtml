@@ -37,6 +37,30 @@
 					</table>
 				</div>
 			</div>
+
+			<div class="card mt-2" v-if="interacciones">
+				<div class="card-body">
+					<h5 class="card-title">Interacciones</h5>
+
+					<table class="table minitabla">
+						<tr>
+							<th>Promedio Clicks por pregunta</th>
+							<th>Promedio Tiempo mouse hover (s)</th>
+							<th>Tiempo Total mouse hover (s)</th>
+							<th>Total Clicks en vínculos</th>
+							<th>Total Vínculos revisados</th>
+						</tr>
+						<tr>
+							<td>{{ interacciones.avgClicksPregunta }}</td>
+							<td>{{ interacciones.hoverAvg }}</td>
+							<td>{{ interacciones.hoverTotal }}</td>
+							<td>{{ interacciones.totalClicks }}</td>
+							<td>{{ interacciones.hovers.length }}</td>
+						</tr>
+					</table>
+					
+				</div>
+			</div>
 		</div>
 
 		<div class="col-sm-12 col-lg-8" v-if="!print">
@@ -63,10 +87,51 @@
 							<img :src="imgRetro()" alt="Descripcion" style="width:100%"/>
 						</div>
 
-						<div class="card card-body mt-2 pt-3 smaller" v-if="question.comentario">
-							<strong>Comentario usuario:</strong>
-							<div style="font-size: 9pt">{{ question.comentario }}</div>
+						<div class="row mt-2">
+							<div class="col-sm-6">
+
+								<div class="card smaller">
+									<div class="card-body pt-2">
+										<h6 class="fw-bold">Comentario usuario</h6>
+										<div style="font-size: 9pt">{{ question.comentario }}</div>
+
+									</div>
+								</div>
+
+							</div>
+							<div class="col-sm-6">
+								<div class="card smaller">
+									<div class="card-body pt-2">
+										<h6 class="fw-bold">Interacciones</h6>
+										<div v-if="!question.interacciones || question.interacciones.length == 0" class="small">
+											No hubo interacción
+										</div>
+										<table class="table minitabla" v-else="">
+											<tr>
+												<th>Tipo</th>
+												<th>Texto</th>
+												<th title="Tiempo en segundos que paso flotando el mouse sobre el vínculo para ver la dirección real del mismo">
+													Tiempo "hover"
+													<i class="bi bi-question-circle-fill"></i>
+												</th>
+												<th># Clicks</th>
+											</tr>
+											<tr v-for="e in question.interacciones">
+												<td v-text="e.tipo=='link' ? 'Vinculo' : 'Archivo'"></td>
+												<td v-text="e.link"></td>
+												<td v-text="e.hover + 's'"></td>
+												<td v-text="e.clicks"></td>
+											</tr>
+										</table>
+									</div>
+								</div>
+							</div>
 						</div>
+
+						@* <div class="card card-body mt-2 pt-3 smaller" v-if="question.comentario"> *@
+						@* 	<strong>Comentario usuario:</strong> *@
+						@* 	<div style="font-size: 9pt">{{ question.comentario }}</div> *@
+						@* </div> *@
 
 					</div>
 				</div>
@@ -118,9 +183,9 @@
 						<td class="text-center" v-text="numero(model.avgScore)"></td>
 					</tr>
 					<tr v-if="model.tiempoCuestionario">
-                    	<th>Tiempo promedio Cuestionario</th>
-                    	<td class="text-center" v-text="numero(model.tiempoCuestionario) + ' seg'"></td>
-                    </tr>
+						<th>Tiempo Cuestionario</th>
+						<td class="text-center" v-text="numero(model.tiempoCuestionario) + ' seg'"></td>
+					</tr>
 
 				</tbody>
 			</table>
@@ -145,7 +210,7 @@
 		<div class="card-body">
 			<h5 class="card-title">Nivel de Percepción de Riesgo</h5>
 
-			<div style="height:40vh;" align="center">
+			<div style="height:35vh;" align="center">
 				<canvas id="grafPercepcion"></canvas>
 			</div>
 
@@ -301,7 +366,7 @@
 	}
 
 	const CompRespuestas = {
-		props: ['lista', 'retroPath', 'print'],
+		props: ['lista', 'retroPath', 'print', 'interacciones'],
 		template: '#tplRespuestas',
 		data() {
 			return {

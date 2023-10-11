@@ -82,6 +82,10 @@ public class ConsultasService {
 		if (!string.IsNullOrEmpty(f.Apellidos))
 			q = q.Where(x => x.Apellido!.ToUpper().Contains(f.Apellidos.ToUpper()));
 
+		if (!string.IsNullOrEmpty(f.Nombre)) {
+			var like = f.Nombre.ToUpper();
+			q = q.Where(x => x.Apellido!.ToUpper().Contains(like) || x.Nombre!.ToUpper().Contains(like));
+		}
 		if (f.Actividad.Any())
 			q = q.Where(x => f.Actividad.Contains(x.Actividad!));
 

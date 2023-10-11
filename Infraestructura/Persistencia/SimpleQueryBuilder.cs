@@ -13,8 +13,8 @@ public class SimpleQueryBuilder {
 	private readonly InnerSqlBuilder _builder;
 	private Dictionary<string, bool> _existsClause = new();
 
-	private int specialPar = 0;
-	private bool dirty = false;
+	private int _specialPar;
+	private bool _dirty;
 
 	private List<JoinDef> _joins = new();
 
@@ -28,12 +28,12 @@ public class SimpleQueryBuilder {
 		_builder = new InnerSqlBuilder();
 	}
 
-	protected void CheckClause(string clause) {
-		dirty = true;
+	private void CheckClause(string clause) {
+		_dirty = true;
 		_existsClause[clause] = true;
 	}
 
-	public class InnerSqlBuilder : SqlBuilder {
+	private class InnerSqlBuilder : SqlBuilder {
 		public SqlBuilder From(string sql, dynamic parameters = null) =>
 			AddClause("from", sql, parameters, " , ", "FROM ", "\n", false);
 
@@ -65,11 +65,12 @@ public class SimpleQueryBuilder {
 	public SimpleQueryBuilder Where(string exp, dynamic? parameters = null) {
 		CheckClause("where");
 		if (Regex.IsMatch(exp, @"^(\w|\d|_|\.)+$") && parameters != null) {
-			specialPar++;
-			var name = $"pes{specialPar}";
+			_specialPar++;
+			var name = $"pes{_specialPar}";
 			exp = $"{exp} = @{name}";
-			var d = new Dictionary<string, object>();
-			d[name] = parameters;
+			var d = new Dictionary<string, object> {
+				[name] = parameters!
+			};
 			_builder.Where(exp, d);
 			return this;
 		}
@@ -77,15 +78,15 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	protected SimpleQueryBuilder InClause<T>(string op, string field, ICollection<T> list) {
+	private SimpleQueryBuilder InClause<T>(string op, string field, ICollection<T> list) {
 		CheckClause("where");
-		specialPar++;
+		_specialPar++;
 		var i = 0;
 
 		dynamic cust = new ExpandoObject();
 		var parStr = new List<string>();
 		foreach (var item in list) {
-			var par = $"p{specialPar}_{i}";
+			var par = $"p{_specialPar}_{i}";
 			((IDictionary<string, object>)cust)[par] = item!;
 			parStr.Add("@" + par);
 			i++;
@@ -127,7 +128,7 @@ public class SimpleQueryBuilder {
 		_joins.Add(new JoinDef {
 			Tipo = "JOIN",
 			Sql = exp,
-			Parameters = parameters
+			Parameters = parameters!
 		});
 		return this;
 	}
@@ -137,7 +138,7 @@ public class SimpleQueryBuilder {
 		_joins.Add(new JoinDef {
 			Tipo = "INNER JOIN",
 			Sql = exp,
-			Parameters = parameters
+			Parameters = parameters!
 		});
 		return this;
 	}
@@ -147,7 +148,7 @@ public class SimpleQueryBuilder {
 		_joins.Add(new JoinDef {
 			Tipo = "LEFT JOIN",
 			Sql = exp,
-			Parameters = parameters
+			Parameters = parameters!
 		});
 		return this;
 	}
@@ -157,7 +158,7 @@ public class SimpleQueryBuilder {
 		_joins.Add(new JoinDef {
 			Tipo = "RIGHT JOIN",
 			Sql = exp,
-			Parameters = parameters
+			Parameters = parameters!
 		});
 		return this;
 	}
@@ -168,9 +169,9 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	private SqlBuilder.Template tpl;
+	private SqlBuilder.Template _tpl;
 
-	protected void BuildStuff() {
+	private void BuildStuff() {
 		var checks = new List<string>() {
 			"select", "from", "joins", "where",
 			"groupby", "having", "orderby", "limit"
@@ -202,26 +203,26 @@ public class SimpleQueryBuilder {
 			ss.AppendFormat($"/**{tipo}**/ ");
 		}
 
-		tpl = _builder.AddTemplate(ss.ToString());
+		_tpl = _builder.AddTemplate(ss.ToString());
 	}
 
 	public object Parameters {
 		get {
-			if (dirty) {
+			if (_dirty) {
 				BuildStuff();
-				dirty = false;
+				_dirty = false;
 			}
-			return tpl.Parameters;
+			return _tpl.Parameters;
 		}
 	}
 
 	public string Sql {
 		get {
-			if (dirty) {
+			if (_dirty) {
 				BuildStuff();
-				dirty = false;
+				_dirty = false;
 			}
-			return tpl.RawSql;
+			return _tpl.RawSql;
 		}
 	}
 }

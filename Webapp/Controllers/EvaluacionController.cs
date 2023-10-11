@@ -4,6 +4,7 @@ using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
+using Infraestructura.Reportes;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -195,7 +196,7 @@ public class EvaluacionController : BaseController {
 		var flujo = local.Sesion.GetSesionFlujo();
 
 		var r = new SesionRespuesta {
-			Clicks = resp.Interaccion,
+			Interacciones = resp.Interaccion,
 			PreguntaId = resp.PreguntaId,
 			Respuesta = resp.Respuesta,
 			Comentario = resp.Comentario,
@@ -217,6 +218,13 @@ public class EvaluacionController : BaseController {
 		r.Score = paso.Score;
 		local.Sesion.Score = flujo.Score;
 		local.Sesion.MaxScore = flujo.MaxScore; // un tipo es adaptativo
+
+		// parse interacciones
+		if (!string.IsNullOrEmpty(resp.Interaccion)) {
+			var inter = InteraccionesDto.Parse(resp.Interaccion);
+			var man = new InteraccionesStats();
+			man.SetRespuesta(r, inter);
+		}
 
 		// persist
 		_db.SesionRespuesta.Add(r);

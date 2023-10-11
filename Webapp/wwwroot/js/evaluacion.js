@@ -4,88 +4,6 @@ class ExamenTimer {
 		this.inicio = null;
 		this.fin = null;
 		this.tiempo = null;
-		this.cache = {};
-		this.resetUsage()
-	}
-
-	resetUsage() {
-		this.usage = {
-			clickLinks: {},
-			hoverLinks: {},
-			clickFiles: {},
-			hoverFiles: {}
-		};
-		this.cache = {}
-		return this
-	}
-
-	resetTime() {
-		this.inicio = null;
-		this.fin = null;
-		this.tiempo = null;
-		return this
-	}
-
-	resetAll() {
-		return this.resetTime().resetUsage();
-	}
-
-	instrumentar(selector) {
-		const self = this;
-		let usage = this.usage;
-
-		// capturar interacciones con los vinculos del mensaje
-		// mas abajo estan las interacciones con los archivos
-		function linkTxt(e) {
-			let txt = $(e.target).text() || ''
-			return txt.replace(/\s+/g, ' ').trim().substring(0, 20);
-		}
-
-		$(selector).on("mouseenter", "a", function (e) {
-			e.preventDefault();
-			let txt = linkTxt(e)
-			self.cache[txt] = new Date();
-		});
-
-		$(selector).on("mouseleave", "a", function (e) {
-			//e.preventDefault();
-			let txt = linkTxt(e)
-			let inicio = self.cache[txt] || null;
-			if (inicio) {
-				usage.hoverLinks[txt] = (new Date() - inicio) / 1000;
-				delete self.cache[txt]
-			}
-		});
-
-		$(selector).on("click", "a", function (e) {
-			e.preventDefault();
-			let txt = linkTxt(e)
-			if (!usage.clickLinks[txt])
-				usage.clickLinks[txt] = 0;
-			usage.clickLinks[txt]++;
-		});
-	}
-
-	clickFile(file, ev) {
-		ev.preventDefault();
-		this.cache['f:' + file] = new Date()
-		if (!this.usage.clickFiles[file])
-			this.usage.clickFiles[file] = 0;
-		this.usage.clickFiles[file]++
-	}
-
-	enterFile(file, ev) {
-		let key = 'f:' + file
-		this.cache[key] = new Date();
-	}
-
-	exitFile(file, ev) {
-		let key = 'f:' + file
-		let item = this.cache[key] || null;
-		if (item) {
-			this.usage.hoverFiles[file] = (new Date() - item) / 1000;
-			delete this.cache[key]
-		}
 	}
 
 	start() {
@@ -100,7 +18,109 @@ class ExamenTimer {
 		return this.tiempo
 	}
 
+	resetTime() {
+		this.inicio = null;
+		this.fin = null;
+		this.tiempo = null;
+		return this
+	}
+
+	restart() {
+		this.resetTime();
+		this.start();
+		return this;
+	}
+
 }
+
+class LinkObserver {
+
+	constructor() {
+		this.usage = null;
+		this.cache = {};
+		this.ensureData()
+	}
+
+	reset() {
+		this.usage = null;
+		this.cache = {};
+	}
+
+	linkTxt(e) {
+		let txt = e.target.innerText || e.target.href
+		return txt.replace(/\s+/g, ' ').trim().substring(0, 80);
+	}
+
+	ensureData() {
+		if (!this.usage) {
+			this.usage = {
+				clickLinks: {},
+				hoverLinks: {},
+				clickFiles: {},
+				hoverFiles: {}
+			}
+		}
+	}
+
+	instrumentar(selector) {
+		let self = this;
+		let elem = $(selector);
+		this.cache = {};
+
+		elem.on("mouseenter", "a", function (e) {
+			e.preventDefault();
+			let item = self.linkTxt(e);
+			self.iniciar(item, 'l:')
+			//console.log('ENTER', e.target.href);
+		});
+
+		elem.on("mouseleave", "a", function (e) {
+			e.preventDefault();
+			let item = self.linkTxt(e);
+			let t = self.finalizar(item, 'l:')
+			if (t !== null)
+				self.hover('link', item, t)
+			//console.log('LEAVE', e.target.href);
+		});
+
+		elem.on("click", "a", function (e) {
+			e.preventDefault();
+			let item = self.linkTxt(e);
+			self.click('link', item)
+			//console.log('CLICK', e.target.href);
+		});
+	}
+
+	iniciar(link, prefijo = '') {
+		let key = prefijo + link
+		this.cache[key] = new Date();
+	}
+
+	finalizar(link, prefijo = '') {
+		let key = prefijo + link
+		if (!this.cache[key])
+			return null;
+		let inicio = this.cache[key]
+		delete this.cache[key]
+		return (new Date() - inicio) / 1000;
+	}
+
+	click(tipo, link) {
+		this.ensureData()
+		let nombre = tipo === 'link' ? 'clickLinks' : 'clickFiles';
+		if (!this.usage[nombre][link])
+			this.usage[nombre][link] = 0;
+		this.usage[nombre][link]++;
+	}
+
+	hover(tipo, link, tiempo) {
+		this.ensureData()
+		let nombre = tipo === 'link' ? 'hoverLinks' : 'hoverFiles';
+		this.usage[nombre][link] = tiempo;
+	}
+	
+}
+
 
 const Cuestionario = {
 	props: ['datos'],
@@ -163,6 +183,7 @@ const CompExamen = {
 			},
 			showEval: false,
 			modo: '',
+			links: null,
 		}
 	},
 	watch: {
@@ -185,6 +206,7 @@ const CompExamen = {
 	},
 	created() {
 		this.timer = new ExamenTimer();
+		this.links = new LinkObserver();
 	},
 	methods: {
 		resetRespuesta() {
@@ -212,14 +234,20 @@ const CompExamen = {
 		},
 		// paso a control de archivos
 		clickFile(a, ev) {
-			this.timer.clickFile(a.name, ev);
+			ev.preventDefault()
+			this.links.click('file', a.name)
 		},
 		enterFile(a, ev) {
-			this.timer.enterFile(a.name, ev);
+			ev.preventDefault()
+			this.links.iniciar(a.name, 'f:')
 		},
 		exitFile(a, ev) {
-			this.timer.exitFile(a.name, ev);
+			ev.preventDefault()
+			let t = this.links.finalizar(a.name, 'f:')
+			if (t !== null)
+				this.links.hover('file', a.name, t)
 		},
+		// fin eventos archivos
 
 		claseResp(check) {
 			return this.resp.respuesta === check ? 'btn-secondary' : 'btn-outline-secondary';
@@ -259,7 +287,7 @@ const CompExamen = {
 				this.showEval = false;
 				Vue.nextTick(() => {
 					this.procesarHtml()
-					this.timer.resetAll().start();
+					this.timer.restart();
 				})
 			}
 
@@ -267,7 +295,9 @@ const CompExamen = {
 				this.datos.pregunta = {};
 				this.datos.cuest = r.data
 				this.modo = 'cuestionario'
-				this.timer.resetAll().start();
+				Vue.nextTick(() => {
+					this.timer.restart();
+				});
 			}
 
 			$('#app button').prop('disabled', false);
@@ -277,7 +307,8 @@ const CompExamen = {
 			let html = this.pregunta.html;
 			html = html.replaceAll('{imgroot}', this.urlImagen);
 			$('#contenido').html(html);
-			this.timer.instrumentar('#contenido')
+			this.links.reset();
+			this.links.instrumentar('#contenido');
 		},
 		responder() {
 			const self = this;
@@ -299,7 +330,7 @@ const CompExamen = {
 			timer.stop();
 			r.inicio = timer.inicio;
 			r.fin = timer.fin;
-			r.interaccion = JSON.stringify(timer.usage)
+			r.interaccion = JSON.stringify(this.links.usage)
 			r.preguntaId = this.pregunta.id
 			r.token = this.model.token
 			if (this.model.estado)

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Domain;
 using Infraestructura;
+using Infraestructura.Examenes;
 using Infraestructura.Filtros;
 using Infraestructura.Persistencia;
 using Infraestructura.Reportes;
@@ -82,7 +83,17 @@ public class EvaluacionesController : BaseAdminController {
 			.First(x => x.Id == id);
 
 		var con = new ConsultaEvaluacion(_db);
-		var respuestas = con.RespuestasWeb(ses.Id);
+		var interDtos = new List<InteraccionesDto>();
+
+		// inline local function
+		void Extractor(InteraccionesDto x) {
+			interDtos.Add(x);
+		}
+
+		var respuestas = con.RespuestasWeb(ses.Id, Extractor);
+
+		var stats = new InteraccionesStats();
+		var interStats = stats.Calcular(interDtos);
 
 		var cuest = _db.CuestionarioRespuesta
 			.Where(x => x.SesionId == ses.Id)
@@ -93,6 +104,7 @@ public class EvaluacionesController : BaseAdminController {
 		ViewBag.respuestas = JSON.Stringify(respuestas);
 		ViewBag.percepcion = ses.RespuestaCuestionario ?? "[]";
 		ViewBag.cuest = JSON.Stringify(cuest);
+		ViewBag.interStats = JSON.Stringify(interStats);
 
 		return View();
 	}

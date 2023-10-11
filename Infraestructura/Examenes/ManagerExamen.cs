@@ -94,7 +94,9 @@ public class ManagerExamen {
 			return false;
 		var fin = DateTime.Now;
 		flujo.Fin = fin;
+		sesion.FechaExamen ??= flujo.Inicio;
 		sesion.FechaFin = fin;
+
 		var respuestas = flujo.Pasos
 			.Where(x => x is { Accion: "pregunta", Ejecutado: true })
 			.ToList();

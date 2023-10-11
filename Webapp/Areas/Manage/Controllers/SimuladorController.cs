@@ -3,6 +3,7 @@ using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
+using Infraestructura.Reportes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Webapp.Controllers;
@@ -41,6 +42,7 @@ public class SimuladorController : BaseAdminController {
 		};
 
 		var flujo = _manager.CrearFlujo(config);
+		flujo.Inicio = DateTime.Now;
 
 		var model = new {
 			id,
@@ -83,6 +85,12 @@ public class SimuladorController : BaseAdminController {
 			Aleatorio = false,
 			IdExamen = flujo.ExamenId
 		};
+
+		// parse interacciones
+		var inter = InteraccionesDto.Parse(resp.Interaccion);
+		var mapa = JSON.Parse<MapaInteracciones>(flujo.ExtraData ?? "{}");
+		mapa[resp.PreguntaId] = inter;
+		flujo.ExtraData = JSON.Stringify(mapa);
 
 		_manager.RespuestaActual(config, flujo, resp.Respuesta ?? "", tiempo);
 
@@ -140,6 +148,7 @@ public class SimuladorController : BaseAdminController {
 
 		_manager.RespuestaActual(config, flujo, "OK", data.TiempoCuest ?? 0);
 		flujo.DatosCuestionario.Respuestas = respuestas;
+		flujo.DatosCuestionario.TiempoCuestionario = data.TiempoCuest;
 
 		return ContinuaFlujo(flujo);
 	}
@@ -164,26 +173,38 @@ public class SimuladorController : BaseAdminController {
 			Percepcion = flujo.DatosCuestionario.Percepcion,
 		};
 
+		var mapaInter = JSON.Parse<MapaInteracciones>(flujo.ExtraData ?? "{}");
+
 		var mapaRespuestas = flujo.Pasos.Where(x => x.Ejecutado && x.Accion == "pregunta")
 			.ToDictionary(x => x.EntidadId);
 		var ids = mapaRespuestas.Keys.ToList();
 
 		var dbResp = _db.Pregunta.Where(x => ids.Contains(x.Id)).ToList();
-		var respuestas = dbResp.Select(x => MapeoPregunta(mapaRespuestas, x)).ToList();
+		var respuestas = dbResp.Select(x => MapeoPregunta(mapaRespuestas, x, mapaInter)).ToList();
 
 		var respCuest = flujo.DatosCuestionario.RespuestaCuestionario;
+
+		var interMan = new InteraccionesStats();
+		var interStats = interMan.Calcular(mapaInter.Values.ToList());
 
 		var res = new {
 			modelo = vses,
 			respuestas,
 			percepcion = respCuest == null ? new List<string>() : JSON.Parse<object>(respCuest),
 			cuest = flujo.DatosCuestionario.Respuestas,
+			interStats
 		};
 		return res;
 	}
 
-	protected dynamic MapeoPregunta(IDictionary<int, PasoExamen> mapa, Pregunta x) {
+	protected dynamic MapeoPregunta(IDictionary<int, PasoExamen> mapa, Pregunta x, MapaInteracciones interacciones) {
 		var res = mapa[x.Id];
+
+		var tablaInter = new List<FilaInter>();
+		if (interacciones.ContainsKey(res.EntidadId)) {
+			tablaInter = InteraccionesStats.TablaInter(interacciones[res.EntidadId]);
+		}
+
 		var item = new {
 			x.ImagenRetro,
 			x.Dificultad,
@@ -196,7 +217,11 @@ public class SimuladorController : BaseAdminController {
 			PreguntaId = res.EntidadId,
 			res.Tiempo,
 			comentario = "Test comentario",
+			interacciones = tablaInter
 		};
 		return item;
 	}
+}
+
+public class MapaInteracciones : Dictionary<int, InteraccionesDto> {
 }

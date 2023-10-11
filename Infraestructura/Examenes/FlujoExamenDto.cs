@@ -19,6 +19,8 @@ public class FlujoExamenDto {
 
 	public DataCuestionario? DatosCuestionario { get; set; }
 
+	public string? ExtraData { get; set; }
+
 	public PasoExamen PasoActual() {
 		return IndicePaso >= Pasos.Count ? Pasos.Last() : Pasos[IndicePaso];
 	}

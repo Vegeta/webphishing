@@ -1,4 +1,3 @@
-using AutoMapper;
 using Dapper;
 using Infraestructura;
 using Infraestructura.Persistencia;
@@ -12,11 +11,9 @@ namespace Webapp.Areas.Manage.Controllers;
 
 public class ConfiguracionController : BaseAdminController {
 	private readonly AppDbContext _db;
-	private readonly IMapper _mapper;
 	private readonly CatalogoGeneral _cat;
 
-	public ConfiguracionController(IMapper mapper, AppDbContext db, CatalogoGeneral cat) {
-		_mapper = mapper;
+	public ConfiguracionController(AppDbContext db, CatalogoGeneral cat) {
 		_db = db;
 		_cat = cat;
 	}
@@ -27,7 +24,7 @@ public class ConfiguracionController : BaseAdminController {
 		CurrentMenu("Administración/Configuración");
 		Titulo("Configuración del sistema");
 	}
-	
+
 	public IActionResult Index() {
 		Titulo("Configuracion Aplicación");
 		ViewBag.carreras = JSON.Stringify(_cat.Carreras());
@@ -51,7 +48,7 @@ public class ConfiguracionController : BaseAdminController {
 		return Ok();
 	}
 
-	protected IList<ExamenNum> Examenes() {
+	private IList<ExamenNum> Examenes() {
 		var sql = @"select e.id, e.titulo, e.activo, e.cuestionario_pos as pos, c.num
 		from examen e
 		LEFT JOIN (
@@ -83,6 +80,6 @@ public class ConfiguracionController : BaseAdminController {
 }
 
 public class ModeloDatos {
-	public string Nombre { get; set; }
-	public object Data { get; set; }
+	public string Nombre { get; set; } = "";
+	public object Data { get; set; } = "";
 }

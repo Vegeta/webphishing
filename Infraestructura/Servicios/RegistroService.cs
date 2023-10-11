@@ -40,7 +40,8 @@ public class RegistroService {
 	}
 
 	public Persona? PorEmail(string email) {
-		return _db.Persona.FirstOrDefault(x => x.Email == email);
+		return _db.Persona
+			.OrderByDescending(x => x.Creacion)
+			.FirstOrDefault(x => x.Email!.ToUpper() == email.ToUpper());
 	}
-
 }

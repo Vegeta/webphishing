@@ -15,7 +15,7 @@
 	</div>
 
 	<div>
-		<respuestas :lista="respuestas" :retro-path="retroPath"></respuestas>
+		<respuestas :lista="respuestas" :retro-path="retroPath" :interacciones="inter"></respuestas>
 	</div>
 
 </section>
@@ -37,6 +37,7 @@
 					respuestas: @Html.Raw(ViewBag.respuestas),
 					percepcion: @Html.Raw(ViewBag.percepcion),
 					cuest: @Html.Raw(ViewBag.cuest),
+					inter: @Html.Raw(ViewBag.interStats),
 					baseurl: '@ViewBag.self',
 					retroPath : '@Url.Content("~/retro")',
 				}

@@ -4,7 +4,9 @@ using Domain.Transferencia;
 using Domain;
 using Domain.Entidades;
 using Infraestructura;
+using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
+using Infraestructura.Reportes;
 using Microsoft.EntityFrameworkCore;
 
 namespace Webapp.Models;
@@ -16,8 +18,8 @@ public class ConsultaEvaluacion {
 		_db = db;
 	}
 
-	public IEnumerable<dynamic> RespuestasWeb(int sessionId) {
-		return _db.SesionRespuesta
+	public IEnumerable<dynamic> RespuestasWeb(int sessionId, Action<InteraccionesDto>? extractorInter = null) {
+		var lista = _db.SesionRespuesta
 			.Include(x => x.Pregunta)
 			.Where(x => x.SesionId == sessionId)
 			.OrderBy(x => x.Inicio)
@@ -32,9 +34,17 @@ public class ConsultaEvaluacion {
 				x.Score,
 				x.Tiempo,
 				x.Comentario,
-				x.PreguntaId
+				x.PreguntaId,
+				interacciones = TablaInteracciones(x.Interacciones, extractorInter) // requiere static por el mapeo interno del LINQ
 			})
 			.ToList();
+		return lista;
+	}
+
+	static List<FilaInter> TablaInteracciones(string? json, Action<InteraccionesDto>? extractorInter = null) {
+		var dto = InteraccionesDto.Parse(json ?? "{}");
+		extractorInter?.Invoke(dto);
+		return InteraccionesStats.TablaInter(dto);
 	}
 
 	public object? PreguntaData(int id) {
@@ -60,13 +70,19 @@ public class ConsultaEvaluacion {
 		if (id.HasValue)
 			q = q.Where(x => x.Id == id);
 
+		var opciones = OpcionesConfig.ComboDict(RespuestaCuestionario.Mapa());
+
 		var cues = q.FirstOrDefault();
+		if (cues == null)
+			return new {
+				opciones
+			};
 
 		return new {
 			preguntas = JSON.Parse<List<CuestRespuestaModel>>(cues.Preguntas ?? "[]"),
 			cues.Titulo,
 			cues.Instrucciones,
-			opciones = OpcionesConfig.ComboDict(RespuestaCuestionario.Mapa()),
+			opciones
 		};
 	}
 }
