@@ -34,7 +34,7 @@ public class SimpleQueryBuilder {
 	}
 
 	private class InnerSqlBuilder : SqlBuilder {
-		public SqlBuilder From(string sql, dynamic parameters = null) =>
+		public SqlBuilder From(string sql, dynamic? parameters = null) =>
 			AddClause("from", sql, parameters, " , ", "FROM ", "\n", false);
 
 		//  protected SqlBuilder AddClause(string name, string sql, object parameters, string joiner, string prefix = "", string postfix = "", bool isInclusive = false)

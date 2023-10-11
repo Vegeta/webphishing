@@ -123,6 +123,10 @@ namespace Webapp.Models {
 					new MenuItem {
 						Name = "Perfiles",
 						Link = "~/manage/Perfiles",
+					},
+					new MenuItem {
+						Name = "Auditorias",
+						Link = "~/manage/Auditorias",
 					}
 				),
 				new MenuItem {

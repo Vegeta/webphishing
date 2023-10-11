@@ -1,4 +1,5 @@
 ﻿using Infraestructura.Examenes;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.EntityFrameworkCore;
@@ -30,8 +31,9 @@ public static class ConfiguradorServicios {
 		services.AddScoped<RegistroService>();
 		services.AddScoped<UsuariosService>();
 		services.AddScoped<FlujoExamen>();
-		services.AddScoped<ConsultasService>();
+		services.AddScoped<EvaluacionesService>();
 		services.AddScoped<ManagerExamen>();
+		services.AddScoped(typeof(IAuditor<>), typeof(AuditorDb<>)); // registro tipo generico
 		return services;
 	}
 }

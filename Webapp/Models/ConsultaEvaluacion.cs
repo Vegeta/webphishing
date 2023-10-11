@@ -18,7 +18,7 @@ public class ConsultaEvaluacion {
 		_db = db;
 	}
 
-	public IEnumerable<dynamic> RespuestasWeb(int sessionId, Action<InteraccionesDto>? extractorInter = null) {
+	public IEnumerable<dynamic> RespuestasWeb(int sessionId) {
 		var lista = _db.SesionRespuesta
 			.Include(x => x.Pregunta)
 			.Where(x => x.SesionId == sessionId)
@@ -35,16 +35,10 @@ public class ConsultaEvaluacion {
 				x.Tiempo,
 				x.Comentario,
 				x.PreguntaId,
-				interacciones = TablaInteracciones(x.Interacciones, extractorInter) // requiere static por el mapeo interno del LINQ
+				interacciones = InteraccionesDto.Parse(x.Interacciones ?? "[]")
 			})
 			.ToList();
 		return lista;
-	}
-
-	static List<FilaInter> TablaInteracciones(string? json, Action<InteraccionesDto>? extractorInter = null) {
-		var dto = InteraccionesDto.Parse(json ?? "{}");
-		extractorInter?.Invoke(dto);
-		return InteraccionesStats.TablaInter(dto);
 	}
 
 	public object? PreguntaData(int id) {

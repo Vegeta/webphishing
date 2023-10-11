@@ -51,9 +51,9 @@
 							<th>Total Vínculos revisados</th>
 						</tr>
 						<tr>
-							<td>{{ interacciones.avgClicksPregunta }}</td>
-							<td>{{ interacciones.hoverAvg }}</td>
-							<td>{{ interacciones.hoverTotal }}</td>
+							<td>{{ numero(interacciones.avgClicksPregunta) }}</td>
+							<td>{{ numero(interacciones.hoverAvg) }}</td>
+							<td>{{ numero(interacciones.hoverTotal) }}</td>
 							<td>{{ interacciones.totalClicks }}</td>
 							<td>{{ interacciones.hovers.length }}</td>
 						</tr>
@@ -119,7 +119,7 @@
 											<tr v-for="e in question.interacciones">
 												<td v-text="e.tipo=='link' ? 'Vinculo' : 'Archivo'"></td>
 												<td v-text="e.link"></td>
-												<td v-text="e.hover + 's'"></td>
+												<td v-text="numero(e.hover) + 's'"></td>
 												<td v-text="e.clicks"></td>
 											</tr>
 										</table>

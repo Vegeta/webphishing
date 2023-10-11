@@ -53,11 +53,11 @@
 							<table class="table minitabla">
 								<tr>
 									<th>Creacion</th>
-									<td v-text="model.creacion"></td>
+									<td v-text="fechaHora(model.creacion)"></td>
 								</tr>
 								<tr>
 									<th>Modificacion</th>
-									<td v-text="model.modificacion"></td>
+									<td v-text="fechaHora(model.modificacion)"></td>
 								</tr>
 							</table>
 
@@ -248,7 +248,9 @@
 					submitHandler: this.guardar
 				})
 			}
-		}).mount('#app')
+		})
+		.use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }

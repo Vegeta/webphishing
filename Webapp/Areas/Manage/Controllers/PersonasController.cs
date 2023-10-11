@@ -14,10 +14,10 @@ namespace Webapp.Areas.Manage.Controllers;
 
 public class PersonasController : BaseAdminController {
 	private readonly AppDbContext _db;
-	private readonly ConsultasService _consultas;
+	private readonly EvaluacionesService _consultas;
 
 
-	public PersonasController(AppDbContext db, ConsultasService consultas) {
+	public PersonasController(AppDbContext db, EvaluacionesService consultas) {
 		_db = db;
 		_consultas = consultas;
 	}
@@ -30,7 +30,7 @@ public class PersonasController : BaseAdminController {
 	}
 
 	public IActionResult Index() {
-		var vm = new FiltroCatalogoVm();
+		var vm = new PantallaManageVm();
 
 		var mapaActividad = new CatalogoGeneral(_db).Carreras()
 			.ToDictionary(keySelector: m => m, elementSelector: m => m);

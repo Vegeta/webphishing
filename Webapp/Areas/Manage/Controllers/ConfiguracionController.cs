@@ -1,5 +1,6 @@
 using Dapper;
 using Infraestructura;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace Webapp.Areas.Manage.Controllers;
 public class ConfiguracionController : BaseAdminController {
 	private readonly AppDbContext _db;
 	private readonly CatalogoGeneral _cat;
+	private readonly IAuditor<ConfiguracionController> _logger;
 
-	public ConfiguracionController(AppDbContext db, CatalogoGeneral cat) {
+	public ConfiguracionController(AppDbContext db, CatalogoGeneral cat, IAuditor<ConfiguracionController> logger) {
 		_db = db;
 		_cat = cat;
+		_logger = logger;
 	}
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
@@ -45,6 +48,7 @@ public class ConfiguracionController : BaseAdminController {
 
 	public IActionResult Guardar([FromBody] ModeloDatos model) {
 		_cat.GuardarParametro(model.Nombre, model.Data);
+		_logger.Info($"Parametro {model.Nombre} actualizado");
 		return Ok();
 	}
 

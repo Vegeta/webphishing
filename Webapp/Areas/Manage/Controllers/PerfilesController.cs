@@ -2,6 +2,7 @@
 using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Filtros;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +15,10 @@ using Webapp.Models.Datatables;
 namespace Webapp.Areas.Manage.Controllers;
 
 public class PerfilesController : BaseAdminController {
-
 	UsuariosService _usuarios;
 	AppDbContext _db;
 	private readonly IMapper _mapper;
+	private readonly IAuditor<PerfilesController> _logger;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
@@ -27,10 +28,11 @@ public class PerfilesController : BaseAdminController {
 	}
 
 
-	public PerfilesController(AppDbContext db, IMapper mapper, UsuariosService usuarios) {
+	public PerfilesController(AppDbContext db, IMapper mapper, UsuariosService usuarios, IAuditor<PerfilesController> logger) {
 		_db = db;
 		_mapper = mapper;
 		_usuarios = usuarios;
+		_logger = logger;
 	}
 
 	public IActionResult Index() {
@@ -83,6 +85,7 @@ public class PerfilesController : BaseAdminController {
 	public async Task<IActionResult> Delete(int id) {
 		// TODO checks
 		await _db.Perfil.Where(x => x.Id == id).ExecuteDeleteAsync();
+		_logger.Info("Perfil eliminado", new { id });
 		ConfirmaWeb("Perfil Eliminado");
 		return Ok();
 	}
@@ -97,11 +100,15 @@ public class PerfilesController : BaseAdminController {
 		_mapper.Map(modelWeb, perfil);
 		perfil.Permisos = JSON.Stringify(modelWeb.Permisos);
 
+		var ac = "actualizado";
 		if (!id.HasValue) {
 			_db.Perfil.Add(perfil);
+			ac = "creado";
 		}
 
 		_db.SaveChanges();
+		_logger.Info($"Perfil {perfil.Nombre} {ac}");
+
 		ConfirmaWeb("Datos actualizados");
 		return Ok(new { id = perfil.Id });
 	}
@@ -118,6 +125,4 @@ public class PerfilesController : BaseAdminController {
 			.ToListAsync();
 		return Ok(lista);
 	}
-
 }
-

@@ -223,7 +223,7 @@ public class EvaluacionController : BaseController {
 		if (!string.IsNullOrEmpty(resp.Interaccion)) {
 			var inter = InteraccionesDto.Parse(resp.Interaccion);
 			var man = new InteraccionesStats();
-			man.SetRespuesta(r, inter);
+			man.CompletarRespuesta(r, inter);
 		}
 
 		// persist

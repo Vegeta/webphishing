@@ -1,0 +1,71 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+	<div class="row">
+		<div class="col-sm-4">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Detalle</h5>
+
+					<table class="table minitabla">
+						<tr>
+							<th class="col-sm-3">Fecha</th>
+							<td>{{ fechaHora(model.fecha) }}</td>
+						</tr>
+						<tr>
+							<th>Mensaje</th>
+							<td>{{ model.mensaje }}</td>
+						</tr>
+						<tr>
+							<th>Modulo</th>
+							<td>{{ model.modulo }}</td>
+						</tr>
+						<tr>
+							<th>Usuario</th>
+							<td>{{ model.usuario }}</td>
+						</tr>
+					</table>
+
+				</div>
+			</div>
+		</div>
+
+		<div class="col-sm-8">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Datos</h5>
+
+					<div class="smaller">
+						<pre style="text-align: left; white-space:break-spaces;">@ViewBag.contenido</pre>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					baseurl: '@ViewBag.self',
+				}
+			},
+			methods: {
+			},
+			mounted() {
+			}
+		})
+		.use(globalDirectives)
+		.mount('#app')
+
+	</script>
+}

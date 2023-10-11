@@ -1,3 +1,8 @@
+/**
+ * Codigo principal en UI para evaluacion de examenes. Timer par el tiempo, instrumentación para
+ * visor html, control de flujo, cuestionarios.
+ */
+
 class ExamenTimer {
 
 	constructor() {
@@ -36,14 +41,11 @@ class ExamenTimer {
 class LinkObserver {
 
 	constructor() {
-		this.usage = null;
-		this.cache = {};
-		this.ensureData()
+		this.links = {};
 	}
 
 	reset() {
-		this.usage = null;
-		this.cache = {};
+		this.links = {};
 	}
 
 	linkTxt(e) {
@@ -51,74 +53,62 @@ class LinkObserver {
 		return txt.replace(/\s+/g, ' ').trim().substring(0, 80);
 	}
 
-	ensureData() {
-		if (!this.usage) {
-			this.usage = {
-				clickLinks: {},
-				hoverLinks: {},
-				clickFiles: {},
-				hoverFiles: {}
-			}
-		}
-	}
-
 	instrumentar(selector) {
 		let self = this;
 		let elem = $(selector);
-		this.cache = {};
 
 		elem.on("mouseenter", "a", function (e) {
 			e.preventDefault();
 			let item = self.linkTxt(e);
-			self.iniciar(item, 'l:')
+			self.iniciar(item, 'link')
 			//console.log('ENTER', e.target.href);
 		});
 
 		elem.on("mouseleave", "a", function (e) {
 			e.preventDefault();
 			let item = self.linkTxt(e);
-			let t = self.finalizar(item, 'l:')
-			if (t !== null)
-				self.hover('link', item, t)
+			self.finalizar(item)
 			//console.log('LEAVE', e.target.href);
 		});
 
 		elem.on("click", "a", function (e) {
 			e.preventDefault();
 			let item = self.linkTxt(e);
-			self.click('link', item)
+			self.click(item, 'link')
 			//console.log('CLICK', e.target.href);
 		});
 	}
 
-	iniciar(link, prefijo = '') {
-		let key = prefijo + link
-		this.cache[key] = new Date();
+	iniciar(link, tipo) {
+		this.links[link] = {
+			link: link, tipo: tipo, clicks: 0, hover: 0, inicio: new Date(), end: null
+		};
 	}
 
-	finalizar(link, prefijo = '') {
-		let key = prefijo + link
-		if (!this.cache[key])
+	finalizar(link) {
+		if (!this.links[link])
 			return null;
-		let inicio = this.cache[key]
-		delete this.cache[key]
-		return (new Date() - inicio) / 1000;
+		let item = this.links[link]
+		item.end = new Date()
+		item.hover = (item.end - item.inicio) / 1000;
+		return item.hover
 	}
 
-	click(tipo, link) {
-		this.ensureData()
-		let nombre = tipo === 'link' ? 'clickLinks' : 'clickFiles';
-		if (!this.usage[nombre][link])
-			this.usage[nombre][link] = 0;
-		this.usage[nombre][link]++;
+	click(link, tipo) {
+		if (!this.links[link])
+			this.iniciar(link, tipo)
+		let item = this.links[link]
+		item.clicks++;
 	}
 
-	hover(tipo, link, tiempo) {
-		this.ensureData()
-		let nombre = tipo === 'link' ? 'hoverLinks' : 'hoverFiles';
-		this.usage[nombre][link] = tiempo;
+	prepararTabla() {
+		let t = [];
+		for (const key in this.links) {
+			t.push(this.links[key])
+		}
+		return t;
 	}
-	
+
 }
 
 
@@ -235,17 +225,15 @@ const CompExamen = {
 		// paso a control de archivos
 		clickFile(a, ev) {
 			ev.preventDefault()
-			this.links.click('file', a.name)
+			this.links.click(a.name, 'file')
 		},
 		enterFile(a, ev) {
 			ev.preventDefault()
-			this.links.iniciar(a.name, 'f:')
+			this.links.iniciar(a.name, 'file')
 		},
 		exitFile(a, ev) {
 			ev.preventDefault()
-			let t = this.links.finalizar(a.name, 'f:')
-			if (t !== null)
-				this.links.hover('file', a.name, t)
+			this.links.finalizar(a.name)
 		},
 		// fin eventos archivos
 
@@ -330,11 +318,13 @@ const CompExamen = {
 			timer.stop();
 			r.inicio = timer.inicio;
 			r.fin = timer.fin;
-			r.interaccion = JSON.stringify(this.links.usage)
 			r.preguntaId = this.pregunta.id
 			r.token = this.model.token
 			if (this.model.estado)
 				r.estado = this.model.estado
+
+			let tabla = this.links.prepararTabla()
+			r.interaccion = JSON.stringify(tabla)
 
 			$('#app button').prop('disabled', true);
 

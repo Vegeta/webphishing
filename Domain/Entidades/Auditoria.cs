@@ -23,7 +23,7 @@ public partial class Auditoria: BaseEntity
     public string? Usuario { get; set; }
 
     [Column("modulo")]
-    [StringLength(100)]
+    [StringLength(255)]
     public string? Modulo { get; set; }
 
     [Column("datos")]

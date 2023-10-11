@@ -2,6 +2,7 @@ using AutoMapper;
 using Domain;
 using Domain.Entidades;
 using Infraestructura.Filtros;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,10 @@ using Webapp.Models.Datatables;
 namespace Webapp.Areas.Manage.Controllers;
 
 public class UsuariosController : BaseAdminController {
-	AppDbContext _db;
+	private readonly AppDbContext _db;
 	private readonly IMapper _mapper;
 	private readonly UsuariosService _usuarios;
+	private readonly IAuditor<UsuariosController> _logger;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
@@ -26,10 +28,11 @@ public class UsuariosController : BaseAdminController {
 		Titulo("Usuarios registrados");
 	}
 
-	public UsuariosController(AppDbContext db, IMapper mapper, UsuariosService usuarios) {
+	public UsuariosController(AppDbContext db, IMapper mapper, UsuariosService usuarios, IAuditor<UsuariosController> logger) {
 		_db = db;
 		_mapper = mapper;
 		_usuarios = usuarios;
+		_logger = logger;
 	}
 
 	public IActionResult Index() {
@@ -90,6 +93,7 @@ public class UsuariosController : BaseAdminController {
 	public async Task<IActionResult> Delete(int id) {
 		// TODO checks
 		await _db.Usuario.Where(x => x.Id == id).ExecuteDeleteAsync();
+		_logger.Info("Usuario eliminado: " + id, new { id });
 		ConfirmaWeb("Usuario Eliminado");
 		return Ok();
 	}
@@ -103,14 +107,17 @@ public class UsuariosController : BaseAdminController {
 
 		_mapper.Map(model, user);
 
+		var ac = "actualizado";
 		if (!id.HasValue) {
 			UsuariosService.UpdatePassword(user, model.Password);
 			user.Creacion = DateTime.Now;
 			_db.Usuario.Add(user);
+			ac = "creado";
 		}
 		user.Modificacion = DateTime.Now;
 
 		_db.SaveChanges();
+		_logger.Info($"Usuario {ac}: {user.Username}", new { user.Username, user.Id });
 		ConfirmaWeb("Datos actualizados");
 		return Ok(new { id = user.Id });
 	}
@@ -127,6 +134,7 @@ public class UsuariosController : BaseAdminController {
 		UsuariosService.UpdatePassword(user, pass);
 		user.Modificacion = DateTime.Now;
 		await _db.SaveChangesAsync();
+		_logger.Info("Password cambiado para usuario: " + user.Username);
 
 		return Ok(new { msg = "Password cambiado" });
 	}
@@ -141,6 +149,4 @@ public class UsuariosController : BaseAdminController {
 		lista.Insert(0, new SelectListItem());
 		return lista;
 	}
-
 }
-

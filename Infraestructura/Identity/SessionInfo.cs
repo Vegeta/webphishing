@@ -1,3 +1,5 @@
+using Infraestructura.Servicios;
+
 namespace Infraestructura.Identity;
 
 public class SessionInfo {
@@ -8,4 +10,8 @@ public class SessionInfo {
 	public string Tipo { get; set; } = "";
 	public int Id { get; set; }
 	public IList<string> Permisos { get; set; } = new List<string>();
+
+	public bool TienePermisos(string permisos) {
+		return UsuariosService.AutorizarPermisos(Permisos, permisos);
+	}
 }

@@ -2,30 +2,33 @@
 using Infraestructura.Persistencia;
 using Domain.Entidades;
 using Infraestructura.Filtros;
+using Infraestructura.Logging;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructura.Servicios;
 
-public class ConsultasService {
+public class EvaluacionesService {
 	private readonly AppDbContext _db;
+	private readonly IAuditor<EvaluacionesService> _logger;
 
-	public ConsultasService(AppDbContext db) {
+	public EvaluacionesService(AppDbContext db, IAuditor<EvaluacionesService> logger) {
 		_db = db;
+		_logger = logger;
 	}
 
 	public IQueryable<VSesionPersona> Sesiones(FiltroEvaluacion f) {
 		IQueryable<VSesionPersona> q = _db.VSesiones;
 
 		if (!string.IsNullOrEmpty(f.Email))
-			q = q.Where(x => x.Email.ToUpper().Contains(f.Email.ToUpper()));
+			q = q.Where(x => x.Email!.ToUpper().Contains(f.Email.ToUpper()));
 		if (!string.IsNullOrEmpty(f.Nombres))
-			q = q.Where(x => x.Nombres.ToUpper().Contains(f.Nombres.ToUpper()));
+			q = q.Where(x => x.Nombres!.ToUpper().Contains(f.Nombres.ToUpper()));
 		if (!string.IsNullOrEmpty(f.Apellidos))
-			q = q.Where(x => x.Apellidos.ToUpper().Contains(f.Apellidos.ToUpper()));
+			q = q.Where(x => x.Apellidos!.ToUpper().Contains(f.Apellidos.ToUpper()));
 
 		// nombre completo
 		if (!string.IsNullOrEmpty(f.Nombre))
-			q = q.Where(x => x.Nombre.ToUpper().Contains(f.Nombre.ToUpper()));
+			q = q.Where(x => x.Nombre!.ToUpper().Contains(f.Nombre.ToUpper()));
 
 		if (f.MinExito.HasValue)
 			q = q.Where(x => x.Exito >= f.MinExito);
@@ -129,5 +132,30 @@ public class ConsultasService {
 			.Query<dynamic>(sql, new { id });
 
 		return lista;
+	}
+
+	public OperationResult<string> EliminarEvaluacion(int id) {
+		var eval = _db.SesionPersona
+			.Include(x => x.CuestionarioRespuestas)
+			.Include(x => x.SesionRespuesta)
+			.FirstOrDefault(x => x.Id == id);
+
+		if (eval == null)
+			return OperationResult<string>.Problem("Evaluacion no encontrada");
+
+		using var tx = _db.Database.BeginTransaction();
+		try {
+			_db.SesionPersona.Remove(eval);
+			_db.SaveChanges();
+			tx.Commit();
+			var t = $"Evaluación de {eval.Nombre} eliminada";
+			var tlog = $"t, id:{eval.Id}";
+			_logger.Info(tlog, new { eval.Id });
+			return OperationResult<string>.Ok(t);
+		} catch (Exception ex) {
+			tx.Rollback();
+			_logger.Error($"Eliminando {eval.Id}", ex);
+			return OperationResult<string>.Problem("Error eliminando evaluacion");
+		}
 	}
 }

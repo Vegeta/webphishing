@@ -18,6 +18,14 @@
 		<respuestas :lista="respuestas" :retro-path="retroPath" :interacciones="inter"></respuestas>
 	</div>
 
+	@if (ViewBag.admin) {
+		<div>
+			<button class="btn btn-sm btn-danger" @@click="eliminar()">
+				Eliminar
+			</button>
+		</div>
+	}
+
 </section>
 
 @section Scripts {
@@ -45,6 +53,12 @@
 			computed: {
 			},
 			methods: {
+				eliminar(){
+					if (!confirm("Eliminar esta evaluacion?"))
+						return;
+					var url = this.baseurl + '/eliminar/' + this.model.id;
+					window.location.href =  url;
+				}
 			},
 			mounted() {
 				var self = this;

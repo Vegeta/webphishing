@@ -1,5 +1,6 @@
 ﻿using Domain.Entidades;
 using Domain.Transferencia;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +8,11 @@ namespace Infraestructura.Servicios;
 
 public class ExamenService {
 	private readonly AppDbContext _db;
+	private readonly IAuditor<ExamenService> _logger;
 
-	public ExamenService(AppDbContext db) {
+	public ExamenService(AppDbContext db, IAuditor<ExamenService> logger) {
 		_db = db;
+		_logger = logger;
 	}
 
 	public OperationResult<Examen> GuardarExamen(ExamenModel model, IList<int> deleted) {
@@ -54,12 +57,12 @@ public class ExamenService {
 			}
 
 			tx.Commit();
+			_logger.Info($"Examen actualizado: {e.Titulo}", new { e.Id, e.Tipo, e.Titulo });
 		} catch (Exception ex) {
 			tx.Rollback();
-			// log ex
+			_logger.Error("Guardar examen", ex);
 			return OperationResult<Examen>.Problem("Error de sistema");
 		}
 		return OperationResult<Examen>.Ok("Examen actualizado", e);
 	}
-
 }

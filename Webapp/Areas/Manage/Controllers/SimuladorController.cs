@@ -86,8 +86,8 @@ public class SimuladorController : BaseAdminController {
 			IdExamen = flujo.ExamenId
 		};
 
-		// parse interacciones
-		var inter = InteraccionesDto.Parse(resp.Interaccion);
+		// incluir interacciones para reporte final
+		var inter = InteraccionesDto.Parse(resp.Interaccion ?? "[]");
 		var mapa = JSON.Parse<MapaInteracciones>(flujo.ExtraData ?? "{}");
 		mapa[resp.PreguntaId] = inter;
 		flujo.ExtraData = JSON.Stringify(mapa);
@@ -185,7 +185,7 @@ public class SimuladorController : BaseAdminController {
 		var respCuest = flujo.DatosCuestionario.RespuestaCuestionario;
 
 		var interMan = new InteraccionesStats();
-		var interStats = interMan.Calcular(mapaInter.Values.ToList());
+		var interStats = interMan.TotalesLista(mapaInter.Values.ToList());
 
 		var res = new {
 			modelo = vses,
@@ -199,12 +199,6 @@ public class SimuladorController : BaseAdminController {
 
 	protected dynamic MapeoPregunta(IDictionary<int, PasoExamen> mapa, Pregunta x, MapaInteracciones interacciones) {
 		var res = mapa[x.Id];
-
-		var tablaInter = new List<FilaInter>();
-		if (interacciones.ContainsKey(res.EntidadId)) {
-			tablaInter = InteraccionesStats.TablaInter(interacciones[res.EntidadId]);
-		}
-
 		var item = new {
 			x.ImagenRetro,
 			x.Dificultad,
@@ -217,7 +211,7 @@ public class SimuladorController : BaseAdminController {
 			PreguntaId = res.EntidadId,
 			res.Tiempo,
 			comentario = "Test comentario",
-			interacciones = tablaInter
+			interacciones = interacciones[res.EntidadId]
 		};
 		return item;
 	}

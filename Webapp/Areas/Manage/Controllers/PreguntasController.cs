@@ -2,6 +2,7 @@
 using Domain.Entidades;
 using Domain.Transferencia;
 using Infraestructura;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Reportes;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +15,11 @@ using Webapp.Web;
 namespace Webapp.Areas.Manage.Controllers;
 
 public class PreguntasController : BaseAdminController {
-	AppDbContext _db;
-	IImagenesEjercicios _imgService;
+	private readonly AppDbContext _db;
+	private readonly IImagenesEjercicios _imgService;
 
 	private readonly IMapper _mapper;
+	private readonly IAuditor<PreguntasController> _logger;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
@@ -26,10 +28,11 @@ public class PreguntasController : BaseAdminController {
 		Titulo("Lista de Preguntas");
 	}
 
-	public PreguntasController(AppDbContext db, IMapper mapper, IImagenesEjercicios imgService) {
+	public PreguntasController(AppDbContext db, IMapper mapper, IImagenesEjercicios imgService, IAuditor<PreguntasController> logger) {
 		_db = db;
 		_mapper = mapper;
 		_imgService = imgService;
+		_logger = logger;
 	}
 
 	public IActionResult Index() {
@@ -83,10 +86,14 @@ public class PreguntasController : BaseAdminController {
 		_mapper.Map(model, p);
 		p.Adjuntos = ToJson(model.ListaAdjuntos);
 
-		if (!id.HasValue)
+		var ac = "actualizada";
+		if (!id.HasValue) {
 			_db.Pregunta.Add(p);
+			ac = "creada";
+		}
 
 		_db.SaveChanges();
+		_logger.Info($"Pregunta {p.Nombre} {ac}", new { p.Id, p.Nombre });
 		ConfirmaWeb("Datos actualizados");
 		return Ok(new { id = p.Id });
 	}
@@ -94,7 +101,10 @@ public class PreguntasController : BaseAdminController {
 	[HttpPost]
 	public async Task<IActionResult> Eliminar(int id) {
 		// TODO checks
+		var p = _db.Pregunta.Where(x => x.Id == id)
+			.Select(x => new { x.Id, x.Nombre }).First();
 		await _db.Pregunta.Where(x => x.Id == id).ExecuteDeleteAsync();
+		_logger.Info($"Pregunta {p.Nombre} eliminada", new { id });
 		ConfirmaWeb("Pregunta Eliminada");
 		return Ok();
 	}

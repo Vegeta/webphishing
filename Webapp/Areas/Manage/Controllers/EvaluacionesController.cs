@@ -3,6 +3,7 @@ using Domain;
 using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Filtros;
+using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Reportes;
 using Infraestructura.Servicios;
@@ -18,7 +19,8 @@ namespace Webapp.Areas.Manage.Controllers;
 public class EvaluacionesController : BaseAdminController {
 	private readonly AppDbContext _db;
 	private readonly IMapper _mapper;
-	private readonly ConsultasService _consultas;
+	private readonly EvaluacionesService _servicio;
+	private readonly IUserAccesor _users;
 
 	public override void OnActionExecuting(ActionExecutingContext context) {
 		base.OnActionExecuting(context);
@@ -27,14 +29,15 @@ public class EvaluacionesController : BaseAdminController {
 		Titulo("Resultados evaluaciones");
 	}
 
-	public EvaluacionesController(AppDbContext db, IMapper mapper, ConsultasService consultas) {
+	public EvaluacionesController(AppDbContext db, IMapper mapper, EvaluacionesService servicio, IUserAccesor users) {
 		_db = db;
 		_mapper = mapper;
-		_consultas = consultas;
+		_servicio = servicio;
+		_users = users;
 	}
 
 	public IActionResult Index() {
-		var vm = new FiltroCatalogoVm {
+		var vm = new PantallaManageVm {
 			Meses = OpcionesConfig.MesesWeb()
 		};
 		var mapaActividad = new CatalogoGeneral(_db).Carreras()
@@ -42,6 +45,7 @@ public class EvaluacionesController : BaseAdminController {
 		vm.Actividades = OpcionesConfig.ComboDict(mapaActividad);
 		vm.Generos = OpcionesConfig.ComboDict(Generos.Mapa(), "");
 		vm.Ocupaciones = OpcionesConfig.ComboDict(Ocupaciones.Mapa(), "");
+		vm.Admin = _users.CurrentUser().TienePermisos("admin");
 
 		return View(vm);
 	}
@@ -54,7 +58,7 @@ public class EvaluacionesController : BaseAdminController {
 		filtros.OrdenCampo = orden.Campo;
 		filtros.OrdenDir = orden.Dir;
 
-		var q = _consultas.Sesiones(filtros);
+		var q = _servicio.Sesiones(filtros);
 
 		var proj = q.Select(x => new {
 			id = x.Id,
@@ -83,17 +87,12 @@ public class EvaluacionesController : BaseAdminController {
 			.First(x => x.Id == id);
 
 		var con = new ConsultaEvaluacion(_db);
-		var interDtos = new List<InteraccionesDto>();
 
-		// inline local function
-		void Extractor(InteraccionesDto x) {
-			interDtos.Add(x);
-		}
-
-		var respuestas = con.RespuestasWeb(ses.Id, Extractor);
+		var respuestas = con.RespuestasWeb(ses.Id);
+		var dtos = respuestas.Select(x => x.interacciones).Cast<InteraccionesDto>();
 
 		var stats = new InteraccionesStats();
-		var interStats = stats.Calcular(interDtos);
+		var interStats = stats.TotalesLista(dtos.ToList());
 
 		var cuest = _db.CuestionarioRespuesta
 			.Where(x => x.SesionId == ses.Id)
@@ -105,19 +104,16 @@ public class EvaluacionesController : BaseAdminController {
 		ViewBag.percepcion = ses.RespuestaCuestionario ?? "[]";
 		ViewBag.cuest = JSON.Stringify(cuest);
 		ViewBag.interStats = JSON.Stringify(interStats);
-
+		ViewBag.admin = _users.CurrentUser().TienePermisos("admin");
+		
 		return View();
-	}
-
-	public IActionResult preguntaDet(int id) {
-		return Ok();
 	}
 
 	[HttpPost]
 	public IActionResult Exportar(string filtros) {
 		var filObj = JSON.Parse<FiltroEvaluacion>(filtros);
 
-		var query = _consultas.Sesiones(filObj);
+		var query = _servicio.Sesiones(filObj);
 		var exportador = new ExportarSesiones();
 		using var wb = exportador.Exportar(query);
 		using var stream = new MemoryStream();
@@ -129,11 +125,22 @@ public class EvaluacionesController : BaseAdminController {
 			"sesiones.xlsx"
 		);
 	}
+
+	public IActionResult Eliminar(int id) {
+		var res = _servicio.EliminarEvaluacion(id);
+		if (res.Valido)
+			ConfirmaWeb("Evaluación eliminada");
+		else
+			ErrorWeb("Error eliminando evaluación");
+		return RedirectToAction("Index");
+	}
 }
 
-public class FiltroCatalogoVm {
+public class PantallaManageVm {
 	public List<SelectListItem> Meses { get; set; } = new();
 	public List<SelectListItem> Generos { get; set; } = new();
 	public List<SelectListItem> Ocupaciones { get; set; } = new();
 	public List<SelectListItem> Actividades { get; set; } = new();
+
+	public bool Admin { get; set; }
 }
