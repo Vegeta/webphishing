@@ -40,7 +40,7 @@ public partial class SesionRespuesta : BaseEntity {
 	public decimal? HoverAvg { get; set; }
 	
 	[Column("clicks_total")] 
-	public decimal? ClicksTotal { get; set; }
+	public int? ClicksTotal { get; set; }
 
 	[ForeignKey("PreguntaId")]
 	[InverseProperty("SesionRespuesta")]
