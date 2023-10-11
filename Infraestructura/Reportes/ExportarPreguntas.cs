@@ -35,7 +35,7 @@ public class ExportarPreguntas {
 				Subject = p.Subject,
 				Sender = p.Sender,
 				Email = p.Email,
-				NumAdjuntos = AppDbContext.JsonArrayLength(p.Adjuntos) ?? 0,
+				NumAdjuntos = string.IsNullOrEmpty(p.Adjuntos) ? 0 : AppDbContext.JsonArrayLength(p.Adjuntos) ?? 0,
 			};
 
 		var campos = new CamposExcel<PreguntaExport>();

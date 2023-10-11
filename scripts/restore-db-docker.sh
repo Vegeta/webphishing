@@ -1,0 +1,1 @@
+docker exec -it phishdb pg_restore -U postgres -d phishmodelo -v /backups/phishmodelo.backup

@@ -21,7 +21,7 @@ public class SimpleQueryBuilder {
 	class JoinDef {
 		public string Tipo { get; set; } = "";
 		public string Sql { get; set; } = "";
-		public dynamic Parameters { get; set; }
+		public dynamic? Parameters { get; set; }
 	}
 
 	public SimpleQueryBuilder() {
@@ -169,7 +169,7 @@ public class SimpleQueryBuilder {
 		return this;
 	}
 
-	private SqlBuilder.Template _tpl;
+	private SqlBuilder.Template? _tpl;
 
 	private void BuildStuff() {
 		var checks = new List<string>() {
@@ -206,23 +206,24 @@ public class SimpleQueryBuilder {
 		_tpl = _builder.AddTemplate(ss.ToString());
 	}
 
+	private void EnsureBuild() {
+		if (_dirty || _tpl == null) {
+			BuildStuff();
+			_dirty = false;
+		}
+	}
+
 	public object Parameters {
 		get {
-			if (_dirty) {
-				BuildStuff();
-				_dirty = false;
-			}
-			return _tpl.Parameters;
+			EnsureBuild();
+			return _tpl!.Parameters;
 		}
 	}
 
 	public string Sql {
 		get {
-			if (_dirty) {
-				BuildStuff();
-				_dirty = false;
-			}
-			return _tpl.RawSql;
+			EnsureBuild();
+			return _tpl!.RawSql;
 		}
 	}
 }

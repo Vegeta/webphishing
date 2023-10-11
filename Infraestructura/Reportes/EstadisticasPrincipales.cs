@@ -32,12 +32,13 @@ public class EstadisticasPrincipales {
 		var ultimas10 = conn.Query<dynamic>(sql1);
 
 		// preguntas mas dificiles, esto seria de hacerla una consulta mas chevere en algun otro lado
-		var sql2 = @"select pregunta_id, p.nombre, p.dificultad, p.legitimo, count(*) as num
-		from sesion_respuesta r
-		join pregunta p on p.id = r.pregunta_id
-		where score = 0
-		group by pregunta_id, p.nombre, p.dificultad, p.legitimo
-		order by count(*) desc";
+		
+		// var sql2 = @"select pregunta_id, p.nombre, p.dificultad, p.legitimo, count(*) as num
+		// from sesion_respuesta r
+		// join pregunta p on p.id = r.pregunta_id
+		// where score = 0
+		// group by pregunta_id, p.nombre, p.dificultad, p.legitimo
+		// order by count(*) desc";
 
 		//var masDificiles = conn.Query<dynamic>(sql2);
 		// var masDificiles = PreguntasDificiles();

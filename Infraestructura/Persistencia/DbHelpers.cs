@@ -40,7 +40,7 @@ public sealed class Numeric {
 			case TypeCode.UInt64:
 				return true;
 			case TypeCode.Object:
-				if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)) {
+				if (type!.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)) {
 					return Is(Nullable.GetUnderlyingType(type));
 				}
 				return false;

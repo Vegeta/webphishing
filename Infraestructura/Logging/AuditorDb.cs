@@ -13,11 +13,11 @@ public class AuditorDb<T> : IAuditor<T> {
 		_users = users;
 	}
 
-	public string ModuleName(string mod) {
+	public string? ModuleName(string? mod) {
 		return string.IsNullOrEmpty(mod) ? typeof(T).FullName : mod;
 	}
 
-	private void SaveLog(string nivel, string msg, string mod, object? data = null) {
+	private void SaveLog(string nivel, string msg, string? mod, object? data = null) {
 		var user = _users.CurrentUsername();
 		var fixMod = ModuleName(mod);
 
@@ -34,23 +34,23 @@ public class AuditorDb<T> : IAuditor<T> {
 		_db.SaveChanges();
 	}
 
-	public void Info(string msg, object? data = null, string modulo = "") {
+	public void Info(string msg, object? data = null, string? modulo = "") {
 		SaveLog(NivelAuditoria.INFO, msg, modulo, data);
 	}
 
-	public void Warn(string msg, object? data = null, string modulo = "") {
+	public void Warn(string msg, object? data = null, string? modulo = "") {
 		SaveLog(NivelAuditoria.WARNING, msg, modulo, data);
 	}
 
-	public void Debug(string msg, object? data = null, string modulo = "") {
+	public void Debug(string msg, object? data = null, string? modulo = "") {
 		SaveLog(NivelAuditoria.DEBUG, msg, modulo, data);
 	}
 
-	public void Error(string msg, object? data = null, string modulo = "") {
+	public void Error(string msg, object? data = null, string? modulo = "") {
 		SaveLog(NivelAuditoria.ERROR, msg, modulo, data);
 	}
 
-	public void Error(string msg, Exception ex, string modulo = "") {
+	public void Error(string msg, Exception ex, string? modulo = "") {
 		var data = new {
 			ex.Message,
 			ex.StackTrace,

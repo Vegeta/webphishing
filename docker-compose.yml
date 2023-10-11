@@ -1,32 +1,38 @@
 # Este archivo levanta la infraestructura basica para el sistema en contenedores docker
-# Configuraciones adicionales deben realizarse de forma externa
+# 
+# Debe correrse en la carpeta raiz de la solucion
+# Ajustar los paths al gusto
+
 version: '3'
 services:
-  webapp:
-    container_name: phishapp
-    build:
-      context: .
-      dockerfile: Webapp/Dockerfile
-    # en produccion, se puede cambiar de puerto al 80 para volumen bajo
-    # o poner un servidor nginx al frente para rutear las peticiones
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    environment:
-      ConnectionStrings__phishingDb: "Host=db;Database=phishmodelo;Username=postgres;Password=52H5rG$1Su-3"
-  db: 
+  db:
     container_name: phishdb
     image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=52H5rG$1Su-3
-      - POSTGRES_DB=phishmodelo
-    # en produccion, no exponer el puerto de postgres o utilizar un firewall
+      - POSTGRES_DB=phishtrain
+    # en produccion, se recomienda no exponer el puerto de postgres de forma externa
     ports:
       - "54329:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - ./deploy/pgdata:/var/lib/postgresql/data
+      - ./deploy/backups:/backups
+  webapp:
+    container_name: phishapp
+    build:
+      context: .
+      dockerfile: Webapp/Dockerfile
+    # en produccion, se puede cambiar de puerto al 80 para volumen bajo de peticiones
+    # Se recomienda poner un servidor nginx al frente para ruteo, configuracion SSL y más opciones
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      ConnectionStrings__phishingDb: "Host=db;Database=phishtrain;Username=postgres;Password=52H5rG$1Su-3"
+    volumes:
+      - ./deploy/imagenes:/app/wwwroot/ejercicios
 
 volumes:
   pgdata: {}
