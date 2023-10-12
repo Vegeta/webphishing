@@ -29,6 +29,7 @@ public class AuditoriasController : BaseAdminController {
 	public IActionResult Index() {
 		var niveles = NivelAuditoria.Niveles()
 			.Select(x => new SelectListItem(x, x)).ToList();
+		niveles.Insert(0, new SelectListItem());
 
 		var model = new AuditoriaVm {
 			Niveles = niveles
@@ -49,10 +50,10 @@ public class AuditoriasController : BaseAdminController {
 		if (!string.IsNullOrEmpty(filtros.Nivel))
 			q = q.Where(x => x.Nivel == filtros.Nivel);
 		if (!string.IsNullOrEmpty(filtros.Mensaje))
-			q = q.Where(x => x.Mensaje!.Contains(filtros.Mensaje.ToUpper()));
+			q = q.Where(x => x.Mensaje.ToUpper().Contains(filtros.Mensaje.ToUpper()));
 
 		if (!string.IsNullOrEmpty(filtros.Modulo))
-			q = q.Where(x => x.Modulo!.Contains(filtros.Modulo.ToUpper()));
+			q = q.Where(x => x.Modulo!.ToUpper().Contains(filtros.Modulo.ToUpper()));
 
 		q = q.OrderByDescending(x => x.Fecha);
 		var lista = q.Select(x => new {

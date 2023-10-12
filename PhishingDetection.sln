@@ -11,7 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		notas.txt = notas.txt
 		README.md = README.md
-		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{67D1CE2D-70F0-4665-892D-088C2FCE826B}"
@@ -23,6 +22,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Webapp", "Webapp\Webapp.csproj", "{D2BE23DE-8FEF-4E37-9F6C-B906332E890A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Probador", "Probador\Probador.csproj", "{23465055-F83F-4827-9260-C7D874E3040F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "despliegue", "despliegue", "{5BC22750-343C-4F99-A5F5-116D65B08B60}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\restore-db-docker.bat = scripts\restore-db-docker.bat
+		scripts\restore-db-docker.sh = scripts\restore-db-docker.sh
+		docker-compose.yml = docker-compose.yml
+		scripts\instrucciones-despliegue.md = scripts\instrucciones-despliegue.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,5 +67,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {56ED6FCF-AA7D-4AEB-A2C2-8FFAF3BA948E}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5BC22750-343C-4F99-A5F5-116D65B08B60} = {2E872807-A21B-4F88-9135-8DBFC3F869B7}
 	EndGlobalSection
 EndGlobal

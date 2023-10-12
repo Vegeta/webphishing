@@ -1,0 +1,227 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<style>
+	.borde {
+		border: 1px solid #cccccc;
+	}
+</style>
+
+<section id="app">
+
+	<div class="row">
+		<div class="col-sm-6">
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Lista de Imagenes</h5>
+
+					<p class="smaller">
+						Seleccione una imagen de la lista inferior para ver su contenido. Puede descargar la imagen
+						haciendo clic en el botón descargar del lado derecho abajo de la vista rápida.
+					</p>
+
+					<div class="smaller">
+						<b>Total:</b> {{ lista.length }}
+					</div>
+
+					<div style="max-height: 600px;overflow: auto">
+						<table class="table minitabla table-hover table-bordered">
+							<tr>
+								<th>Archivo</th>
+								<th class="col-sm-1">Tamaño</th>
+							</tr>
+							<tr v-for="a in lista" :class="{ 'bg-info':a == current }">
+								<td @@click="mostrar(a)" style="cursor:pointer">
+									{{a.nombre}}
+								</td>
+								<td>{{ a.size }}</td>
+							</tr>
+						</table>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+		<div class="col-sm-6">
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Visor</h5>
+
+					<div v-if="current" class="mb-3 small">
+						Archivo: <b>{{current.nombre}}</b>
+					</div>
+
+					<div style="height: 400px" class="text-center borde" id="visorHolder">
+						<img id="visor" src="#" alt="Seleccione una imagen" style="max-height: 400px; max-width: 100%"/>
+					</div>
+
+					<div v-if="current" class="mt-3 row">
+						<div class="col-sm-4">
+							<button class="btn btn-primary btn-sm" @@click="cancelView()" type="button">
+								Cancelar
+							</button>
+						</div>
+						<div class="col-sm-4 text-center">
+							<button class="btn btn-primary btn-sm" @@click="download()" type="button">
+								<i class="bi bi-download"></i>
+								Descargar
+							</button>
+						</div>
+						<div class="col-sm-4 text-end">
+							<button class="btn btn-danger btn-sm" @@click="eliminar()" type="button">
+								Eliminar
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Cargar Imagen</h5>
+
+					<form id="formUpload" enctype="multipart/form-data">
+
+						<p class="smaller">
+							Seleccione una imagen usando el control inferior para previsualizar su contenido y luego haga clic en Cargar para subir
+							el archivo al sistema.
+						</p>
+
+						<div style="height: 300px" class="text-center borde" id="imgHolder">
+							<img id="imgPreview" src="#" alt="Previsualizar" style="max-height: 300px; max-width: 100%"/>
+						</div>
+
+						<div class="input-group mb-3 mt-3 input-group-sm">
+							<input type="file" name="File" id="archivo" class="form-control" accept="image/*" required/>
+							<button class="btn btn-light" type="button" @@click="clearFile()">
+								<i class="bi bi-trash-fill"></i>
+								Eliminar
+							</button>
+						</div>
+
+
+						<div class="text-center">
+							<button class="btn btn-primary btn-sm">
+								Cargar
+							</button>
+						</div>
+					</form>
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+</section>
+
+@section Scripts {
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					lista: @Html.Raw(ViewBag.lista),
+					path: '@Url.Content("~/ejercicios")',
+					baseurl: '@ViewBag.self',
+					current: null,
+				}
+			},
+			methods: {
+				download() {
+					var url = this.baseurl + '/download?nombre='+this.current.nombre;
+					window.location.href = url;
+				},
+				mostrar(a) {
+					var url = this.path +'/'+a.nombre
+					$('#visor').attr('src', url).addClass('borde')
+					$('#visorHolder').removeClass('borde');
+					this.current = a
+				},
+				cancelView() {
+					this.current = null;
+					$('#visorHolder').addClass('borde');
+					$('#visor').attr("src", "#").removeClass('borde');
+				},
+				clearFile() {
+					$("#imgPreview").attr("src", "#");
+					document.querySelector('#archivo').value = '';
+				},
+				getList() {
+					let self = this;
+					$.post(this.baseurl + '/lista').then(r=>{
+						self.lista = r
+					})
+				},
+				eliminar() {
+					var c = this.current
+					if (!c) return;
+					if (!confirm(`Eliminar ${c.nombre}?`))
+						return;
+					let self = this;
+					$.post(this.baseurl + '/eliminar', {archivo:c.nombre}).then(r=>{
+						self.lista = r
+						self.cancelView()
+					})
+				},
+				subirImagen(form) {
+					var self = this;
+					var fd = new FormData(form);
+					var url = this.baseurl + '/uploadImage';
+					$.ajax({
+						url: url,
+						type: 'post',
+						data: fd,
+						contentType: false,
+						processData: false,
+						success: function (data) {
+							alert('Cargado');
+							self.clearFile();
+							self.lista = data;
+						},
+						error: function () {
+							alert('Error en carga');
+						},
+					})
+					return false;
+				},
+			},
+			mounted() {
+				var self = this;
+
+				$('#formUpload').validate({
+					submitHandler: self.subirImagen,
+					errorPlacement: function (error, element) {
+						if (element.parent('.input-group').length) {
+							error.insertAfter(element.parent());
+						} else {
+							error.insertAfter(element);
+						}
+					}
+				})
+				
+				// preview
+				$("#archivo").change(function () {
+					const file = this.files[0];
+					if (file) {
+						let reader = new FileReader();
+						reader.onload = function (event) {
+							$("#imgPreview").attr("src", event.target.result);
+						};
+						reader.readAsDataURL(file);
+					}
+				});
+				
+			}
+		})
+		.use(globalDirectives)
+		.mount('#app')
+
+	</script>
+}

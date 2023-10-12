@@ -149,7 +149,7 @@ public class EvaluacionesService {
 			_db.SaveChanges();
 			tx.Commit();
 			var t = $"Evaluación de {eval.Nombre} eliminada";
-			var tlog = $"t, id:{eval.Id}";
+			var tlog = $"{t}, id:{eval.Id}";
 			_logger.Info(tlog, new { eval.Id });
 			return OperationResult<string>.Ok(t);
 		} catch (Exception ex) {

@@ -43,10 +43,10 @@ namespace Webapp {
 				.AddRazorRuntimeCompilation()
 				.AddSessionStateTempDataProvider();
 
-			services.AddTransient<IImagenesEjercicios, ImagenesEjercicios>(opt => {
+			services.AddTransient<IImagenesWeb, ImagenesWeb>(opt => {
 				var env = opt.GetRequiredService<IWebHostEnvironment>();
 				var path = Path.Combine(env.WebRootPath, "ejercicios");
-				return new ImagenesEjercicios(path);
+				return new ImagenesWeb(path);
 			});
 
 			var app = builder.Build();
@@ -56,6 +56,8 @@ namespace Webapp {
 				app.UseExceptionHandler("/Home/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
+			} else {
+				app.UseDeveloperExceptionPage();
 			}
 
 			app.UseHttpsRedirection();

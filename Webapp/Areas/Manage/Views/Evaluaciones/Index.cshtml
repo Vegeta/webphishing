@@ -54,7 +54,14 @@
 
 						</div>
 						<div class="col-sm-4">
-
+							<div class="row mb-3">
+								<label for="" class="col-sm-3 col-form-label">Estado</label>
+								<div class="col-sm-9">
+									<select asp-items="Model.Estados" v-model="filtros.estado" name="estado"
+									        class="form-select">
+									</select>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -67,7 +74,17 @@
 
 						<a class="btn btn-secondary btn-sm ms-1" @@click="exportar()">
 							<i class="bi bi-printer"></i>
-							Exportar Excel
+							Exportar Evaluaciones
+						</a>
+
+						<a class="btn btn-secondary btn-sm ms-1" @@click="exportarRespuestas()">
+							<i class="bi bi-printer"></i>
+							Exportar Respuestas
+						</a>
+
+						<a class="btn btn-secondary btn-sm ms-1" @@click="exportarCuestionario()">
+							<i class="bi bi-printer"></i>
+							Exportar Resp. Cuestionario
 						</a>
 
 					</div>
@@ -107,6 +124,12 @@
 		<input type="hidden" name="filtros" id="filtroJson"/>
 	</form>
 
+	<form id="frmExport2" method="post" action="@Url.Content("~/Manage/Evaluaciones/ExportarRespuestas")">
+	</form>
+
+	<form id="frmExport3" method="post" action="@Url.Content("~/Manage/Evaluaciones/ExportarCuestionario")">
+	</form>
+
 </div>
 
 
@@ -125,6 +148,7 @@
 						nombre: null,
 						mes: null,
 						anio: null,
+						estado: null,
 						actividades: [],
 					},
 					lista:[]
@@ -134,9 +158,15 @@
 				filtrar() {
 					$('#tlista').DataTable().ajax.reload();
 				},
-				exportar(){
+				exportar() {
 					$('#filtroJson').val(JSON.stringify(this.filtros));
 					$('#frmExport').submit()
+				},
+				exportarRespuestas() {
+					$('#frmExport2').submit()
+				},
+				exportarCuestionario() {
+					$('#frmExport3').submit()
 				}
 			},
 			mounted() {

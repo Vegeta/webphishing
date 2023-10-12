@@ -25,7 +25,6 @@
 				<div class="card-body">
 					<h5 class="card-title">Editar HTML</h5>
 
-
 					<textarea id="editor" :value="model.html"></textarea>
 
 					@*<div class="small">
@@ -44,71 +43,23 @@
 					</div>
 
 
-					<hr />
+					<hr/>
 
 					<div class="mt-3 text-center">
-						<button type="button" class="btn btn-primary" @@click="save()">
+						<button type="button" class="btn btn-primary btn-sm" @@click="save()">
 							<i class="bi bi-save"></i>
 							Guardar
 						</button>
 
+						<button type="button" class="btn btn-info btn-sm float-end" @@click="openImagen()">
+							<i class="bi bi-image"></i>
+							Ver Imagenes
+						</button>
 					</div>
-
-					<hr />
-
-					<div class="row">
-						<div class="col-sm-4">
-
-							<div>
-								<b>Imagenes</b>
-
-								<a @@click="reloadImages()" class="float-end">
-									<i class="bi bi-arrow-clockwise"></i>
-								</a>
-							</div>
-
-
-							<div class="table-responsive-sm" style="height:300px;overflow:auto">
-								<table class="table minitabla">
-									<tr v-for="i in imagenes">
-										<td>
-											<a @@click="verImagen(i)" href="javascript:;">{{ i }}</a>
-										</td>
-									</tr>
-								</table>
-							</div>
-
-						</div>
-						<div class="col-sm-8">
-							<b>Vista {{ imagen }}</b>
-							<div style="max-height:300px; overflow:auto">
-								<img src="" id="imagen" style="width:100%;" />
-							</div>
-						</div>
-					</div>
-
-					<div>
-						<form id="formUpload" enctype="multipart/form-data">
-
-							<label class="form-label">Subir</label>
-
-							<div class="input-group mb-3 input-group-sm">
-								<input type="file" name="File" id="archivo" class="form-control" accept="image/*" required />
-								<button class="btn btn-light" type="button" @@click="clearFile()">X</button>
-							</div>
-
-							<div>
-								<button class="btn btn-primary btn-sm">
-									Subir
-								</button>
-							</div>
-						</form>
-					</div>
-
-
 
 				</div>
 			</div>
+
 		</div>
 
 		<div class="col-sm-6">
@@ -116,6 +67,61 @@
 				<div class="card-body">
 					<h5 class="card-title">Preview</h5>
 					<div id="preview"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	@* <div class="modal" tabindex="-1" id="popupFin" data-bs-backdrop="static" data-bs-keyboard="false"> *@
+	<div class="modal" tabindex="-1" id="modalImagen">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Imagenes</h5>
+				</div>
+				<div class="modal-body p-sm-4">
+
+					<div class="mb-3">
+						<button @@click="reloadImages()" class="btn btn-sm btn-primary" type="button">
+							<i class="bi bi-arrow-clockwise"></i>
+							Recargar lista
+						</button>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-5">
+							<h5>Lista</h5>
+							<div class="table-responsive-sm" style="height:300px;overflow:auto">
+								<table class="table minitabla table-hover">
+									<tr v-for="i in imagenes" :class="{'bg-info':imagen==i.nombre}">
+										<td @@click="verImagen(i)">
+											{{ i.nombre }}
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div>
+								<button type="button" class="btn btn-sm btn-info" v-if="imagen" @@click="copyImagen()">
+									<i class="bi bi-clipboard"></i>
+									Copiar nombre
+								</button>
+								<div id="msgCopy" class="float-end smaller" style="display:none">
+									Nombre copiado
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-7">
+							<h5>Previsualización</h5>
+							<div style="max-height:300px; overflow:auto">
+								<img src="" id="imagen" style="width:100%;"/>
+							</div>
+						</div>
+					</div>
+
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
 				</div>
 			</div>
 		</div>
@@ -142,41 +148,35 @@
 				}
 			},
 			methods: {
+				copyImagen() {
+					if(navigator.clipboard) {
+						navigator.clipboard.writeText(this.imagen)
+						
+						$('#msgCopy')
+							.show()
+							.delay(1500)
+							.fadeOut('slow').delay(2000).hide(0);
+					}
+				},
+				openImagen() {
+					$('#modalImagen').modal('show')
+				},
 				clearFile() {
 					document.querySelector('#archivo').value = '';
 				},
-				verImagen(name) {
+				verImagen(f) {
 					var base = '@Url.Content("~/ejercicios")'
-					var url = base + '/' + name
-					this.imagen = name
+					var url = base + '/' + f.nombre
+					this.imagen = f.nombre
 					$('#imagen').attr('src', url);
-				},
-				subirImagen(form) {
-					var self = this;
-					var fd = new FormData(form);
-					var url = this.baseurl + '/uploadImage';
-					$.ajax({
-						url: url,
-						type: 'post',
-						data: fd,
-						contentType: false,
-						processData: false,
-						success: function (data) {
-							alert('Cargado');
-							self.clearFile();
-							self.reloadImages();
-						},
-						error: function () {
-							alert('Error en carga');
-						},
-					})
-					return false;
 				},
 				reloadImages() {
 					var self = this;
-					var url = this.baseurl + '/Imagenes';
-					$.get(url).then(r => {
+					var url = this.baseurl + '/imagenes';
+					$.post(url).then(r => {
 						self.imagenes = r
+						$('#imagen').attr('src', '');
+						self.imagen = null;
 					});
 				},
 				procesar() {
@@ -213,17 +213,6 @@
 					e.preventDefault()
 					alert('clicked')
 				});
-
-				$('#formUpload').validate({
-					submitHandler: self.subirImagen,
-					errorPlacement: function (error, element) {
-						if (element.parent('.input-group').length) {
-							error.insertAfter(element.parent());
-						} else {
-							error.insertAfter(element);
-						}
-					}
-				})
 
 				this._editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
 					lineNumbers: true,

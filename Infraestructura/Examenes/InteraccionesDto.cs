@@ -12,6 +12,10 @@ public class InteraccionesDto : List<FilaInter> {
 	public static InteraccionesDto Parse(string? json) {
 		if (string.IsNullOrEmpty(json))
 			return new InteraccionesDto();
-		return JSON.Parse<InteraccionesDto>(json);
+		try {
+			return JSON.Parse<InteraccionesDto>(json);
+		} catch (Exception) {
+			return new InteraccionesDto();
+		}
 	}
 }

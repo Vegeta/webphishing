@@ -90,6 +90,11 @@ namespace Webapp.Models {
 						Name = "Cuestionario",
 						Link = "~/manage/Cuestionario",
 						Accesos = "examenes"
+					},
+					new MenuItem {
+						Name = "Imágenes",
+						Link = "~/manage/Imagenes",
+						Accesos = "preguntas"
 					}
 				),
 				new MenuItem {
@@ -100,8 +105,7 @@ namespace Webapp.Models {
 					new MenuItem {
 						Name = "Evaluaciones",
 						Link = "~/manage/Evaluaciones"
-					}
-				).AddChildren(
+					},
 					new MenuItem {
 						Name = "Personas",
 						Link = "~/manage/Personas"

@@ -16,7 +16,7 @@ namespace Webapp.Areas.Manage.Controllers;
 
 public class PreguntasController : BaseAdminController {
 	private readonly AppDbContext _db;
-	private readonly IImagenesEjercicios _imgService;
+	private readonly IImagenesWeb _imgService;
 
 	private readonly IMapper _mapper;
 	private readonly IAuditor<PreguntasController> _logger;
@@ -28,7 +28,7 @@ public class PreguntasController : BaseAdminController {
 		Titulo("Lista de Preguntas");
 	}
 
-	public PreguntasController(AppDbContext db, IMapper mapper, IImagenesEjercicios imgService, IAuditor<PreguntasController> logger) {
+	public PreguntasController(AppDbContext db, IMapper mapper, IImagenesWeb imgService, IAuditor<PreguntasController> logger) {
 		_db = db;
 		_mapper = mapper;
 		_imgService = imgService;
@@ -125,8 +125,12 @@ public class PreguntasController : BaseAdminController {
 			Nombre = p.Nombre
 		};
 		ViewBag.modelo = JSON.Stringify(model);
-		ViewBag.imagenes = ToJson(_imgService.GetFiles());
+		ViewBag.imagenes = ToJson(_imgService.FileDetails());
 		return View(model);
+	}
+
+	public IActionResult Imagenes() {
+		return Ok(_imgService.FileDetails());
 	}
 
 	[HttpPost]
@@ -136,17 +140,6 @@ public class PreguntasController : BaseAdminController {
 				s.SetProperty(b => b.Html, html)
 			);
 		return Ok();
-	}
-
-	[HttpGet]
-	public IList<string> Imagenes() {
-		return _imgService.GetFiles();
-	}
-
-	public IActionResult UploadImage(UploadModel model) {
-		if (model.File != null)
-			_imgService.SaveUpload(model.File);
-		return Ok("OK");
 	}
 
 	public IActionResult Exportar() {

@@ -1,5 +1,4 @@
 ﻿using ClosedXML.Excel;
-using Infraestructura.Persistencia;
 using Domain.Entidades;
 
 namespace Infraestructura.Reportes;

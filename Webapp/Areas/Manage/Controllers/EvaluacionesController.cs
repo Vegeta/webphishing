@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Domain;
+using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Filtros;
-using Infraestructura.Logging;
 using Infraestructura.Persistencia;
 using Infraestructura.Reportes;
 using Infraestructura.Servicios;
@@ -45,6 +45,11 @@ public class EvaluacionesController : BaseAdminController {
 		vm.Actividades = OpcionesConfig.ComboDict(mapaActividad);
 		vm.Generos = OpcionesConfig.ComboDict(Generos.Mapa(), "");
 		vm.Ocupaciones = OpcionesConfig.ComboDict(Ocupaciones.Mapa(), "");
+
+		vm.Estados = SesionPersona.ListaEstados()
+			.Select(x => new SelectListItem(x.ToUpper(), x)).ToList();
+		vm.Estados.Insert(0, new SelectListItem());
+
 		vm.Admin = _users.CurrentUser().TienePermisos("admin");
 
 		return View(vm);
@@ -105,7 +110,7 @@ public class EvaluacionesController : BaseAdminController {
 		ViewBag.cuest = JSON.Stringify(cuest);
 		ViewBag.interStats = JSON.Stringify(interStats);
 		ViewBag.admin = _users.CurrentUser().TienePermisos("admin");
-		
+
 		return View();
 	}
 
@@ -134,6 +139,35 @@ public class EvaluacionesController : BaseAdminController {
 			ErrorWeb("Error eliminando evaluación");
 		return RedirectToAction("Index");
 	}
+
+	[HttpPost]
+	public IActionResult ExportarRespuestas() {
+		var exportador = new ExportarRespuestas(_db);
+		using var wb = exportador.Exportar();
+		using var stream = new MemoryStream();
+		wb.SaveAs(stream);
+		var content = stream.ToArray();
+		return File(
+			content,
+			ExcelUtils.TipoMime,
+			"respuestas.xlsx"
+		);
+	}
+	
+	[HttpPost]
+	public IActionResult ExportarCuestionario() {
+		var exportador = new ExportarCuestionarioRespuestas(_db);
+		using var wb = exportador.Exportar();
+		using var stream = new MemoryStream();
+		wb.SaveAs(stream);
+		var content = stream.ToArray();
+		return File(
+			content,
+			ExcelUtils.TipoMime,
+			"respuestas_cuestionario.xlsx"
+		);
+	}
+	
 }
 
 public class PantallaManageVm {
@@ -141,6 +175,7 @@ public class PantallaManageVm {
 	public List<SelectListItem> Generos { get; set; } = new();
 	public List<SelectListItem> Ocupaciones { get; set; } = new();
 	public List<SelectListItem> Actividades { get; set; } = new();
+	public List<SelectListItem> Estados { get; set; } = new();
 
 	public bool Admin { get; set; }
 }
