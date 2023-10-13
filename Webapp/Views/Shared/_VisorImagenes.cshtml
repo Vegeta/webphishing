@@ -1,0 +1,135 @@
+<template id="tplVisorImagenes">
+
+	<div class="modal" tabindex="-1" id="modalVisorImagen">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Imagenes</h5>
+				</div>
+				<div class="modal-body p-sm-4">
+
+					<div class="mb-3">
+						<button @@click="reloadImages()" class="btn btn-sm btn-primary" type="button">
+							<i class="bi bi-arrow-clockwise"></i>
+							Recargar lista
+						</button>
+					</div>
+
+					<div class="row">
+						<div class="col-sm-5">
+							<h5>Lista</h5>
+							<div class="table-responsive-sm" style="height:300px;overflow:auto">
+								<table class="table minitabla table-hover">
+									<tr v-for="i in imagenes" :class="{'bg-info':imagen==i.nombre}">
+										<td @@click="verImagen(i)">
+											{{ i.nombre }}
+										</td>
+									</tr>
+								</table>
+							</div>
+							<div>
+								<button type="button" class="btn btn-sm btn-info" v-if="imagen" @@click="copyImagen()">
+									<i class="bi bi-clipboard"></i>
+									Copiar nombre
+								</button>
+								<div id="visorMensaje" class="float-end smaller" style="display:none">
+									Nombre copiado
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-7">
+							<h5>Previsualización</h5>
+							<div style="max-height:300px; overflow:auto">
+								<img src="" id="visorImagen" style="width:100%;"/>
+							</div>
+
+							<div v-if="imagen && selectFunc" class="text-center mt-3">
+								<button type="button" class="btn btn-primary btn-sm" @@click="seleccionar()">
+									Seleccionar
+								</button>
+							</div>
+						</div>
+					</div>
+
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</template>
+
+<script>
+
+	const CompImagenes = {
+		props: [],
+		template: '#tplVisorImagenes',
+		data() {
+			return {
+				imagen: null,
+				imagenes: [],
+				loaded : false,
+				rootUrl: '@Url.Content("~")', // un poco de trampa, deberia pasarle por variable
+				selectFunc: null
+			};
+		},
+		computed: {
+			estiloBarra() {
+				return {
+					width: this.model.exito + '%'
+				}
+			}
+		},
+		created() { },
+		methods: {
+			open() {
+				if (!this.loaded) {
+					this.reloadImages();
+				}
+				$('#modalVisorImagen').modal('show')
+			},
+			close() {
+				$('#modalVisorImagen').modal('hide')
+			},
+			verImagen(f) {
+				//var base = '@Url.Content("~/ejercicios")'
+				var base = this.rootUrl + '/ejercicios';
+				var url = base + '/' + f.nombre
+				this.imagen = f.nombre
+				$('#visorImagen').attr('src', url);
+			},
+			reloadImages() {
+				var self = this;
+				//var url = this.baseurl + '/imagenes';
+				var url = this.rootUrl + '/manage/imagenes/lista';
+				$.post(url).then(r => {
+					$('#visorImagen').attr('src', '');
+					self.imagenes = r
+					self.imagen = null;
+					self.loaded = true;
+				});
+			},
+			copyImagen() {
+				if(navigator.clipboard) {
+					navigator.clipboard.writeText(this.imagen)
+					
+					$('#visorMensaje')
+						.show()
+						.delay(1500)
+						.fadeOut('slow').delay(2000).hide(0);
+				}
+			},
+			seleccionar() {
+				if(this.selectFunc)
+					this.selectFunc(this.imagen)
+			}
+		},
+		mounted() {
+			
+		},
+	}
+
+</script>

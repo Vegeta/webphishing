@@ -9,7 +9,7 @@
 	<examen :datos="datos" ref="examen"
 			simulacion="1"
 			:url-imagen="urlImagen"
-			:retro-path="retroPath"
+			:retro-path="urlImagen"
 			:base-url="baseUrl"></examen>
 
 	<div v-if="reporte">
@@ -28,7 +28,7 @@
 			</div>
 
 			<div class="mt-3">
-				<respuestas :lista="reporte.respuestas" :retro-path="retroPath" :interacciones="reporte.interStats"></respuestas>
+				<respuestas :lista="reporte.respuestas" :retro-path="urlImagen" :interacciones="reporte.interStats"></respuestas>
 			</div>
 
 		</div>
@@ -50,7 +50,6 @@
 				return {
 					baseUrl: '@ViewBag.self',
 					urlImagen: '@Url.Content("~/ejercicios")',
-					retroPath: '@Url.Content("~/retro")',
 
 					datos: {
 						model: @Html.Raw(ViewBag.model),

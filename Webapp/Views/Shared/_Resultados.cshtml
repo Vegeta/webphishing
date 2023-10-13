@@ -58,7 +58,7 @@
 							<td>{{ interacciones.hovers.length }}</td>
 						</tr>
 					</table>
-					
+
 				</div>
 			</div>
 		</div>
@@ -83,7 +83,7 @@
 							<p class="small" style="text-align: justify-all">{{ question.explicacion }}</p>
 						</div>
 
-						<div class="card card-body mt-2">
+						<div class="card card-body mt-2" v-if="question.imagenRetro">
 							<img :src="imgRetro()" alt="Descripcion" style="width:100%"/>
 						</div>
 

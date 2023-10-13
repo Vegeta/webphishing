@@ -30,9 +30,10 @@ services:
     depends_on:
       - db
     environment:
-      ConnectionStrings__phishingDb: "Host=db;Database=phishtrain;Username=postgres;Password=52H5rG$1Su-3"
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__phishingDb=Host=db;Database=phishtrain;Username=postgres;Password=52H5rG$1Su-3
     volumes:
       - ./deploy/imagenes:/app/wwwroot/ejercicios
 
 volumes:
-  pgdata: {}
+  pgdata: { }

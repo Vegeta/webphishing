@@ -10,7 +10,7 @@
 </style>
 
 <section id="app">
-	<form id="formPregunta">
+	<form id="formPregunta" class="smallForm">
 		<div class="row">
 			<div class="col-sm-6">
 				<div class="card">
@@ -46,16 +46,24 @@
 							<label for="" class="col-sm-2 col-form-label">Explicación</label>
 							<div class="col-sm-10">
 								<textarea v-model="model.explicacion" class="form-control" id="explicacion"
-										  style="font-size:small"
+										  style="font-size:smaller"
 										  rows="4">
 								</textarea>
+								@* <div id="editor"></div> *@
 							</div>
 						</div>
 
 						<div class="row mb-3">
 							<label for="" class="col-sm-2 col-form-label">Imagen retroalimentación</label>
 							<div class="col-sm-10">
-								<input class="form-control form-control-sm" name="imagenRetro" v-model="model.imagenRetro">
+								<div class="input-group input-group-sm">
+									<input class="form-control form-control-sm" name="imagenRetro" v-model="model.imagenRetro">
+									<button class="btn btn-primary" type="button" @@click="openImagenes()">
+										<i class="bi bi-eye"></i>
+										Elegir imagen
+									</button>
+								</div>
+
 							</div>
 						</div>
 
@@ -92,30 +100,30 @@
 						<b>Adjuntos simulados</b>
 						<table class="table minitabla table-bordered">
 							<thead>
-							<tr>
-								<th class="col-sm-5">Nombre</th>
-								<th class="col-sm-5">Archivo</th>
-								<th>Tamaño</th>
-								<th style="width:30px !important"></th>
-							</tr>
+								<tr>
+									<th class="col-sm-5">Nombre</th>
+									<th class="col-sm-5">Archivo</th>
+									<th>Tamaño</th>
+									<th style="width:30px !important"></th>
+								</tr>
 							</thead>
 							<tbody>
-							<tr v-for="a in model.listaAdjuntos">
-								<td>
-									<input v-model="a.name" class="form-control form-control-sm"/>
-								</td>
-								<td>
-									<input v-model="a.file" class="form-control form-control-sm"/>
-								</td>
-								<td>
-									<input v-model="a.size" class="form-control form-control-sm"/>
-								</td>
-								<td>
-									<button type="button" class="btn btn-info btn-sm" @@click="delFile(a)">
-										<i class="bi bi-file-minus"></i>
-									</button>
-								</td>
-							</tr>
+								<tr v-for="a in model.listaAdjuntos">
+									<td>
+										<input v-model="a.name" class="form-control form-control-sm"/>
+									</td>
+									<td>
+										<input v-model="a.file" class="form-control form-control-sm"/>
+									</td>
+									<td>
+										<input v-model="a.size" class="form-control form-control-sm"/>
+									</td>
+									<td>
+										<button type="button" class="btn btn-info btn-sm" @@click="delFile(a)">
+											<i class="bi bi-file-minus"></i>
+										</button>
+									</td>
+								</tr>
 							</tbody>
 						</table>
 						<button type="button" class="btn btn-secondary btn-sm" @@click="addfile()">
@@ -166,12 +174,15 @@
 		</div>
 	</form>
 
+	<visor-imagenes ref="visor"></visor-imagenes>
+
 </section>
 
 @section Scripts {
 
 	@await Html.PartialAsync("_Validation")
 	@await Html.PartialAsync("_Editor")
+	@await Html.PartialAsync("_VisorImagenes")
 
 	<script>
 
@@ -179,10 +190,13 @@
 			data() {
 				return {
 					model: @Html.Raw(ViewBag.modelo),
-					baseurl : '@ViewBag.self'
+					baseurl : '@ViewBag.self',
 				}
 			},
 			methods: {
+				openImagenes() {
+					this.$refs.visor.open();
+				},
 				delFile(a) {
 					var ix = this.model.listaAdjuntos.indexOf(a);
 					this.model.listaAdjuntos.splice(ix, 1);
@@ -200,11 +214,26 @@
 					$.post(url).then(r => {
 						window.location.href = this.baseurl
 					})
-				}
+				},
 			},
 			mounted() {
-				var self = this;
-
+				let self = this;
+				let visor = this.$refs.visor;
+				
+				visor.selectFunc = function (imagen) {
+					self.model.imagenRetro = imagen;
+					visor.close();
+				}
+				
+				// $('#editor').html(this.model.explicacion)
+				// let quill = new Quill('#editor', {
+				// 	theme: 'snow'
+				// });
+				// quill.on('text-change', function() {
+				// 	const content = quill.root.innerHTML.trim();
+				// 	self.model.explicacion = content
+				// });
+				
 				$('#formPregunta').validate({
 					submitHandler() {
 						var base = self.baseurl
@@ -216,7 +245,6 @@
 						return false;
 					}
 				})
-
 				
 				var urlimg = '@Url.Content("~/ejercicios")';
 				var html = $('#preview').html();
@@ -227,13 +255,11 @@
 					e.preventDefault();
 					alert('clicked');
 				});
-
-				new Quill('#explicacion', {
-                      theme: 'snow'
-                    });
-				
 			}
-		}).mount('#app')
+		})
+		.component('visorImagenes', CompImagenes)
+		.use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }

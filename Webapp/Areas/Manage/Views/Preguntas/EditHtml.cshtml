@@ -71,62 +71,8 @@
 			</div>
 		</div>
 	</div>
-
-	@* <div class="modal" tabindex="-1" id="popupFin" data-bs-backdrop="static" data-bs-keyboard="false"> *@
-	<div class="modal" tabindex="-1" id="modalImagen">
-		<div class="modal-dialog modal-dialog-centered modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">Imagenes</h5>
-				</div>
-				<div class="modal-body p-sm-4">
-
-					<div class="mb-3">
-						<button @@click="reloadImages()" class="btn btn-sm btn-primary" type="button">
-							<i class="bi bi-arrow-clockwise"></i>
-							Recargar lista
-						</button>
-					</div>
-
-					<div class="row">
-						<div class="col-sm-5">
-							<h5>Lista</h5>
-							<div class="table-responsive-sm" style="height:300px;overflow:auto">
-								<table class="table minitabla table-hover">
-									<tr v-for="i in imagenes" :class="{'bg-info':imagen==i.nombre}">
-										<td @@click="verImagen(i)">
-											{{ i.nombre }}
-										</td>
-									</tr>
-								</table>
-							</div>
-							<div>
-								<button type="button" class="btn btn-sm btn-info" v-if="imagen" @@click="copyImagen()">
-									<i class="bi bi-clipboard"></i>
-									Copiar nombre
-								</button>
-								<div id="msgCopy" class="float-end smaller" style="display:none">
-									Nombre copiado
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-7">
-							<h5>Previsualización</h5>
-							<div style="max-height:300px; overflow:auto">
-								<img src="" id="imagen" style="width:100%;"/>
-							</div>
-						</div>
-					</div>
-
-
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
+	
+	<visor-imagenes ref="visor"></visor-imagenes>
 
 </section>
 
@@ -134,6 +80,7 @@
 
 	@await Html.PartialAsync("_Validation")
 	@await Html.PartialAsync("_Codemirror")
+	@await Html.PartialAsync("_VisorImagenes")
 
 	<script>
 		// https://thecodebarbarian.com/building-a-code-editor-with-codemirror.html
@@ -142,42 +89,13 @@
 				return {
 					model: @Html.Raw(ViewBag.modelo),
 					baseurl: '@ViewBag.self',
-					imagenes: @Html.Raw(ViewBag.imagenes),
 					imagen: null,
 					html: ''
 				}
 			},
 			methods: {
-				copyImagen() {
-					if(navigator.clipboard) {
-						navigator.clipboard.writeText(this.imagen)
-						
-						$('#msgCopy')
-							.show()
-							.delay(1500)
-							.fadeOut('slow').delay(2000).hide(0);
-					}
-				},
 				openImagen() {
-					$('#modalImagen').modal('show')
-				},
-				clearFile() {
-					document.querySelector('#archivo').value = '';
-				},
-				verImagen(f) {
-					var base = '@Url.Content("~/ejercicios")'
-					var url = base + '/' + f.nombre
-					this.imagen = f.nombre
-					$('#imagen').attr('src', url);
-				},
-				reloadImages() {
-					var self = this;
-					var url = this.baseurl + '/imagenes';
-					$.post(url).then(r => {
-						self.imagenes = r
-						$('#imagen').attr('src', '');
-						self.imagen = null;
-					});
+					this.$refs.visor.open();
 				},
 				procesar() {
 					//var orig = this.model.html;
@@ -207,11 +125,11 @@
 				}
 			},
 			mounted() {
-				var self = this;
+				let self = this;
 
 				$('#preview').on("click", "a", function (e) {
 					e.preventDefault()
-					alert('clicked')
+					alert('link clicked')
 				});
 
 				this._editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
@@ -224,7 +142,11 @@
 				this.procesar();
 
 			}
-		}).mount('#app')
+		})
+		//CompImagenes
+		.component('visorImagenes', CompImagenes)
+        .use(globalDirectives)
+		.mount('#app')
 
 	</script>
 }
