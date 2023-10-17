@@ -47,7 +47,8 @@ public class ExportarPreguntas {
 			.AddCampo("Direccion Remitente", x => x.Email!)
 			.AddCampo("# Adjuntos", x => x.NumAdjuntos!)
 			.AddCampo("Explicacion", x => x.Explicacion!)
-			.AddCampo("Imagen retroalimentacion", x => x.ImagenRetro!);
+			.AddCampo("Imagen retroalimentacion", x => x.ImagenRetro!)
+			.AddCampo("Comentarios", x => x.Comentarios!);
 
 		ExcelUtils.LlenarHeader(ws, 1, campos.GetHeader());
 

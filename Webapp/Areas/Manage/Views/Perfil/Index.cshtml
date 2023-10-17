@@ -1,0 +1,162 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<section id="app">
+	<div class="row">
+		<div class="col-sm-6">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Información de cuenta</h5>
+
+					<table class="table minitabla">
+						<tr>
+							<th class="col-sm-4">Nombre de usuario</th>
+							<td>{{ model.username }}</td>
+						</tr>
+						<tr>
+							<th>Nombres</th>
+							<td>{{ model.nombres }}</td>
+						</tr>
+						<tr>
+							<th>Apellidos</th>
+							<td>{{ model.apellidos }}</td>
+						</tr>
+						<tr>
+							<th>Email</th>
+							<td>{{ model.email }}</td>
+						</tr>
+						<tr>
+							<th>Celular</th>
+							<td>{{ model.celular }}</td>
+						</tr>
+						<tr>
+							<th>Perfil</th>
+							<td>{{ model.perfil }}</td>
+						</tr>
+						<tr>
+							<th>Fecha creación</th>
+							<td>{{ fecha(model.creacion) }}</td>
+						</tr>
+						<tr>
+							<th>Último cambio de contraseña</th>
+							<td>{{ fecha(model.fechaPassword) }}</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-sm-6">
+			<div class="card">
+				<div class="card-body">
+					<div class="mt-3 mb-3">
+						<button class="btn btn-sm btn-primary" type="button" @@click="showPassword()">
+							Cambiar Contraseña
+						</button>
+					</div>
+
+
+					<div v-show="viewPassword" class="smallForm">
+
+						<form id="formPass" class="smallForm" autocomplete="off">
+
+							<p v-if="passModel.error">
+								<b>Advertencia:</b> <br/>
+								<span v-text="passModel.error"></span>
+							</p>
+
+							<div class="mb-3">
+								<label class="">Contraseña actual</label>
+								<input type="password" class="form-control required" 
+								       autocomplete="new-password" v-model="passModel.original"
+								       aria-describedby="help1" maxlength="30" v-autoname="" required>
+								<div id="help1" class="form-text">Introduzca su contraseña actual.</div>
+							</div>
+
+							<div class="mb-3">
+								<label class="">Nueva Contraseña</label>
+								<input type="password" class="form-control required" 
+								       autocomplete="new-password" v-model="passModel.nuevo"
+								       aria-describedby="help2" maxlength="30" v-autoname="" required>
+								<div id="help2" class="form-text">Máximo 30 caracteres.</div>
+							</div>
+
+							<div class="mb-3">
+								<label class="">Confirme Contraseña</label>
+								<input type="password" class="form-control required" 
+								       autocomplete="new-password" v-model="passModel.nuevo2"
+								       aria-describedby="help3" maxlength="30" v-autoname="" required>
+								<div id="help3" class="form-text">Repita la nueva contraseña.</div>
+							</div>
+
+							<div>
+								<button class="btn btn-sm btn-primary" type="submit">
+									Actualizar Contraseña
+								</button>
+							</div>
+
+						</form>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+</section>
+
+@section Scripts {
+
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+
+		Vue.createApp({
+			data() {
+				return {
+					model: @Html.Raw(ViewBag.modelo),
+					baseurl: '@ViewBag.self',
+					passModel: {
+						original: null,
+						nuevo: null,
+						nuevo2: null,
+						error: null,
+					},
+					viewPassword: false,
+				}
+			},
+			methods: {
+				showPassword() {
+					this.viewPassword = !this.viewPassword
+				},
+				cambiarPassword() {
+					var m = this.passModel
+					m.error = null
+					$('#formPass button').prop('disabled', true)
+					let url = this.baseurl + '/cambioPassword'
+					let data = {
+						original : m.original,
+						nuevo: m.nuevo
+					}
+					$.post(url, data).then(r => {
+						if (r.error) {
+							$('#formPass button').prop('disabled', false)
+							m.error = r.error
+							return
+						}
+						window.location.reload();
+					})
+				}
+			},
+			mounted() {
+				var self = this;
+
+				$('#formPass').validate({
+					submitHandler: self.cambiarPassword
+				});
+			}
+		})
+		.use(globalDirectives)
+		.mount('#app')
+
+	</script>
+}

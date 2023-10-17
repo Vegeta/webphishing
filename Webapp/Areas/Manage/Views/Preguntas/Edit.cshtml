@@ -47,7 +47,7 @@
 							<div class="col-sm-10">
 								<textarea v-model="model.explicacion" class="form-control" id="explicacion"
 										  style="font-size:smaller"
-										  rows="4">
+										  rows="4" maxlength="2000">
 								</textarea>
 								@* <div id="editor"></div> *@
 							</div>
@@ -63,9 +63,20 @@
 										Elegir imagen
 									</button>
 								</div>
-
 							</div>
 						</div>
+
+						<div class="row mb-5">
+							<label for="" class="col-sm-2 col-form-label">Comantarios</label>
+							<div class="col-sm-10">
+								<textarea v-model="model.comentarios" class="form-control" id="comentarios"
+                        				  style="font-size:smaller"
+                        				  rows="2" maxlength="500">
+                        		</textarea>
+								@* <div id="editor"></div> *@
+							</div>
+						</div>
+
 
 					</div>
 				</div>

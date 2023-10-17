@@ -45,8 +45,8 @@ public partial class Pregunta : BaseEntity {
 	[Column("data", TypeName = "json")]
 	public string? Data { get; set; }
 
-	[Column("links", TypeName = "json")]
-	public string? Links { get; set; }
+	[Column("comentarios")]
+	public string? Comentarios { get; set; }
 
 	[InverseProperty("Pregunta")]
 	public virtual ICollection<ExamenPregunta> ExamenPregunta { get; } = new List<ExamenPregunta>();

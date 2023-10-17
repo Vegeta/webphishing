@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Infraestructura.Servicios;
 
 public class UsuariosService {
-
 	private readonly AppDbContext _db;
 
 	public UsuariosService(AppDbContext db) {
@@ -63,6 +62,7 @@ public class UsuariosService {
 	public static void UpdatePassword(Usuario user, string password) {
 		var hasher = new PasswordHash();
 		user.Password = hasher.Hash(password);
+		user.FechaPassword = DateTime.Now;
 	}
 
 	public static bool AutorizarPermisos(IList<string> permisos, string args) {
@@ -129,5 +129,4 @@ public class UsuariosService {
 
 		return q;
 	}
-
 }

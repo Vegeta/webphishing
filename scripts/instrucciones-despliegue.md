@@ -43,15 +43,16 @@ contenedores:
 
 A continuación se detalla el proceso de despliegue por defecto:
 
-1. Ubicar el archivo docker-compose.yml en la carpeta raiz del proyecto
-2. Abrir una linea de comandos a esta carpeta y correr el siguiente comando:  
+1. Copiar el proyecto de código en una carpeta determinada en el servidor.
+2. Ubicar el archivo docker-compose.yml en la carpeta raiz del proyecto.
+3. Abrir una linea de comandos a esta carpeta y correr el siguiente comando:  
    ``docker-compose up -d``
-3. Se creará una carpeta llamada /deploy en la carpeta raiz, ingresar
-4. Copiar el archivo de respaldo ``phishtrain.backup`` en la carpeta /deploy/backups
-5. Ejecutar el archivo ``restore-db-docker.bat`` si es Windows o ``restore-db-docker.sh``
+4. Se creará una carpeta llamada /deploy en la carpeta raiz, ingresar
+5. Copiar el archivo de respaldo ``phishtrain.backup`` en la carpeta /deploy/backups
+6. Ejecutar el archivo ``restore-db-docker.bat`` si es Windows o ``restore-db-docker.sh``
    si es Linux para restaurar la base de datos
-6. Descomprimir el archivo ``imagenes-ejercicios.zip`` en la carpeta /deploy/imagenes
-7. Acceder al servidor por un navegador por el puerto 8080, por ejemplo:  
+7. Descomprimir el archivo ``imagenes-ejercicios.zip`` en la carpeta /deploy/imagenes
+8. Acceder al servidor por un navegador por el puerto 8080, por ejemplo:  
    http://localhost:8080
 
 Si existen problemas con el despliegue, revisar los logs de los contenedores utilizando
@@ -61,6 +62,80 @@ Docker Desktop.
 Editando los parámetros del archivo docker-compose.yml se puede personalizar el
 despliegue, por ejemplo cambiar el puerto 8080 del servicio webapp al puerto 80
 para un entorno de producción.
+
+### Configuración inicial
+
+Por defecto, el sistema tiene una cuenta de super administrador con nombre de usuario 'admin' y 
+contraseña 'admin'. Se recomienda ingresar al sistema y cambiar la contraseña de este usuario
+desde el menú 'Mi Perfil' en la parte superior derecha o en el módulo de administración de usuarios
+en el menú lateral del lado izquierdo, opción 'Administración' > 'Usuarios'.
+
+### Respaldos
+
+Se recomienda crear un plan de respaldos automáticos tanto de la base de datos como de los
+archivos cargados (imágenes). Con la configuración por defecto, es posible simplemente copiar
+todo el contenido de la carpeta ``/deploy`` a otra ubicación de preferencia en otra máquina externa.
+
+Si se quiere automatizar cada imsumo por separado, se recomienda crear una tarea programada en el
+sistema operativo o con otra herramienta que permita automatizar el proceso.
+
+En el caso de Linux se puede usar el comando cron para correr las tareas de backup o el programador
+de tareas en el caso de Windows. A continuación, un ejemplo de los comandos para respaldar la
+base de datos y la carpeta de archivos:
+
+***Respaldo base de datos:***
+
+El siguiente comando crea un respaldo de la base de datos en la carpeta /backups mapeada en docker-compose.yml,
+el archivo resultante tiene en el nombre la fecha actual de sistema.
+
+``docker exec -it phishdb bash -c "pg_dump -U postgres --format custom --blobs
+--verbose --dbname phishtrain > /backups/phishdb-`date -I`.backup"``
+
+Este comando llama a la utilidad pg_dump dentro del contenedor postgresql.
+
+NOTA: El comando se ejecutó en la línea de comandos de Windows por lo que las comillas dobles
+para delimitar la sentencia interna son requeridas.
+
+***Respaldo archivos***
+
+Se recomienda utilizar alguna utilidad de compresión para respaldar los archivos de la carpeta
+/imagenes, por ejemplo en Linux se puede utilizar el comando zip. Dentro de la carpeta /deploy,
+ejecutar el siguiente comando:
+
+``zip -r phish-imagenes.zip ./imagenes``
+
+Se creará un archivo llamado phish-imagenes.zip con todas las imágenes subidas al sistema como
+respaldo de esta información.
+
+### Actualizaciones
+
+Cuando se realicen mantenimientos y mejoras en el sistema, se puede redesplegar en Docker utilizando
+el comando de reconstrucción de los servicios. Es muy recomendable sacar respaldos de la base de datos
+y de la carpeta ``/imagenes`` antes de realizar cualquier actualización como se detalló anteriormente.
+
+Si existen cambios en el código del sistema es necesario recompilar la aplicación y reconstruir
+el contenedor phishapp. Copie el nuevo código en el servidor antes de proceder con los comandos de
+actualización de Docker.
+
+Primero, se debe detener los servicios utilizando el comando
+
+``docker compose stop``
+
+Puede detener solo el servicio de la aplicación web utilizando:
+
+``docker compose stop webapp``
+
+Ejecutar el siguiente comando en la carpeta donde está el archivo docker-compose.yml:
+
+``docker compose build --no-cache``
+
+Para reconstruir solo la aplicación web, especificar el nombre del servicio como está 
+descrito en el archivo docker-compose.yml, por ejemplo:
+
+``docker compose build --no-cache webapp``
+
+Una vez se termine de actualizar la aplicación, se puede ejecutar los servicios normalmente 
+usando ``docker compose up -d`` o alguna interfaz de usuario para Docker.
 
 ### Recursos adicionales
 
@@ -73,3 +148,6 @@ para un entorno de producción.
 
 - Imagen Oficial PostgreSQL, opciones de configuración:
     - https://hub.docker.com/_/postgres
+
+- Respaldos de bases Postgresql en contenedores Docker:
+    - https://stackoverflow.com/questions/24718706/backup-restore-a-dockerized-postgresql-database
