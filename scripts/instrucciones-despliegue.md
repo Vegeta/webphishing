@@ -1,4 +1,6 @@
-## Despliegue de la aplicación
+# Sistema de Entrenamiento para Detección de Phishing.
+
+## Manual de Despliegue de la Aplicación
 
 El sistema requiere de la instalación de:
 
@@ -43,11 +45,14 @@ contenedores:
 
 A continuación se detalla el proceso de despliegue por defecto:
 
+**NOTA**: Si el host es Linux, compruebe los permisos de la carpeta creada por Docker para que pueda 
+copiar los archivos en los siguientes pasos, es posible que tenga que acceder como el usuario root.
+
 1. Copiar el proyecto de código en una carpeta determinada en el servidor.
 2. Ubicar el archivo docker-compose.yml en la carpeta raiz del proyecto.
 3. Abrir una linea de comandos a esta carpeta y correr el siguiente comando:  
    ``docker-compose up -d``
-4. Se creará una carpeta llamada /deploy en la carpeta raiz, ingresar
+4. Se creará una carpeta llamada /deploy en la carpeta raiz, ingresar a la misma
 5. Copiar el archivo de respaldo ``phishtrain.backup`` en la carpeta /deploy/backups
 6. Ejecutar el archivo ``restore-db-docker.bat`` si es Windows o ``restore-db-docker.sh``
    si es Linux para restaurar la base de datos
@@ -94,7 +99,7 @@ el archivo resultante tiene en el nombre la fecha actual de sistema.
 Este comando llama a la utilidad pg_dump dentro del contenedor postgresql.
 
 NOTA: El comando se ejecutó en la línea de comandos de Windows por lo que las comillas dobles
-para delimitar la sentencia interna son requeridas.
+para delimitar la sentencia interna son requeridas, también funciona en Linux de la misma forma.
 
 ***Respaldo archivos***
 
