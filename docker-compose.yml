@@ -10,7 +10,7 @@ services:
     image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=52H5rG$1Su-3
+      - POSTGRES_PASSWORD="52H5rG$1Su-3"
       - POSTGRES_DB=phishtrain
     # en produccion, se recomienda no exponer el puerto de postgres de forma externa
     ports:
@@ -31,7 +31,7 @@ services:
       - db
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__phishingDb=Host=db;Database=phishtrain;Username=postgres;Password=52H5rG$1Su-3
+      - ConnectionStrings__phishingDb="Host=db;Database=phishtrain;Username=postgres;Password=52H5rG$1Su-3"
     volumes:
       - ./deploy/imagenes:/app/wwwroot/ejercicios
 
