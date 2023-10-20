@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infraestructura", "Infraestructura\Infraestructura.csproj", "{6EF43613-4D86-4E3C-A5EC-58E855F7A6D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aplicacion", "Aplicacion\Aplicacion.csproj", "{3F768135-5798-4C3A-B15D-5401EE2963AE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Webapp", "Webapp\Webapp.csproj", "{D2BE23DE-8FEF-4E37-9F6C-B906332E890A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Probador", "Probador\Probador.csproj", "{23465055-F83F-4827-9260-C7D874E3040F}"
@@ -49,10 +47,6 @@ Global
 		{6EF43613-4D86-4E3C-A5EC-58E855F7A6D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EF43613-4D86-4E3C-A5EC-58E855F7A6D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EF43613-4D86-4E3C-A5EC-58E855F7A6D6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F768135-5798-4C3A-B15D-5401EE2963AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F768135-5798-4C3A-B15D-5401EE2963AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F768135-5798-4C3A-B15D-5401EE2963AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F768135-5798-4C3A-B15D-5401EE2963AE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D2BE23DE-8FEF-4E37-9F6C-B906332E890A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D2BE23DE-8FEF-4E37-9F6C-B906332E890A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2BE23DE-8FEF-4E37-9F6C-B906332E890A}.Release|Any CPU.ActiveCfg = Release|Any CPU

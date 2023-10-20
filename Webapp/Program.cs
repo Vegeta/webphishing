@@ -33,6 +33,14 @@ namespace Webapp {
 				options.Cookie.IsEssential = true;
 			});
 
+			// quitar el molesto log de consultas en produccion, solo de warning para a atras
+			// services.AddLogging(builder => { builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning); });
+			builder.Services.AddLogging(conf => {
+				var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "";
+				if (env.ToLower() == "production")
+					conf.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+			});
+
 			builder.Services.AddWebAppServices(builder.Configuration);
 
 			builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

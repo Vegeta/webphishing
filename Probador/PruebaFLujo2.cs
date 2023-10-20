@@ -1,10 +1,8 @@
-using Dapper;
 using Domain;
 using Domain.Entidades;
 using Infraestructura;
 using Infraestructura.Examenes;
 using Infraestructura.Persistencia;
-using Microsoft.EntityFrameworkCore;
 
 namespace Probador;
 

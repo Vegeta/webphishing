@@ -9,12 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Infraestructura;
 
 public static class ConfiguradorServicios {
-	public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration config) {
+	public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration? config) {
 		// https://github.com/skoruba/IdentityServer4.Admin/issues/963
 		AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 		AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
-		var connString = config.GetConnectionString(AppDbContext.ConnStringName);
+		var connString = config?.GetConnectionString(AppDbContext.ConnStringName);
 		services.AddDbContext<AppDbContext>(options => {
 			options.UseNpgsql(connString)
 				.UseSnakeCaseNamingConvention();
@@ -25,7 +25,7 @@ public static class ConfiguradorServicios {
 		return services;
 	}
 
-	public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration config) {
+	public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration? config) {
 		services.AddScoped<ExamenService>();
 		services.AddScoped<CatalogoGeneral>();
 		services.AddScoped<RegistroService>();

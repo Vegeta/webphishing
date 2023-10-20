@@ -43,12 +43,11 @@ public class ManagerExamen {
 				flujo.Score += paso.Score;
 			}
 		}
+		flujo.Inicio ??= DateTime.Now; // check inicio
 
 		var asignador = GetAsignador(config);
 		asignador.ResolverPreguntas(flujo);
 		CheckCuestionario(flujo);
-
-		flujo.Inicio ??= DateTime.Now; // check inicio
 
 		//if (flujo.IndicePaso + 1 < flujo.Pasos.Count)
 		flujo.IndicePaso++;
@@ -57,26 +56,26 @@ public class ManagerExamen {
 
 	public void CheckCuestionario(FlujoExamenDto flujo) {
 		var pos = flujo.CuestionarioPos;
-		if (pos == null)
+		if (pos is null or 0)
 			return;
-		var check = flujo.Pasos.FirstOrDefault(x => x.Accion == "cuestionario");
-		if (check != null)
-			return;
-		// el indice del cuestionario es 1 -based
-		pos--;
-		if (pos < 0)
+
+		if (flujo.Pasos.Any(x => x.Accion == "cuestionario"))
 			return;
 		var idCues = SeleccionarCuestionario();
 		if (idCues == 0)
 			return;
+
 		var item = new PasoExamen {
 			Accion = "cuestionario",
 			EntidadId = idCues,
 		};
-		var cuenta = flujo.Pasos.Count;
-		if (pos < cuenta)
-			flujo.Pasos.Insert(pos.Value, item);
-		if (pos == cuenta + 1)
+
+
+		if (pos <= flujo.Pasos.Count)
+			flujo.Pasos.Insert(pos.Value - 1, item);
+
+		// esto es para el caso que este el final y justo al final
+		if (pos == flujo.NumPreguntas + 1 && flujo.Pasos.Count == flujo.NumPreguntas)
 			flujo.Pasos.Add(item);
 	}
 
