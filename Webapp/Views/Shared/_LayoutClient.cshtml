@@ -18,9 +18,9 @@
 
 	<!-- Vendor CSS Files -->
 	<link href="~/lib/aos/aos.css" rel="stylesheet">
-	<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-	<link href="~/lib/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
-	<link href="~/lib/boxicons/css/boxicons.min.css" rel="stylesheet" />
+	<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="~/lib/bootstrap-icons/bootstrap-icons.css" rel="stylesheet"/>
+	<link href="~/lib/boxicons/css/boxicons.min.css" rel="stylesheet"/>
 	<link href="~/lib/glightbox/css/glightbox.min.css" rel="stylesheet">
 	<link href="~/lib/remixicon/remixicon.css" rel="stylesheet">
 	<link href="~/lib/swiper/swiper-bundle.min.css" rel="stylesheet">
@@ -46,14 +46,20 @@
 	<header id="header" class="fixed-top @ViewBag.claseHeader">
 		<div class="container d-flex align-items-center">
 
-			<h1 class="logo me-auto"><a href="@Url.Content("~/")">Phishing Detection</a></h1>
+			<h1 class="logo me-auto">
+				<a href="@Url.Content("~/")">Phishing Detection</a>
+			</h1>
 			<!-- Uncomment below if you prefer to use an image logo -->
 			<!-- <a href="index.html" class="logo me-auto"><img src="~/img/client/logo.png" alt="" class="img-fluid"></a>-->
 
 			<nav id="navbar" class="navbar">
 				<ul>
-					<li><a class="nav-link scrollto active" href="#hero">Inicio</a></li>
-					<li><a class="nav-link scrollto" href="#about">Acerca de</a></li>
+					<li>
+						<a class="nav-link scrollto active" href="#hero">Inicio</a>
+					</li>
+					<li>
+						<a class="nav-link scrollto" href="#faq">Acerca de</a>
+					</li>
 					@*<li><a class="nav-link scrollto" href="#services">Services</a></li>
 						<li><a class="nav-link scrollto" href="#portfolio">Portfolio</a></li>*@
 					@*<li><a class="nav-link scrollto" href="#team">Team</a></li>
@@ -76,13 +82,19 @@
 								<li><a href="#">Drop Down 4</a></li>
 							</ul>
 						</li>*@
-					<li><a class="nav-link scrollto" href="#contact">Contacto</a></li>
+					<li>
+						<a class="nav-link scrollto" href="#contact">Contacto</a>
+					</li>
 					@*<li><a class="nav-link" href="@Url.Content("~/Manage")" target="_blank">Ingreso</a></li>*@
-					<li><a class="nav-link" href="@Url.Content("~/Ingreso")">Ingreso</a></li>
+					<li>
+						<a class="nav-link" href="@Url.Content("~/Ingreso")">Ingreso</a>
+					</li>
 
 
 					@*<li><a class="getstarted scrollto" href="#about">Empezar</a></li>*@
-					<li><a class="getstarted" href="@Url.Content("~/Evaluacion")">Empezar</a></li>
+					<li>
+						<a class="getstarted" href="@Url.Content("~/Evaluacion")">Empezar</a>
+					</li>
 				</ul>
 				<i class="bi bi-list mobile-nav-toggle"></i>
 			</nav><!-- .navbar -->
@@ -104,19 +116,25 @@
 					<div class="col-lg-4 col-md-4 footer-contact">
 						<h3 style="font-size: 15pt">Phishing Detection</h3>
 						<p>
-							Desarrollado por: <br/>
-							Manuel Gómez Placencia <br />
+							Desarrollado por: Manuel Gómez Placencia <br/>
 
-							<a href='mailto&#58;m&#97;n&#111;%6C%6F&#37;67&#111;m%65zp%40&#37;67mai&#108;&#46;com'>manolo&#103;&#111;mez&#112;&#64;g&#109;ail&#46;com</a>
+							@* <a href='mailto&#58;m&#97;n&#111;%6C%6F&#37;67&#111;m%65zp%40&#37;67mai&#108;&#46;com'>manolo&#103;&#111;mez&#112;&#64;g&#109;ail&#46;com</a> *@
 
 						</p>
+
+
+						<p>
+							Idea original: <br>
+							Dario Ismael Valarezo Bracho y Diana Anabel Arévalo Briceño
+						</p>
+
 					</div>
 
 					<div class="col-lg-4 col-md-4 footer-contact">
-						<h4>Idea Original</h4>
+						@* <h4>Política de Privacidad</h4> *@
 						<p>
-							Dario Ismael Valarezo Bracho <br/>
-							Diana Anabel Arévalo Briceño
+							<a href="@Url.Content("~/Home/Privacy")" style="display: inline; padding: 0">Política de Privacidad </a>
+
 						</p>
 					</div>
 
@@ -129,12 +147,17 @@
 					@* </div> *@
 
 					<div class="col-lg-4 col-md-4 footer-links">
-						<h4>Grupo de Investigación</h4>
-						<p>Universidad Politécnica Salesiana</p>
-						<div class="social-links mt-3">
-							<a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
-							<a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+						<h4>Investigación en Seguridad Cognitiva</h4>
+						<p>Universidad Politécnica Salesiana del Ecuador</p>
 
+
+						<div class="social-links mt-3">
+							<a href="https://twitter.com/upsalesianaec" class="twitter" target="_blank">
+								<i class="bx bxl-twitter"></i>
+							</a>
+							<a href="https://www.facebook.com/UPSalesianaEc" class="facebook" target="_blank">
+								<i class="bx bxl-facebook"></i>
+							</a>
 						</div>
 					</div>
 
@@ -144,7 +167,10 @@
 
 		<div class="container footer-bottom clearfix">
 			<div class="copyright">
-				&copy; Copyright <strong><span>2023</span></strong>. Derechos Reservados
+				&copy; Copyright
+				<strong>
+					<span>2023</span>
+				</strong>. Derechos Reservados
 			</div>
 			<div class="credits">
 				<!-- All the links in the footer should remain intact. -->

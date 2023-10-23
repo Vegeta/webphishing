@@ -38,7 +38,7 @@ public class EvaluacionesController : BaseAdminController {
 
 	public IActionResult Index() {
 		var vm = new PantallaManageVm {
-			Meses = OpcionesConfig.MesesWeb()
+			Meses = OpcionesConfig.MesesWeb(" ")
 		};
 		var mapaActividad = new CatalogoGeneral(_db).Carreras()
 			.ToDictionary(keySelector: m => m, elementSelector: m => m);

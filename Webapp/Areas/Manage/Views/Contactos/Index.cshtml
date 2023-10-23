@@ -1,0 +1,160 @@
+﻿@model Webapp.Areas.Manage.Controllers.ContactoFiltroVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="row" id="app">
+	<div class="col-sm-12">
+
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title">Filtros</h5>
+
+				<form id="formFiltros" method="post" class="smallForm">
+					<div class="row">
+						<div class="col-sm-4">
+
+							<div class="row mb-3">
+								<label for="" class="col-sm-2 col-form-label col-form-label-sm">Nivel</label>
+								<div class="col-sm-10">
+									<select asp-items="Model.Meses" v-model="filtros.mes" name="nivel"
+									        class="form-select form-control-sm">
+									</select>
+								</div>
+							</div>
+
+							<div class="row mb-3">
+								<label class="col-sm-2 col-form-label col-form-label-sm">Anio</label>
+								<div class="col-sm-10">
+									<input type="text" class="form-control form-control-sm integer" name="anio" v-model="filtros.anio" maxlength="4">
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							
+							<div class="row mb-3">
+								<label class="col-sm-2 col-form-label col-form-label-sm">Email</label>
+								<div class="col-sm-10">
+									<input type="text" class="form-control form-control-sm" name="email" v-model="filtros.email">
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+					<div>
+						<button type="submit" class="btn btn-primary btn-sm">
+							<i class="bi bi-search"></i>
+							Filtrar
+						</button>
+
+					</div>
+				</form>
+			</div>
+
+
+			<div class="card">
+				<div class="card-body">
+
+					<div class="mt-3">
+						<table class="display minitabla" id="tlista" style="width:100%">
+							<thead>
+								<tr>
+									<th>Fecha</th>
+									<th>Nombre</th>
+									<th>Email</th>
+									<th>Titulo</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+@section Scripts {
+	@await Html.PartialAsync("_Datatables")
+	@await Html.PartialAsync("_Validation")
+
+	<script>
+		Vue.createApp({
+			data() {
+				return {
+					baseUrl:'@ViewBag.self',
+					filtros:{
+						anio: null,
+						mes: null,
+						email: null,
+					},
+					lista:[]
+				}
+			},
+			methods: {
+				filtrar() {
+					$('#tlista').DataTable().ajax.reload();
+				}
+			},
+			mounted() {
+				var self = this;
+				var tabla = $('#tlista').DataTable({
+					language: {
+						url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-AR.json',
+					},
+					columns: [
+						{
+							data: 'fecha',
+							render: function (data, type, row) {
+								let url = self.baseUrl + '/detalle/' + row.id;
+								return `<a href="${url}">${row.fecha}</a>`
+							},
+							orderable: false
+						},
+						{ data: 'nombre', orderable: false },
+						{ data: 'email', orderable: false },
+						{ data: 'titulo', orderable: false },
+					],
+					order: [],
+					searching: false,
+
+					processing: true,
+                    serverSide: true,
+
+					ajax: {
+						url: self.baseUrl +'/lista',
+						type: 'POST',
+                        async: true,
+						data: function (d) {
+							if (d.start == 0) {
+								d.page = 1
+							} else {
+								d.page = (d.start / d.length) + 1
+							}
+							d.jsonFiltros = JSON.stringify(self.filtros);
+
+							if (d.order.length > 0) {
+								d.order.forEach(e => {
+									e.campo = d.columns[e.column].data
+								});
+							}
+
+						},
+					},
+				});
+
+				$('.integer').numeric("positiveInteger");
+				$('#formFiltros').validate({
+					submitHandler() {
+						self.filtrar()
+						return false
+					}
+				})
+
+			}
+		}).mount('#app')
+
+	</script>
+}

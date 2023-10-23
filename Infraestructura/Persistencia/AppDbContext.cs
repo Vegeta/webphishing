@@ -31,6 +31,7 @@ public partial class AppDbContext : DbContext {
 		: base(options) {
 	}
 
+	public virtual DbSet<Contacto> Contacto { get; set; } = default!;
 	public virtual DbSet<Auditoria> Auditoria { get; set; } = default!;
 
 	public virtual DbSet<Cuestionario> Cuestionario { get; set; } = default!;
@@ -62,7 +63,6 @@ public partial class AppDbContext : DbContext {
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.HasDbFunction(() => AppDbContext.JsonArrayLength(default!));
-
 
 		modelBuilder.Entity<Auditoria>(entity => {
 			entity.HasKey(e => e.Id).HasName("log_evento_pkey");

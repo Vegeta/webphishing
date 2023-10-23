@@ -51,6 +51,13 @@ namespace Webapp {
 				.AddRazorRuntimeCompilation()
 				.AddSessionStateTempDataProvider();
 
+			builder.Services.AddAntiforgery(options => {
+				// Set Cookie properties using CookieBuilder properties†.
+				options.FormFieldName = "forgeryField";
+				options.HeaderName = "X-CSRF-TOKEN-HEADERNAME";
+				options.SuppressXFrameOptionsHeader = false;
+			});
+
 			services.AddTransient<IImagenesWeb, ImagenesWeb>(opt => {
 				var env = opt.GetRequiredService<IWebHostEnvironment>();
 				var path = Path.Combine(env.WebRootPath, "ejercicios");

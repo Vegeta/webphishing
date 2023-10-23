@@ -10,5 +10,7 @@ namespace Infraestructura.Servicios {
 		public SessionInfo CurrentUser();
 		public string? CurrentUsername();
 		public int UserId();
+
+		public string? IpAddress();
 	}
 }

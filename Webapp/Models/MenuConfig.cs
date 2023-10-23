@@ -109,6 +109,10 @@ namespace Webapp.Models {
 					new MenuItem {
 						Name = "Personas",
 						Link = "~/manage/Personas"
+					},
+					new MenuItem {
+						Name = "Contactos",
+						Link = "~/manage/Contactos"
 					}
 				),
 				new MenuItem {

@@ -6,6 +6,7 @@ namespace Webapp.Web;
 
 public class SessionUserAccesor : IUserAccesor {
 	private readonly IHttpContextAccessor _accesor;
+
 	public SessionUserAccesor(IHttpContextAccessor accesor) {
 		this._accesor = accesor;
 	}
@@ -29,4 +30,7 @@ public class SessionUserAccesor : IUserAccesor {
 		return info?.Id ?? 0;
 	}
 
+	public string? IpAddress() {
+		return _accesor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+	}
 }

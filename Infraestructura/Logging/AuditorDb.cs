@@ -27,7 +27,8 @@ public class AuditorDb<T> : IAuditor<T> {
 			Modulo = fixMod,
 			Nivel = nivel,
 			Usuario = user,
-			Datos = data == null ? null : JSON.Stringify(data)
+			Datos = data == null ? null : JSON.Stringify(data),
+			Ipaddress = _users.IpAddress()
 		};
 		// tx?
 		_db.Auditoria.Add(log);
